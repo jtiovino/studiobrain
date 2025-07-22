@@ -358,14 +358,14 @@ export default function StudioBrain() {
         {/* Lesson Mode Toggle - Fixed Position */}
         <div className="fixed top-6 right-6 z-50">
           <div className="flex items-center gap-2 p-2 bg-neutral-900/90 backdrop-blur-sm rounded-lg border border-neutral-700 shadow-lg">
-            <Lightbulb className={`w-4 h-4 ${lessonMode ? 'text-yellow-400' : 'text-gray-500'}`} />
+            <Lightbulb className={`w-4 h-4 ${lessonMode ? 'text-sky-400' : 'text-gray-500'}`} />
             <Switch
               id="lesson-mode"
               checked={lessonMode}
               onCheckedChange={setLessonMode}
             />
-            <span className="text-xs text-gray-400">
-              {lessonMode ? 'Detailed' : 'Quick'}
+            <span className="text-xs text-gray-400 min-w-[40px] text-center">
+              {lessonMode ? 'Lesson' : 'Quick'}
             </span>
           </div>
         </div>
@@ -375,9 +375,8 @@ export default function StudioBrain() {
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="relative">
               <Music className="w-8 h-8 text-primary" />
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full animate-pulse" />
             </div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-sky-400 bg-clip-text text-transparent">
               StudioBrain
             </h1>
           </div>
@@ -429,7 +428,11 @@ export default function StudioBrain() {
                 <Button 
                   onClick={handleGeneralQuestion} 
                   disabled={generalLoading || !generalQuestion.trim()}
-                  className="w-full bg-primary hover:bg-primary/90 disabled:opacity-50"
+                  className={`w-full disabled:opacity-50 ${
+                    lessonMode 
+                      ? 'bg-sky-400 hover:bg-sky-500 border-sky-300' 
+                      : 'bg-primary hover:bg-primary/90'
+                  }`}
                 >
                   {generalLoading ? (
                     <>
@@ -474,7 +477,11 @@ export default function StudioBrain() {
                 <Button 
                   onClick={handleMixQuestion} 
                   disabled={mixLoading || !mixQuestion.trim()}
-                  className="w-full bg-primary hover:bg-primary/90 disabled:opacity-50"
+                  className={`w-full disabled:opacity-50 ${
+                    lessonMode 
+                      ? 'bg-sky-400 hover:bg-sky-500 border-sky-300' 
+                      : 'bg-primary hover:bg-primary/90'
+                  }`}
                 >
                   {mixLoading ? (
                     <>
@@ -794,7 +801,11 @@ export default function StudioBrain() {
                   <Button 
                     onClick={handleTheoryQuestion} 
                     disabled={theoryLoading || !theoryQuestion.trim()}
-                    className="w-full bg-primary hover:bg-primary/90 disabled:opacity-50"
+                    className={`w-full disabled:opacity-50 ${
+                      lessonMode 
+                        ? 'bg-sky-400 hover:bg-sky-500 border-sky-300' 
+                        : 'bg-primary hover:bg-primary/90'
+                    }`}
                   >
                     {theoryLoading ? (
                       <>
@@ -963,7 +974,11 @@ export default function StudioBrain() {
                       <Button 
                         onClick={handleInstrumentQuestion} 
                         disabled={instrumentLoading || !instrumentQuestion.trim()}
-                        className="w-full bg-primary hover:bg-primary/90 disabled:opacity-50"
+                        className={`w-full disabled:opacity-50 ${
+                          lessonMode 
+                            ? 'bg-sky-400 hover:bg-sky-500 border-sky-300' 
+                            : 'bg-primary hover:bg-primary/90'
+                        }`}
                       >
                         {instrumentLoading ? (
                           <>
