@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudioBrain - Standalone</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: 'hsl(330, 60%, 70%)',
+                        'primary-foreground': 'hsl(0, 0%, 98%)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
+        .card { background: #1e293b; border: 1px solid #374151; border-radius: 8px; }
+        .btn { background: hsl(330, 60%, 70%); color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; }
+        .btn:hover { background: hsl(330, 60%, 60%); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .textarea { background: #374151; border: 1px solid #4b5563; color: white; padding: 12px; border-radius: 6px; width: 100%; min-height: 100px; resize: vertical; }
+        .answer-box { background: linear-gradient(to right, rgba(219, 39, 119, 0.1), rgba(225, 29, 72, 0.1)); border: 1px solid hsl(330, 60%, 70%, 0.3); padding: 16px; border-radius: 8px; margin-top: 16px; }
+        .tab-btn { padding: 12px 24px; background: #374151; border: none; color: white; cursor: pointer; border-radius: 6px 6px 0 0; margin-right: 4px; }
+        .tab-btn.active { background: #1e293b; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .loading { display: inline-flex; align-items: center; }
+        .spinner { width: 16px; height: 16px; border: 2px solid #374151; border-top: 2px solid white; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="p-6">
+    <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold mb-2" style="color: hsl(330, 60%, 70%)">StudioBrain</h1>
+            <p class="text-gray-400">Your intelligent music production assistant</p>
+            <div class="mt-4 text-sm text-yellow-400">
+                ⚠️ Standalone Version - OpenAI integration ready for server deployment
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <button class="tab-btn active" onclick="showTab('general')">General</button>
+            <button class="tab-btn" onclick="showTab('mix')">Mix</button>
+            <button class="tab-btn" onclick="showTab('theory')">Theory</button>
+            <button class="tab-btn" onclick="showTab('instrument')">Instrument</button>
+        </div>
+
+        <div id="general" class="tab-content active">
+            <div class="card p-6">
+                <h2 class="text-xl font-semibold mb-4">Ask StudioBrain - General</h2>
+                <textarea id="general-input" class="textarea" placeholder="Ask about music theory, production techniques, mixing tips, or anything music-related..."></textarea>
+                <button class="btn mt-4" onclick="askQuestion('general')">Ask StudioBrain</button>
+                <div id="general-answer" class="answer-box" style="display: none;">
+                    <h4 class="font-semibold mb-2" style="color: hsl(330, 60%, 70%)">StudioBrain's Answer:</h4>
+                    <div id="general-response"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="mix" class="tab-content">
+            <div class="card p-6">
+                <h2 class="text-xl font-semibold mb-4">Ask StudioBrain - Mixing</h2>
+                <textarea id="mix-input" class="textarea" placeholder="Ask about EQ curves, compression settings, plugin chains, or mixing techniques..."></textarea>
+                <button class="btn mt-4" onclick="askQuestion('mix')">Ask StudioBrain</button>
+                <div id="mix-answer" class="answer-box" style="display: none;">
+                    <h4 class="font-semibold mb-2" style="color: hsl(330, 60%, 70%)">StudioBrain's Answer:</h4>
+                    <div id="mix-response"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="theory" class="tab-content">
+            <div class="card p-6">
+                <h2 class="text-xl font-semibold mb-4">Ask StudioBrain - Theory</h2>
+                <textarea id="theory-input" class="textarea" placeholder="Ask about chord progressions, scales, modes, harmony, or music theory concepts..."></textarea>
+                <button class="btn mt-4" onclick="askQuestion('theory')">Ask StudioBrain</button>
+                <div id="theory-answer" class="answer-box" style="display: none;">
+                    <h4 class="font-semibold mb-2" style="color: hsl(330, 60%, 70%)">StudioBrain's Answer:</h4>
+                    <div id="theory-response"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="instrument" class="tab-content">
+            <div class="card p-6">
+                <h2 class="text-xl font-semibold mb-4">Ask StudioBrain - Instruments</h2>
+                <textarea id="instrument-input" class="textarea" placeholder="Ask about guitar, piano, bass, drums techniques, gear recommendations, or playing tips..."></textarea>
+                <button class="btn mt-4" onclick="askQuestion('instrument')">Ask StudioBrain</button>
+                <div id="instrument-answer" class="answer-box" style="display: none;">
+                    <h4 class="font-semibold mb-2" style="color: hsl(330, 60%, 70%)">StudioBrain's Answer:</h4>
+                    <div id="instrument-response"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function askQuestion(type) {
+            const input = document.getElementById(type + '-input');
+            const answerBox = document.getElementById(type + '-answer');
+            const response = document.getElementById(type + '-response');
+            const button = event.target;
+            
+            if (!input.value.trim()) return;
+            
+            // Show loading
+            button.innerHTML = '<div class="loading"><div class="spinner"></div>Thinking...</div>';
+            button.disabled = true;
+            answerBox.style.display = 'none';
+            
+            // Simulate response (in real version this would call OpenAI API)
+            setTimeout(() => {
+                let mockResponse = '';
+                switch(type) {
+                    case 'general':
+                        mockResponse = `Great question about "${input.value}"! This standalone version demonstrates the StudioBrain interface. The full version with OpenAI integration is ready - it just needs to be deployed to a proper web server where your API key can securely provide intelligent, context-aware music production advice.`;
+                        break;
+                    case 'mix':
+                        mockResponse = `For mixing "${input.value}": This is a demo response. The full OpenAI-powered version would provide detailed mixing advice, EQ recommendations, compression settings, and professional techniques tailored to your specific question.`;
+                        break;
+                    case 'theory':
+                        mockResponse = `Regarding the theory question "${input.value}": This demo shows the interface. The complete version with OpenAI would explain chord progressions, scales, harmonic relationships, and theoretical concepts in detail.`;
+                        break;
+                    case 'instrument':
+                        mockResponse = `About "${input.value}": This is the interface demo. The full OpenAI integration would provide instrument-specific advice, technique tips, gear recommendations, and playing guidance.`;
+                        break;
+                }
+                
+                response.innerHTML = mockResponse;
+                answerBox.style.display = 'block';
+                button.innerHTML = 'Ask StudioBrain';
+                button.disabled = false;
+            }, 1500);
+        }
+
+        // Enter key support
+        document.querySelectorAll('.textarea').forEach(textarea => {
+            textarea.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    const type = this.id.replace('-input', '');
+                    askQuestion(type);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
