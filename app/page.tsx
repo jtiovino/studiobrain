@@ -486,7 +486,7 @@ export default function StudioBrain() {
         <div className="mb-8 text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="relative">
-              <Music className="w-8 h-8 text-primary" />
+              <Music className={`w-8 h-8 ${lessonMode ? 'text-sky-400' : 'text-primary'}`} />
             </div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-sky-400 bg-clip-text text-transparent">
               StudioBrain
@@ -497,20 +497,20 @@ export default function StudioBrain() {
 
         {/* Main Interface */}
         <Tabs defaultValue="general" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-neutral-900 border-neutral-800">
-            <TabsTrigger value="general" className="data-[state=active]:bg-neutral-800">
+          <TabsList className={`grid w-full grid-cols-4 bg-neutral-900 border-neutral-800 ${lessonMode ? '[&>[data-state=active]]:bg-sky-900 [&>[data-state=active]]:text-sky-200' : ''}`}>
+            <TabsTrigger value="general" className={lessonMode ? 'text-sky-400 data-[state=active]:bg-sky-900 data-[state=active]:text-sky-200 hover:bg-sky-800/50 hover:text-sky-300' : 'data-[state=active]:bg-neutral-800'}>
               <Lightbulb className="w-4 h-4 mr-2" />
               General
             </TabsTrigger>
-            <TabsTrigger value="mix" className="data-[state=active]:bg-neutral-800">
+            <TabsTrigger value="mix" className={lessonMode ? 'text-sky-400 data-[state=active]:bg-sky-900 data-[state=active]:text-sky-200 hover:bg-sky-800/50 hover:text-sky-300' : 'data-[state=active]:bg-neutral-800'}>
               <Volume2 className="w-4 h-4 mr-2" />
               Mix
             </TabsTrigger>
-            <TabsTrigger value="theory" className="data-[state=active]:bg-neutral-800">
+            <TabsTrigger value="theory" className={lessonMode ? 'text-sky-400 data-[state=active]:bg-sky-900 data-[state=active]:text-sky-200 hover:bg-sky-800/50 hover:text-sky-300' : 'data-[state=active]:bg-neutral-800'}>
               <Music className="w-4 h-4 mr-2" />
               Theory
             </TabsTrigger>
-            <TabsTrigger value="instrument" className="data-[state=active]:bg-neutral-800">
+            <TabsTrigger value="instrument" className={lessonMode ? 'text-sky-400 data-[state=active]:bg-sky-900 data-[state=active]:text-sky-200 hover:bg-sky-800/50 hover:text-sky-300' : 'data-[state=active]:bg-neutral-800'}>
               <Guitar className="w-4 h-4 mr-2" />
               Instrument
             </TabsTrigger>
@@ -632,13 +632,13 @@ export default function StudioBrain() {
                                  }, 150))
                                }
                              }}>
-                          <div className="flex-shrink-0 w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm animate-pulse">
+                          <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm animate-pulse ${lessonMode ? 'bg-sky-400' : 'bg-primary'}`}>
                             {index + 1}
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
                               <span className="font-medium text-white">{plugin.name}</span>
-                              <Badge variant="outline" className="text-xs bg-gray-700 text-gray-300 hover:bg-primary hover:text-white transition-colors">
+                              <Badge variant="outline" className={`text-xs bg-gray-700 text-gray-300 transition-colors ${lessonMode ? 'hover:bg-sky-400 hover:text-white' : 'hover:bg-primary hover:text-white'}`}>
                                 {plugin.type}
                               </Badge>
                             </div>
@@ -664,43 +664,43 @@ export default function StudioBrain() {
           <TabsContent value="theory" className="mt-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Chord & Mode Explorer */}
-              <Card className={`bg-neutral-900 border-neutral-800 transition-all duration-300 ${scaleChangeAnimation ? 'ring-2 ring-primary/50 shadow-lg shadow-primary/20' : ''}`}>
+              <Card className={`bg-neutral-900 border-neutral-800 transition-all duration-300 ${scaleChangeAnimation ? lessonMode ? 'ring-2 ring-sky-400/50 shadow-lg shadow-sky-400/20' : 'ring-2 ring-primary/50 shadow-lg shadow-primary/20' : ''}`}>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Music className="w-5 h-5" />
+                  <CardTitle className={`flex items-center gap-2 ${lessonMode ? 'text-sky-400' : ''}`}>
+                    <Music className={`w-5 h-5 ${lessonMode ? 'text-sky-400' : ''}`} />
                     Chord & Mode Explorer
                   </CardTitle>
-                  <CardDescription>Explore scales, modes, and chord progressions interactively</CardDescription>
+                  <CardDescription className={lessonMode ? 'text-sky-300' : ''}>Explore scales, modes, and chord progressions interactively</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="root-select">Root Note</Label>
+                      <Label htmlFor="root-select" className={lessonMode ? 'text-sky-300' : ''}>Root Note</Label>
                       <Select value={selectedChord} onValueChange={(value) => handleScaleChange(value, selectedMode)}>
-                        <SelectTrigger id="root-select" className="bg-neutral-800 border-neutral-700">
+                        <SelectTrigger id="root-select" className={`bg-neutral-800 border-neutral-700 ${lessonMode ? 'focus:border-sky-400 data-[state=open]:border-sky-400' : ''}`}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="bg-neutral-800 border-neutral-700">
                           {["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"].map(note => (
-                            <SelectItem key={note} value={note}>{note}</SelectItem>
+                            <SelectItem key={note} value={note} className={lessonMode ? 'focus:bg-sky-400 focus:text-white data-[highlighted]:bg-sky-400 data-[highlighted]:text-white' : ''}>{note}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="mode-select">Mode</Label>
+                      <Label htmlFor="mode-select" className={lessonMode ? 'text-sky-300' : ''}>Mode</Label>
                       <Select value={selectedMode} onValueChange={(value) => handleScaleChange(selectedChord, value)}>
-                        <SelectTrigger id="mode-select" className="bg-neutral-800 border-neutral-700">
+                        <SelectTrigger id="mode-select" className={`bg-neutral-800 border-neutral-700 ${lessonMode ? 'focus:border-sky-400 data-[state=open]:border-sky-400' : ''}`}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="bg-neutral-800 border-neutral-700">
-                          <SelectItem value="major">Major (Ionian)</SelectItem>
-                          <SelectItem value="minor">Minor (Aeolian)</SelectItem>
-                          <SelectItem value="dorian">Dorian</SelectItem>
-                          <SelectItem value="phrygian">Phrygian</SelectItem>
-                          <SelectItem value="lydian">Lydian</SelectItem>
-                          <SelectItem value="mixolydian">Mixolydian</SelectItem>
-                          <SelectItem value="locrian">Locrian</SelectItem>
+                          <SelectItem value="major" className={lessonMode ? 'focus:bg-sky-400 focus:text-white data-[highlighted]:bg-sky-400 data-[highlighted]:text-white' : ''}>Major (Ionian)</SelectItem>
+                          <SelectItem value="minor" className={lessonMode ? 'focus:bg-sky-400 focus:text-white data-[highlighted]:bg-sky-400 data-[highlighted]:text-white' : ''}>Minor (Aeolian)</SelectItem>
+                          <SelectItem value="dorian" className={lessonMode ? 'focus:bg-sky-400 focus:text-white data-[highlighted]:bg-sky-400 data-[highlighted]:text-white' : ''}>Dorian</SelectItem>
+                          <SelectItem value="phrygian" className={lessonMode ? 'focus:bg-sky-400 focus:text-white data-[highlighted]:bg-sky-400 data-[highlighted]:text-white' : ''}>Phrygian</SelectItem>
+                          <SelectItem value="lydian" className={lessonMode ? 'focus:bg-sky-400 focus:text-white data-[highlighted]:bg-sky-400 data-[highlighted]:text-white' : ''}>Lydian</SelectItem>
+                          <SelectItem value="mixolydian" className={lessonMode ? 'focus:bg-sky-400 focus:text-white data-[highlighted]:bg-sky-400 data-[highlighted]:text-white' : ''}>Mixolydian</SelectItem>
+                          <SelectItem value="locrian" className={lessonMode ? 'focus:bg-sky-400 focus:text-white data-[highlighted]:bg-sky-400 data-[highlighted]:text-white' : ''}>Locrian</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -708,14 +708,16 @@ export default function StudioBrain() {
 
                   {/* Generated Chords */}
                   <div>
-                    <h4 className="font-medium mb-3 text-primary">{selectedChord} {selectedMode} - Modal Chords</h4>
+                    <h4 className={`font-medium mb-3 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>{selectedChord} {selectedMode} - Modal Chords</h4>
                     <div className="flex flex-wrap gap-2">
                       {generateChords().map((chord, index) => (
                         <Badge
                           key={index}
                           variant="outline"
-                          className={`border-primary text-primary hover:bg-primary hover:text-primary-foreground cursor-pointer transition-colors ${
-                            activeChord === chord ? 'bg-primary text-primary-foreground' : ''
+                          className={`cursor-pointer transition-colors ${
+                            lessonMode 
+                              ? `border-sky-400 text-sky-400 hover:bg-sky-400 hover:text-white ${activeChord === chord ? 'bg-sky-400 text-white' : ''}` 
+                              : `border-primary text-primary hover:bg-primary hover:text-primary-foreground ${activeChord === chord ? 'bg-primary text-primary-foreground' : ''}`
                           }`}
                           onClick={() => setActiveChord(chord === activeChord ? null : chord)}
                         >
@@ -725,7 +727,7 @@ export default function StudioBrain() {
                     </div>
                     {activeChord && (
                       <div className="mt-3 p-3 bg-neutral-800 rounded-lg">
-                        <h4 className="font-medium text-primary mb-1">Selected: {activeChord}</h4>
+                        <h4 className={`font-medium mb-1 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>Selected: {activeChord}</h4>
                         <p className="text-sm text-gray-400">
                           {activeChord.includes('m') && !activeChord.includes('dim') 
                             ? 'Minor chord - melancholic, introspective sound'
@@ -740,16 +742,16 @@ export default function StudioBrain() {
               </Card>
 
               {/* Guitar Fretboard/Piano Visualization */}
-              <Card className={`bg-neutral-900 border-neutral-800 transition-all duration-300 ${scaleChangeAnimation || tuningChangeAnimation || flipAnimation ? 'ring-2 ring-primary/50 shadow-lg shadow-primary/20' : ''}`}>
+              <Card className={`bg-neutral-900 border-neutral-800 transition-all duration-300 ${scaleChangeAnimation || tuningChangeAnimation || flipAnimation ? lessonMode ? 'ring-2 ring-sky-400/50 shadow-lg shadow-sky-400/20' : 'ring-2 ring-primary/50 shadow-lg shadow-primary/20' : ''}`}>
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle className="flex items-center gap-2">
-                        {visualizerView === 'guitar' ? <Guitar className="w-5 h-5" /> : <Piano className="w-5 h-5" />}
+                      <CardTitle className={`flex items-center gap-2 ${lessonMode ? 'text-sky-400' : ''}`}>
+                        {visualizerView === 'guitar' ? <Guitar className={`w-5 h-5 ${lessonMode ? 'text-sky-400' : ''}`} /> : <Piano className={`w-5 h-5 ${lessonMode ? 'text-sky-400' : ''}`} />}
                         {visualizerView === 'guitar' ? 'Guitar Fretboard' : 'Piano Keyboard'}
                       </CardTitle>
-                      <CardDescription>
-                        {selectedChord} {selectedMode} scale visualization {visualizerView === 'guitar' ? `- ${currentTuning.name}` : '- 2 Octaves (C3-B4)'} - Root notes in pink, scale tones in purple
+                      <CardDescription className={lessonMode ? 'text-sky-300' : ''}>
+                        {selectedChord} {selectedMode} scale visualization {visualizerView === 'guitar' ? `- ${currentTuning.name}` : '- 2 Octaves (C3-B4)'} - Root notes in {lessonMode ? 'cyan, scale tones in blue' : 'pink, scale tones in purple'}
                       </CardDescription>
                     </div>
                     <div className="flex items-center gap-2">
@@ -757,7 +759,7 @@ export default function StudioBrain() {
                         variant={visualizerView === 'guitar' ? 'default' : 'outline'}
                         size="sm"
                         onClick={() => setVisualizerView('guitar')}
-                        className="h-8 text-xs"
+                        className={`h-8 text-xs ${lessonMode ? (visualizerView === 'guitar' ? 'bg-sky-400 hover:bg-sky-500 text-white hover:text-white' : 'border-sky-400 text-sky-400 hover:bg-sky-400/20 hover:text-sky-300') : ''}`}
                       >
                         <Guitar className="w-3 h-3 mr-1" />
                         Guitar
@@ -766,7 +768,7 @@ export default function StudioBrain() {
                         variant={visualizerView === 'piano' ? 'default' : 'outline'}
                         size="sm"
                         onClick={() => setVisualizerView('piano')}
-                        className="h-8 text-xs"
+                        className={`h-8 text-xs ${lessonMode ? (visualizerView === 'piano' ? 'bg-sky-400 hover:bg-sky-500 text-white hover:text-white' : 'border-sky-400 text-sky-400 hover:bg-sky-400/20 hover:text-sky-300') : ''}`}
                       >
                         <Piano className="w-3 h-3 mr-1" />
                         Piano
@@ -777,7 +779,7 @@ export default function StudioBrain() {
                             variant="outline"
                             size="sm"
                             onClick={handleFretboardFlip}
-                            className="h-6 w-6 p-0"
+                            className={`h-6 w-6 p-0 ${lessonMode ? 'border-sky-400 text-sky-400 hover:bg-sky-400/20 hover:text-sky-300' : ''}`}
                             title={`${fretboardFlipped ? 'Standard view (High E top)' : 'Inverted view (Low E top)'}`}
                           >
                             <RotateCcw className="w-3 h-3" />
@@ -805,9 +807,9 @@ export default function StudioBrain() {
                                     key={fretIndex}
                                     className={`w-8 h-8 border border-gray-600 rounded flex items-center justify-center text-xs font-mono transition-colors duration-200 ${
                                       isRoot 
-                                        ? 'bg-pink-500 text-white border-pink-400' 
+                                        ? lessonMode ? 'bg-cyan-400 text-white border-cyan-300' : 'bg-pink-500 text-white border-pink-400'
                                         : isInScale 
-                                        ? 'bg-purple-500/70 text-white border-purple-400' 
+                                        ? lessonMode ? 'bg-blue-500/70 text-white border-blue-400' : 'bg-purple-500/70 text-white border-purple-400'
                                         : 'bg-neutral-800 text-gray-400 hover:bg-gray-700'
                                     }`}
                                     title={`${note} ${isRoot ? '(Root)' : isInScale ? '(Scale)' : ''}`}
@@ -827,19 +829,19 @@ export default function StudioBrain() {
                       </div>
                     </>
                   ) : (
-                    <div className="bg-neutral-800 p-6 rounded-lg">
-                      <div className="flex justify-center">
-                        <div className="relative">
+                    <div className="bg-neutral-800 p-4 rounded-lg">
+                      <div className="flex justify-center overflow-x-auto">
+                        <div className="relative scale-90 origin-center">
                           {/* White keys */}
                           <div className="flex">
                             {pianoKeys.filter(key => !key.isBlackKey).map((key, index) => (
                               <div
                                 key={key.fullName}
-                                className={`w-10 h-32 border border-gray-600 rounded-b flex items-end justify-center pb-2 text-xs font-mono transition-colors duration-200 ${
+                                className={`w-9 h-28 border border-gray-600 rounded-b flex items-end justify-center pb-1 text-xs font-mono transition-colors duration-200 ${
                                   key.isRoot 
-                                    ? 'bg-pink-500 text-white border-pink-400' 
+                                    ? lessonMode ? 'bg-cyan-400 text-white border-cyan-300' : 'bg-pink-500 text-white border-pink-400'
                                     : key.isInScale 
-                                    ? 'bg-purple-500/70 text-white border-purple-400' 
+                                    ? lessonMode ? 'bg-blue-500/70 text-white border-blue-400' : 'bg-purple-500/70 text-white border-purple-400'
                                     : 'bg-white text-black hover:bg-gray-100'
                                 }`}
                                 title={`${key.note}${key.octave} ${key.isRoot ? '(Root)' : key.isInScale ? '(Scale)' : ''}`}
@@ -866,13 +868,13 @@ export default function StudioBrain() {
                               
                               return blackKeyNote ? (
                                 <div key={blackKeyNote.fullName} className="relative">
-                                  <div className="w-10 h-8"></div>
+                                  <div className="w-9 h-6"></div>
                                   <div
-                                    className={`absolute top-0 left-6 w-6 h-20 border border-neutral-800 rounded-b flex items-end justify-center pb-1 text-xs font-mono transition-colors duration-200 ${
+                                    className={`absolute top-0 left-7 w-5 h-20 border border-neutral-800 rounded-b flex items-end justify-center pb-1 text-xs font-mono transition-colors duration-200 ${
                                       blackKeyNote.isRoot 
-                                        ? 'bg-pink-600 text-white border-pink-500' 
+                                        ? lessonMode ? 'bg-cyan-500 text-white border-cyan-400' : 'bg-pink-600 text-white border-pink-500'
                                         : blackKeyNote.isInScale 
-                                        ? 'bg-purple-600/80 text-white border-purple-500' 
+                                        ? lessonMode ? 'bg-blue-600/80 text-white border-blue-500' : 'bg-purple-600/80 text-white border-purple-500'
                                         : 'bg-neutral-900 text-white hover:bg-neutral-800'
                                     }`}
                                     title={`${blackKeyNote.note}${blackKeyNote.octave} ${blackKeyNote.isRoot ? '(Root)' : blackKeyNote.isInScale ? '(Scale)' : ''}`}
@@ -881,7 +883,7 @@ export default function StudioBrain() {
                                   </div>
                                 </div>
                               ) : (
-                                <div key={`spacer-${index}`} className="w-10 h-8"></div>
+                                <div key={`spacer-${index}`} className="w-9 h-6"></div>
                               )
                             })}
                           </div>
@@ -959,24 +961,24 @@ export default function StudioBrain() {
               <>
                 <Card className="bg-neutral-900 border-neutral-800">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      {selectedInstrument === "guitar" ? <Guitar className="w-5 h-5" /> : <Piano className="w-5 h-5" />}
+                    <CardTitle className={`flex items-center gap-2 ${lessonMode ? 'text-sky-400' : ''}`}>
+                      {selectedInstrument === "guitar" ? <Guitar className={`w-5 h-5 ${lessonMode ? 'text-sky-400' : ''}`} /> : <Piano className={`w-5 h-5 ${lessonMode ? 'text-sky-400' : ''}`} />}
                       Instrument Settings
                     </CardTitle>
-                    <CardDescription>Customize settings for your selected instrument</CardDescription>
+                    <CardDescription className={lessonMode ? 'text-sky-300' : ''}>Customize settings for your selected instrument</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="space-y-2">
-                      <Label>Select Instrument</Label>
+                      <Label className={lessonMode ? 'text-sky-300' : ''}>Select Instrument</Label>
                       <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
-                        <SelectTrigger className="bg-neutral-800 border-neutral-700">
+                        <SelectTrigger className={`bg-neutral-800 border-neutral-700 ${lessonMode ? 'focus:border-sky-400 data-[state=open]:border-sky-400' : ''}`}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="bg-neutral-800 border-neutral-700">
-                          <SelectItem value="guitar">Guitar</SelectItem>
-                          <SelectItem value="piano">Piano</SelectItem>
-                          <SelectItem value="bass">Bass</SelectItem>
-                          <SelectItem value="drums">Drums</SelectItem>
+                          <SelectItem value="guitar" className={lessonMode ? 'focus:bg-sky-400 focus:text-white data-[highlighted]:bg-sky-400 data-[highlighted]:text-white' : ''}>Guitar</SelectItem>
+                          <SelectItem value="piano" className={lessonMode ? 'focus:bg-sky-400 focus:text-white data-[highlighted]:bg-sky-400 data-[highlighted]:text-white' : ''}>Piano</SelectItem>
+                          <SelectItem value="bass" className={lessonMode ? 'focus:bg-sky-400 focus:text-white data-[highlighted]:bg-sky-400 data-[highlighted]:text-white' : ''}>Bass</SelectItem>
+                          <SelectItem value="drums" className={lessonMode ? 'focus:bg-sky-400 focus:text-white data-[highlighted]:bg-sky-400 data-[highlighted]:text-white' : ''}>Drums</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -984,7 +986,7 @@ export default function StudioBrain() {
                     {selectedInstrument === "guitar" && (
                       <div className="grid gap-6 md:grid-cols-3">
                         <div>
-                          <h4 className="font-semibold mb-3 text-primary">Tunings</h4>
+                          <h4 className={`font-semibold mb-3 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>Tunings</h4>
                           <p className="text-xs text-gray-400 mb-3">Click to update fretboard visualization</p>
                           <div className="space-y-2">
                             {Object.entries(tuningMap).map(([key, tuning]) => (
@@ -993,7 +995,7 @@ export default function StudioBrain() {
                                 type="button"
                                 className={`w-full text-left p-2 rounded text-sm cursor-pointer transition-all duration-200 ${
                                   selectedTuning === key 
-                                    ? 'bg-primary text-primary-foreground border border-primary shadow-md' 
+                                    ? lessonMode ? 'bg-sky-400 text-white border border-sky-300 shadow-md' : 'bg-primary text-primary-foreground border border-primary shadow-md'
                                     : 'bg-neutral-800 hover:bg-gray-700 border border-transparent'
                                 }`}
                                 onClick={() => handleTuningChange(key)}
@@ -1005,13 +1007,13 @@ export default function StudioBrain() {
                           </div>
                         </div>
                         <div>
-                          <h4 className="font-semibold mb-3 text-primary">Voicings</h4>
+                          <h4 className={`font-semibold mb-3 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>Voicings</h4>
                           <div className="space-y-2">
                             {["Open Chords", "Barre Chords", "Jazz Voicings", "Power Chords"].map((voicing) => (
                               <button 
                                 key={voicing} 
                                 type="button"
-                                className="w-full text-left p-2 bg-neutral-800 rounded text-sm hover:bg-gray-700 cursor-pointer transition-colors hover:bg-primary/20"
+                                className={`w-full text-left p-2 bg-neutral-800 rounded text-sm hover:bg-gray-700 cursor-pointer transition-colors ${lessonMode ? 'hover:bg-sky-400/20' : 'hover:bg-primary/20'}`}
                                 onClick={() => handleVoicingSelect(voicing)}
                               >
                                 {voicing}
@@ -1020,7 +1022,7 @@ export default function StudioBrain() {
                           </div>
                         </div>
                         <div>
-                          <h4 className="font-semibold mb-3 text-primary">Gear</h4>
+                          <h4 className={`font-semibold mb-3 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>Gear</h4>
                           <div className="space-y-2">
                             {["Amplifiers", "Effects Pedals", "Pickups", "Strings"].map((gear, index) => (
                               <div key={index} className="p-2 bg-neutral-800 rounded text-sm hover:bg-gray-700 cursor-pointer">
@@ -1035,7 +1037,7 @@ export default function StudioBrain() {
                     {selectedInstrument === "piano" && (
                       <div className="grid gap-6 md:grid-cols-3">
                         <div>
-                          <h4 className="font-semibold mb-3 text-primary">Scales & Modes</h4>
+                          <h4 className={`font-semibold mb-3 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>Scales & Modes</h4>
                           <div className="space-y-2">
                             {["Major Scales", "Minor Scales", "Modal Scales", "Jazz Scales"].map((scale, index) => (
                               <div key={index} className="p-2 bg-neutral-800 rounded text-sm hover:bg-gray-700 cursor-pointer">
@@ -1045,13 +1047,13 @@ export default function StudioBrain() {
                           </div>
                         </div>
                         <div>
-                          <h4 className="font-semibold mb-3 text-primary">Voicings</h4>
+                          <h4 className={`font-semibold mb-3 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>Voicings</h4>
                           <div className="space-y-2">
                             {["Triads", "7th Chords", "Extended Chords", "Inversions"].map((voicing) => (
                               <button 
                                 key={voicing} 
                                 type="button"
-                                className="w-full text-left p-2 bg-neutral-800 rounded text-sm hover:bg-gray-700 cursor-pointer transition-colors hover:bg-primary/20"
+                                className={`w-full text-left p-2 bg-neutral-800 rounded text-sm hover:bg-gray-700 cursor-pointer transition-colors ${lessonMode ? 'hover:bg-sky-400/20' : 'hover:bg-primary/20'}`}
                                 onClick={() => handleVoicingSelect(voicing)}
                               >
                                 {voicing}
@@ -1060,7 +1062,7 @@ export default function StudioBrain() {
                           </div>
                         </div>
                         <div>
-                          <h4 className="font-semibold mb-3 text-primary">Techniques</h4>
+                          <h4 className={`font-semibold mb-3 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>Techniques</h4>
                           <div className="space-y-2">
                             {["Arpeggios", "Scales", "Chord Progressions", "Improvisation"].map((technique, index) => (
                               <div key={index} className="p-2 bg-neutral-800 rounded text-sm hover:bg-gray-700 cursor-pointer">
