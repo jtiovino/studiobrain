@@ -492,7 +492,7 @@ export default function StudioBrain() {
               StudioBrain
             </h1>
           </div>
-          <p className="text-gray-400 text-lg">Your AI-powered music production assistant</p>
+          <p className="text-gray-400 text-lg">A creative assistant for musicians, powered by AI.</p>
         </div>
 
         {/* Main Interface */}

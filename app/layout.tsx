@@ -3,7 +3,7 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'StudioBrain',
-  description: 'Created with v0',
+  description: 'A creative assistant for musicians, powered by AI.',
   generator: 'v0.dev',
 }
 
