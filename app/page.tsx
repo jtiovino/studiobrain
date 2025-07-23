@@ -971,122 +971,149 @@ export default function StudioBrain() {
               />
             ) : (
               <>
-                <Card className="bg-neutral-900 border-neutral-800">
-                  <CardHeader>
-                    <CardTitle className={`flex items-center gap-2 ${lessonMode ? 'text-sky-400' : ''}`}>
-                      {selectedInstrument === "guitar" ? <Guitar className={`w-5 h-5 ${lessonMode ? 'text-sky-400' : ''}`} /> : <Piano className={`w-5 h-5 ${lessonMode ? 'text-sky-400' : ''}`} />}
-                      Instrument Settings
-                    </CardTitle>
-                    <CardDescription className={lessonMode ? 'text-sky-300' : ''}>Customize settings for your selected instrument</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="space-y-2">
-                      <Label className={lessonMode ? 'text-sky-300' : ''}>Select Instrument</Label>
-                      <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
-                        <SelectTrigger className={`bg-neutral-800 border-neutral-700 ${lessonMode ? 'focus:border-sky-400 data-[state=open]:border-sky-400' : ''}`}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-neutral-800 border-neutral-700">
-                          <SelectItem value="guitar" className={lessonMode ? 'focus:bg-sky-400 focus:text-white data-[highlighted]:bg-sky-400 data-[highlighted]:text-white' : ''}>Guitar</SelectItem>
-                          <SelectItem value="piano" className={lessonMode ? 'focus:bg-sky-400 focus:text-white data-[highlighted]:bg-sky-400 data-[highlighted]:text-white' : ''}>Piano</SelectItem>
-                          <SelectItem value="bass" className={lessonMode ? 'focus:bg-sky-400 focus:text-white data-[highlighted]:bg-sky-400 data-[highlighted]:text-white' : ''}>Bass</SelectItem>
-                          <SelectItem value="drums" className={lessonMode ? 'focus:bg-sky-400 focus:text-white data-[highlighted]:bg-sky-400 data-[highlighted]:text-white' : ''}>Drums</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <Card className="bg-neutral-900 border-neutral-800">
+                    <CardHeader>
+                      <CardTitle className={`flex items-center gap-2 ${lessonMode ? 'text-sky-400' : ''}`}>
+                        {selectedInstrument === "guitar" ? <Guitar className={`w-4 h-4 ${lessonMode ? 'text-sky-400' : ''}`} /> : <Piano className={`w-4 h-4 ${lessonMode ? 'text-sky-400' : ''}`} />}
+                        Instrument Settings
+                      </CardTitle>
+                      <CardDescription className={lessonMode ? 'text-sky-300' : ''}>Customize settings for your selected instrument</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="space-y-2">
+                        <Label className={lessonMode ? 'text-sky-300' : ''}>Select Instrument</Label>
+                        <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
+                          <SelectTrigger className={`bg-neutral-800 border-neutral-700 ${lessonMode ? 'focus:border-sky-400 data-[state=open]:border-sky-400' : ''}`}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-neutral-800 border-neutral-700">
+                            <SelectItem value="guitar" className={lessonMode ? 'focus:bg-sky-400 focus:text-white data-[highlighted]:bg-sky-400 data-[highlighted]:text-white' : ''}>Guitar</SelectItem>
+                            <SelectItem value="piano" className={lessonMode ? 'focus:bg-sky-400 focus:text-white data-[highlighted]:bg-sky-400 data-[highlighted]:text-white' : ''}>Piano</SelectItem>
+                            <SelectItem value="bass" className={lessonMode ? 'focus:bg-sky-400 focus:text-white data-[highlighted]:bg-sky-400 data-[highlighted]:text-white' : ''}>Bass</SelectItem>
+                            <SelectItem value="drums" className={lessonMode ? 'focus:bg-sky-400 focus:text-white data-[highlighted]:bg-sky-400 data-[highlighted]:text-white' : ''}>Drums</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                    {selectedInstrument === "guitar" && (
-                      <div className="grid gap-6 md:grid-cols-3">
-                        <div>
-                          <h4 className={`font-semibold mb-3 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>Tunings</h4>
-                          <p className="text-xs text-gray-400 mb-3">Click to update fretboard visualization</p>
-                          <div className="space-y-2">
-                            {Object.entries(tuningMap).map(([key, tuning]) => (
-                              <button 
-                                key={key} 
-                                type="button"
-                                className={`w-full text-left p-2 rounded text-sm cursor-pointer transition-all duration-200 ${
-                                  selectedTuning === key 
-                                    ? lessonMode ? 'bg-sky-400 text-white border border-sky-300 shadow-md' : 'bg-primary text-primary-foreground border border-primary shadow-md'
-                                    : 'bg-neutral-800 hover:bg-gray-700 border border-transparent'
-                                }`}
-                                onClick={() => handleTuningChange(key)}
-                                disabled={tuningChangeAnimation}
-                              >
-                                {tuning.name}
-                              </button>
-                            ))}
+                      {selectedInstrument === "guitar" && (
+                        <div className="grid gap-6 md:grid-cols-2">
+                          <div>
+                            <h4 className={`font-semibold mb-3 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>Tunings</h4>
+                            <p className="text-xs text-gray-400 mb-3">Click to update fretboard visualization</p>
+                            <div className="space-y-2">
+                              {Object.entries(tuningMap).slice(0, 4).map(([key, tuning]) => (
+                                <button 
+                                  key={key} 
+                                  type="button"
+                                  className={`w-full text-left p-2 rounded text-sm cursor-pointer transition-all duration-200 ${
+                                    selectedTuning === key 
+                                      ? lessonMode ? 'bg-sky-400 text-white border border-sky-300 shadow-md' : 'bg-primary text-primary-foreground border border-primary shadow-md'
+                                      : 'bg-neutral-800 hover:bg-gray-700 border border-transparent'
+                                  }`}
+                                  onClick={() => handleTuningChange(key)}
+                                  disabled={tuningChangeAnimation}
+                                >
+                                  {tuning.name}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <h4 className={`font-semibold mb-3 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>Voicings</h4>
+                            <div className="space-y-2">
+                              {["Open Chords", "Barre Chords", "Jazz Voicings", "Power Chords"].map((voicing) => (
+                                <button 
+                                  key={voicing} 
+                                  type="button"
+                                  className={`w-full text-left p-2 bg-neutral-800 rounded text-sm hover:bg-gray-700 cursor-pointer transition-colors ${lessonMode ? 'hover:bg-sky-400/20' : 'hover:bg-primary/20'}`}
+                                  onClick={() => handleVoicingSelect(voicing)}
+                                >
+                                  {voicing}
+                                </button>
+                              ))}
+                            </div>
                           </div>
                         </div>
-                        <div>
-                          <h4 className={`font-semibold mb-3 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>Voicings</h4>
-                          <div className="space-y-2">
-                            {["Open Chords", "Barre Chords", "Jazz Voicings", "Power Chords"].map((voicing) => (
-                              <button 
-                                key={voicing} 
-                                type="button"
-                                className={`w-full text-left p-2 bg-neutral-800 rounded text-sm hover:bg-gray-700 cursor-pointer transition-colors ${lessonMode ? 'hover:bg-sky-400/20' : 'hover:bg-primary/20'}`}
-                                onClick={() => handleVoicingSelect(voicing)}
-                              >
-                                {voicing}
-                              </button>
-                            ))}
+                      )}
+
+                      {selectedInstrument === "piano" && (
+                        <div className="grid gap-6 md:grid-cols-2">
+                          <div>
+                            <h4 className={`font-semibold mb-3 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>Scales & Modes</h4>
+                            <div className="space-y-2">
+                              {["Major Scales", "Minor Scales", "Modal Scales", "Jazz Scales"].map((scale, index) => (
+                                <div key={index} className="p-2 bg-neutral-800 rounded text-sm hover:bg-gray-700 cursor-pointer">
+                                  {scale}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <h4 className={`font-semibold mb-3 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>Voicings</h4>
+                            <div className="space-y-2">
+                              {["Triads", "7th Chords", "Extended Chords", "Inversions"].map((voicing) => (
+                                <button 
+                                  key={voicing} 
+                                  type="button"
+                                  className={`w-full text-left p-2 bg-neutral-800 rounded text-sm hover:bg-gray-700 cursor-pointer transition-colors ${lessonMode ? 'hover:bg-sky-400/20' : 'hover:bg-primary/20'}`}
+                                  onClick={() => handleVoicingSelect(voicing)}
+                                >
+                                  {voicing}
+                                </button>
+                              ))}
+                            </div>
                           </div>
                         </div>
-                        <div>
-                          <h4 className={`font-semibold mb-3 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>Gear</h4>
-                          <div className="space-y-2">
-                            {["Amplifiers", "Effects Pedals", "Pickups", "Strings"].map((gear, index) => (
-                              <div key={index} className="p-2 bg-neutral-800 rounded text-sm hover:bg-gray-700 cursor-pointer">
-                                {gear}
-                              </div>
-                            ))}
-                          </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-neutral-900 border-neutral-800">
+                    <CardHeader>
+                      <CardTitle className={`flex items-center gap-2 ${lessonMode ? 'text-sky-400' : ''}`}>
+                        <Guitar className={`w-4 h-4 ${lessonMode ? 'text-sky-400' : ''}`} />
+                        Gear
+                      </CardTitle>
+                      <CardDescription className={lessonMode ? 'text-sky-300' : ''}>Guitar equipment and accessories</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <h4 className={`font-semibold mb-3 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>Amplifiers</h4>
+                        <div className="space-y-2">
+                          {["Tube Amps", "Solid State", "Modeling Amps", "Practice Amps"].map((amp, index) => (
+                            <div key={index} className="p-2 bg-neutral-800 rounded text-sm hover:bg-gray-700 cursor-pointer">
+                              {amp}
+                            </div>
+                          ))}
                         </div>
                       </div>
-                    )}
-
-                    {selectedInstrument === "piano" && (
-                      <div className="grid gap-6 md:grid-cols-3">
-                        <div>
-                          <h4 className={`font-semibold mb-3 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>Scales & Modes</h4>
-                          <div className="space-y-2">
-                            {["Major Scales", "Minor Scales", "Modal Scales", "Jazz Scales"].map((scale, index) => (
-                              <div key={index} className="p-2 bg-neutral-800 rounded text-sm hover:bg-gray-700 cursor-pointer">
-                                {scale}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                        <div>
-                          <h4 className={`font-semibold mb-3 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>Voicings</h4>
-                          <div className="space-y-2">
-                            {["Triads", "7th Chords", "Extended Chords", "Inversions"].map((voicing) => (
-                              <button 
-                                key={voicing} 
-                                type="button"
-                                className={`w-full text-left p-2 bg-neutral-800 rounded text-sm hover:bg-gray-700 cursor-pointer transition-colors ${lessonMode ? 'hover:bg-sky-400/20' : 'hover:bg-primary/20'}`}
-                                onClick={() => handleVoicingSelect(voicing)}
-                              >
-                                {voicing}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                        <div>
-                          <h4 className={`font-semibold mb-3 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>Techniques</h4>
-                          <div className="space-y-2">
-                            {["Arpeggios", "Scales", "Chord Progressions", "Improvisation"].map((technique, index) => (
-                              <div key={index} className="p-2 bg-neutral-800 rounded text-sm hover:bg-gray-700 cursor-pointer">
-                                {technique}
-                              </div>
-                            ))}
-                          </div>
+                      
+                      <div>
+                        <h4 className={`font-semibold mb-3 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>Effects</h4>
+                        <div className="space-y-2">
+                          {["Distortion", "Reverb", "Delay", "Chorus"].map((effect, index) => (
+                            <div key={index} className="p-2 bg-neutral-800 rounded text-sm hover:bg-gray-700 cursor-pointer">
+                              {effect}
+                            </div>
+                          ))}
                         </div>
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
+                      
+                      <div>
+                        <h4 className={`font-semibold mb-3 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>Hardware</h4>
+                        <div className="space-y-2">
+                          {["Pickups", "Strings", "Picks", "Capos"].map((hardware, index) => (
+                            <div key={index} className="p-2 bg-neutral-800 rounded text-sm hover:bg-gray-700 cursor-pointer">
+                              {hardware}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+                
                 <div className="mt-6">
                   <Card className="bg-neutral-900 border-neutral-800">
                     <CardHeader>
