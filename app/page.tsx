@@ -468,14 +468,15 @@ export default function StudioBrain() {
       <div className="max-w-6xl mx-auto">
         {/* Lesson Mode Toggle - Fixed Position */}
         <div className="fixed top-6 right-6 z-50">
-          <div className="flex items-center gap-2 p-2 bg-neutral-900/90 backdrop-blur-sm rounded-lg border border-neutral-700 shadow-lg">
+          <div className={`flex items-center gap-2 p-2 backdrop-blur-sm rounded-lg border shadow-lg ${lessonMode ? 'bg-sky-900/90 border-sky-600/50' : 'bg-neutral-900/90 border-neutral-700'}`}>
             <Lightbulb className={`w-4 h-4 ${lessonMode ? 'text-sky-400' : 'text-gray-500'}`} />
             <Switch
               id="lesson-mode"
               checked={lessonMode}
               onCheckedChange={setLessonMode}
+              className={lessonMode ? 'data-[state=checked]:bg-sky-500' : ''}
             />
-            <span className="text-xs text-gray-400 min-w-[40px] text-center">
+            <span className={`text-xs min-w-[40px] text-center ${lessonMode ? 'text-sky-200' : 'text-gray-400'}`}>
               {lessonMode ? 'Lesson' : 'Quick'}
             </span>
           </div>
@@ -518,22 +519,22 @@ export default function StudioBrain() {
           <TabsContent value="general" className="mt-6">
             <Card className="bg-neutral-900 border-neutral-800">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Lightbulb className="w-4 h-4" />
+                <CardTitle className={`flex items-center gap-2 ${lessonMode ? 'text-sky-400' : ''}`}>
+                  <Lightbulb className={`w-4 h-4 ${lessonMode ? 'text-sky-400' : ''}`} />
                   Ask StudioBrain
                 </CardTitle>
-                <CardDescription>Get general music production advice and tips</CardDescription>
+                <CardDescription className={lessonMode ? 'text-sky-300' : ''}>Get general music production advice and tips</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="general-question">Your Question</Label>
+                  <Label htmlFor="general-question" className={lessonMode ? 'text-sky-300' : ''}>Your Question</Label>
                   <Textarea
                     id="general-question"
                     placeholder="Ask about music production, recording techniques, software, hardware, or general music advice..."
                     value={generalQuestion}
                     onChange={(e) => setGeneralQuestion(e.target.value)}
                     onKeyDown={(e) => handleKeyDown(e, handleGeneralQuestion)}
-                    className="min-h-[80px] bg-neutral-800 border-neutral-700 focus:border-primary"
+                    className={`min-h-[80px] bg-neutral-800 border-neutral-700 ${lessonMode ? 'text-sky-300 focus:border-sky-400 placeholder:text-sky-400/70' : 'focus:border-primary'}`}
                   />
                 </div>
                 <Button 
@@ -555,8 +556,8 @@ export default function StudioBrain() {
                   )}
                 </Button>
                 {generalAnswer && (
-                  <div className="mt-4 p-4 bg-gradient-to-r from-pink-900/20 to-rose-900/20 rounded-lg border border-primary/30">
-                    <h4 className="font-semibold mb-2 text-primary">StudioBrain's Answer:</h4>
+                  <div className={`mt-4 p-4 rounded-lg border ${lessonMode ? 'bg-gradient-to-r from-sky-900/20 to-blue-900/20 border-sky-400/30' : 'bg-gradient-to-r from-pink-900/20 to-rose-900/20 border-primary/30'}`}>
+                    <h4 className={`font-semibold mb-2 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>StudioBrain's Answer:</h4>
                     <div className="text-gray-300 whitespace-pre-line">{generalAnswer}</div>
                   </div>
                 )}
@@ -567,22 +568,22 @@ export default function StudioBrain() {
           <TabsContent value="mix" className="mt-6">
             <Card className="bg-neutral-900 border-neutral-800">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Volume2 className="w-4 h-4" />
+                <CardTitle className={`flex items-center gap-2 ${lessonMode ? 'text-sky-400' : ''}`}>
+                  <Volume2 className={`w-4 h-4 ${lessonMode ? 'text-sky-400' : ''}`} />
                   Ask StudioBrain
                 </CardTitle>
-                <CardDescription>Get mixing and mastering advice</CardDescription>
+                <CardDescription className={lessonMode ? 'text-sky-300' : ''}>Get mixing and mastering advice</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="mix-question">Your Question</Label>
+                  <Label htmlFor="mix-question" className={lessonMode ? 'text-sky-300' : ''}>Your Question</Label>
                   <Textarea
                     id="mix-question"
                     placeholder="Ask about EQ, compression, reverb, stereo imaging, mixing techniques, or mastering..."
                     value={mixQuestion}
                     onChange={(e) => setMixQuestion(e.target.value)}
                     onKeyDown={(e) => handleKeyDown(e, handleMixQuestion)}
-                    className="min-h-[80px] bg-neutral-800 border-neutral-700 focus:border-primary"
+                    className={`min-h-[80px] bg-neutral-800 border-neutral-700 ${lessonMode ? 'text-sky-300 focus:border-sky-400 placeholder:text-sky-400/70' : 'focus:border-primary'}`}
                   />
                 </div>
                 <Button 
@@ -604,8 +605,8 @@ export default function StudioBrain() {
                   )}
                 </Button>
                 {mixAnswer && (
-                  <div className="mt-4 p-4 bg-gradient-to-r from-pink-900/20 to-rose-900/20 rounded-lg border border-primary/30">
-                    <h4 className="font-semibold mb-2 text-primary">StudioBrain's Answer:</h4>
+                  <div className={`mt-4 p-4 rounded-lg border ${lessonMode ? 'bg-gradient-to-r from-sky-900/20 to-blue-900/20 border-sky-400/30' : 'bg-gradient-to-r from-pink-900/20 to-rose-900/20 border-primary/30'}`}>
+                    <h4 className={`font-semibold mb-2 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>StudioBrain's Answer:</h4>
                     <div className="text-gray-300 whitespace-pre-line">{mixAnswer}</div>
                   </div>
                 )}
@@ -898,22 +899,22 @@ export default function StudioBrain() {
             {/* Theory Chat Section - Full Width */}
             <Card className="bg-neutral-900 border-neutral-800 mt-6">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Lightbulb className="w-4 h-4" />
+                <CardTitle className={`flex items-center gap-2 ${lessonMode ? 'text-sky-400' : ''}`}>
+                  <Lightbulb className={`w-4 h-4 ${lessonMode ? 'text-sky-400' : ''}`} />
                   Ask StudioBrain
                 </CardTitle>
-                <CardDescription>Get music theory and composition help</CardDescription>
+                <CardDescription className={lessonMode ? 'text-sky-300' : ''}>Get music theory and composition help</CardDescription>
               </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="theory-question">Your Question</Label>
+                    <Label htmlFor="theory-question" className={lessonMode ? 'text-sky-300' : ''}>Your Question</Label>
                     <Textarea
                       id="theory-question"
                       placeholder="Ask about scales, chords, progressions, harmony, composition, songwriting, or analysis..."
                       value={theoryQuestion}
                       onChange={(e) => setTheoryQuestion(e.target.value)}
                       onKeyDown={(e) => handleKeyDown(e, handleTheoryQuestion)}
-                      className="min-h-[80px] bg-neutral-800 border-neutral-700 focus:border-primary"
+                      className={`min-h-[80px] bg-neutral-800 border-neutral-700 ${lessonMode ? 'text-sky-300 focus:border-sky-400 placeholder:text-sky-400/70' : 'focus:border-primary'}`}
                     />
                   </div>
                   <Button 
@@ -935,8 +936,8 @@ export default function StudioBrain() {
                     )}
                   </Button>
                   {theoryAnswer && (
-                    <div className="mt-4 p-4 bg-gradient-to-r from-pink-900/20 to-rose-900/20 rounded-lg border border-primary/30">
-                      <h4 className="font-semibold mb-2 text-primary">StudioBrain's Answer:</h4>
+                    <div className={`mt-4 p-4 rounded-lg border ${lessonMode ? 'bg-gradient-to-r from-sky-900/20 to-blue-900/20 border-sky-400/30' : 'bg-gradient-to-r from-pink-900/20 to-rose-900/20 border-primary/30'}`}>
+                      <h4 className={`font-semibold mb-2 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>StudioBrain's Answer:</h4>
                       <div className="text-gray-300 whitespace-pre-line">{theoryAnswer}</div>
                     </div>
                   )}
@@ -1075,22 +1076,22 @@ export default function StudioBrain() {
                 <div className="mt-6">
                   <Card className="bg-neutral-900 border-neutral-800">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Lightbulb className="w-4 h-4" />
+                      <CardTitle className={`flex items-center gap-2 ${lessonMode ? 'text-sky-400' : ''}`}>
+                        <Lightbulb className={`w-4 h-4 ${lessonMode ? 'text-sky-400' : ''}`} />
                         Ask StudioBrain
                       </CardTitle>
-                      <CardDescription>Get instrument-specific advice and techniques</CardDescription>
+                      <CardDescription className={lessonMode ? 'text-sky-300' : ''}>Get instrument-specific advice and techniques</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="instrument-question">Your Question</Label>
+                        <Label htmlFor="instrument-question" className={lessonMode ? 'text-sky-300' : ''}>Your Question</Label>
                         <Textarea
                           id="instrument-question"
                           placeholder={`Ask about ${selectedInstrument} techniques, gear recommendations, playing tips, or instrument-specific questions...`}
                           value={instrumentQuestion}
                           onChange={(e) => setInstrumentQuestion(e.target.value)}
                           onKeyDown={(e) => handleKeyDown(e, handleInstrumentQuestion)}
-                          className="min-h-[80px] bg-neutral-800 border-neutral-700 focus:border-primary"
+                          className={`min-h-[80px] bg-neutral-800 border-neutral-700 ${lessonMode ? 'text-sky-300 focus:border-sky-400 placeholder:text-sky-400/70' : 'focus:border-primary'}`}
                         />
                       </div>
                       <Button 
@@ -1112,8 +1113,8 @@ export default function StudioBrain() {
                         )}
                       </Button>
                       {instrumentAnswer && (
-                        <div className="mt-4 p-4 bg-gradient-to-r from-pink-900/20 to-rose-900/20 rounded-lg border border-primary/30">
-                          <h4 className="font-semibold mb-2 text-primary">StudioBrain's Answer:</h4>
+                        <div className={`mt-4 p-4 rounded-lg border ${lessonMode ? 'bg-gradient-to-r from-sky-900/20 to-blue-900/20 border-sky-400/30' : 'bg-gradient-to-r from-pink-900/20 to-rose-900/20 border-primary/30'}`}>
+                          <h4 className={`font-semibold mb-2 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>StudioBrain's Answer:</h4>
                           <div className="text-gray-300 whitespace-pre-line">{instrumentAnswer}</div>
                         </div>
                       )}
