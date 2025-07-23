@@ -1,7 +1,8 @@
 "use client"
 
-import type React from "react"
-import { useState, useEffect } from "react"
+import React from "react"
+import { useState, useEffect, useRef } from "react"
+import ErrorBoundary from "@/components/ErrorBoundary"
 
 interface PluginSuggestion {
   name: string
@@ -16,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { Upload, Music, Guitar, Piano, Volume2, Lightbulb, FileAudio, Loader2, RotateCcw } from "lucide-react"
+import { Music, Guitar, Piano, Volume2, Lightbulb, Loader2, RotateCcw } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { OpenAIService } from "@/lib/openai-service"
 import { VoicingView } from "@/components/VoicingView"
@@ -45,7 +46,6 @@ export default function StudioBrain() {
   const [flipAnimation, setFlipAnimation] = useState(false)
   const [selectedVoicing, setSelectedVoicing] = useState<string | null>(null)
   const [voicingView, setVoicingView] = useState(false)
-  const [mixPluginAnimation, setMixPluginAnimation] = useState('')
 
   // Chat states for different tabs
   const [generalQuestion, setGeneralQuestion] = useState("")
@@ -111,7 +111,21 @@ export default function StudioBrain() {
     })
   }
 
-  const scaleNotes = generateScaleNotes()
+
+  // Refs for cleanup
+  const timeoutRefs = useRef<Set<NodeJS.Timeout>>(new Set())
+  const isMounted = useRef(true)
+
+  // Cleanup function for timeouts
+  const addTimeout = (timeout: NodeJS.Timeout) => {
+    timeoutRefs.current.add(timeout)
+    return timeout
+  }
+
+  const clearAllTimeouts = () => {
+    timeoutRefs.current.forEach(timeout => clearTimeout(timeout))
+    timeoutRefs.current.clear()
+  }
 
   // Handle scale change with animation
   const handleScaleChange = (root: string, mode: string) => {
@@ -120,9 +134,11 @@ export default function StudioBrain() {
     setSelectedMode(mode)
     
     // Reset animation after a short delay
-    setTimeout(() => {
-      setScaleChangeAnimation(false)
-    }, 600)
+    addTimeout(setTimeout(() => {
+      if (isMounted.current) {
+        setScaleChangeAnimation(false)
+      }
+    }, 600))
   }
 
   // Function to handle tuning changes with animation
@@ -131,9 +147,11 @@ export default function StudioBrain() {
     setSelectedTuning(tuningKey)
     
     // Reset animation after a short delay
-    setTimeout(() => {
-      setTuningChangeAnimation(false)
-    }, 600)
+    addTimeout(setTimeout(() => {
+      if (isMounted.current) {
+        setTuningChangeAnimation(false)
+      }
+    }, 600))
   }
 
   // Function to handle fretboard flip with animation
@@ -142,9 +160,11 @@ export default function StudioBrain() {
     setFretboardFlipped(!fretboardFlipped)
     
     // Reset animation after a short delay
-    setTimeout(() => {
-      setFlipAnimation(false)
-    }, 400)
+    addTimeout(setTimeout(() => {
+      if (isMounted.current) {
+        setFlipAnimation(false)
+      }
+    }, 400))
   }
 
   // Function to handle voicing selection
@@ -166,15 +186,39 @@ export default function StudioBrain() {
     // Simple audio feedback using Web Audio API
     try {
       if (typeof window === 'undefined') return;
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+      
+      // Check for Web Audio API support
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext
+      if (!AudioContextClass) {
+        console.log('Web Audio API not supported')
+        return
+      }
+      
+      const audioContext = new AudioContextClass()
+      
+      // Handle audio context state
+      if (audioContext.state === 'suspended') {
+        audioContext.resume().catch(err => {
+          console.log('Could not resume audio context:', err)
+          return
+        })
+      }
+      
       const now = audioContext.currentTime
       
       // Get notes from fret positions (simplified mapping)
       const stringNotes = currentTuning.strings
+      if (!stringNotes || !Array.isArray(stringNotes)) {
+        console.log('Invalid tuning data')
+        return
+      }
+      
       const playableNotes = chord.frets
         .map((fret, index) => {
-          if (fret === null) return null // muted string
+          if (fret === null || index >= stringNotes.length) return null // muted string or invalid index
           const stringNote = stringNotes[index]
+          if (!stringNote) return null
+          
           // Simple note frequency calculation (very basic)
           const noteFreqs: { [key: string]: number } = {
             'E': 82.41, 'F': 87.31, 'F#': 92.50, 'G': 98.00, 'G#': 103.83,
@@ -186,34 +230,52 @@ export default function StudioBrain() {
         })
         .filter(freq => freq !== null) as number[]
       
+      if (playableNotes.length === 0) {
+        console.log('No playable notes found')
+        return
+      }
+      
       // Play each note briefly
       playableNotes.forEach((freq, i) => {
-        const oscillator = audioContext.createOscillator()
-        const gainNode = audioContext.createGain()
-        
-        oscillator.connect(gainNode)
-        gainNode.connect(audioContext.destination)
-        
-        oscillator.frequency.setValueAtTime(freq, now + i * 0.1)
-        oscillator.type = 'sawtooth'
-        
-        gainNode.gain.setValueAtTime(0, now + i * 0.1)
-        gainNode.gain.linearRampToValueAtTime(0.3, now + i * 0.1 + 0.01)
-        gainNode.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.5)
-        
-        oscillator.start(now + i * 0.1)
-        oscillator.stop(now + i * 0.1 + 0.5)
+        try {
+          const oscillator = audioContext.createOscillator()
+          const gainNode = audioContext.createGain()
+          
+          oscillator.connect(gainNode)
+          gainNode.connect(audioContext.destination)
+          
+          oscillator.frequency.setValueAtTime(freq, now + i * 0.1)
+          oscillator.type = 'sawtooth'
+          
+          gainNode.gain.setValueAtTime(0, now + i * 0.1)
+          gainNode.gain.linearRampToValueAtTime(0.3, now + i * 0.1 + 0.01)
+          gainNode.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.5)
+          
+          oscillator.start(now + i * 0.1)
+          oscillator.stop(now + i * 0.1 + 0.5)
+          
+          // Clean up oscillator after use
+          oscillator.addEventListener('ended', () => {
+            oscillator.disconnect()
+            gainNode.disconnect()
+          })
+        } catch (noteError) {
+          console.log('Error playing note:', noteError)
+        }
       })
     } catch (error) {
       console.log('Audio playback not available:', error)
-      // Fallback to console log
     }
   }
 
-  // Reset active chord when root or mode changes
+  // Cleanup effect
   useEffect(() => {
-    setActiveChord(null)
-  }, [selectedChord, selectedMode])
+    isMounted.current = true
+    return () => {
+      isMounted.current = false
+      clearAllTimeouts()
+    }
+  }, [])
 
   // Guitar tuning mappings
   const tuningMap: { [key: string]: { name: string, strings: string[] } } = {
@@ -249,14 +311,8 @@ export default function StudioBrain() {
     return fretboard
   }
 
-  const fretboard = generateFretboardNotes()
-  
-  // Display tuning strings based on flip state
-  const displayTuningStrings = fretboardFlipped ? [...currentTuning.strings].reverse() : currentTuning.strings
-  const displayFretboard = fretboardFlipped ? [...fretboard].reverse() : fretboard
-
   // Piano keyboard layout (2 octaves starting from C)
-  const generatePianoKeys = (startOctave = 3, numOctaves = 2): PianoKey[] => {
+  const generatePianoKeys = (scaleNotes: string[], selectedChord: string, startOctave = 3, numOctaves = 2): PianoKey[] => {
     const notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
     const keys: PianoKey[] = []
     
@@ -276,7 +332,20 @@ export default function StudioBrain() {
     return keys
   }
 
-  const pianoKeys = generatePianoKeys()
+  // Reset active chord when root or mode changes
+  useEffect(() => {
+    setActiveChord(null)
+  }, [selectedChord, selectedMode])
+
+  // Memoized values to prevent unnecessary re-renders
+  const scaleNotes = React.useMemo(() => generateScaleNotes(), [selectedChord, selectedMode])
+  const fretboard = React.useMemo(() => generateFretboardNotes(), [currentTuning])
+  const pianoKeys = React.useMemo(() => generatePianoKeys(scaleNotes, selectedChord), [scaleNotes, selectedChord])
+
+  // Display tuning strings based on flip state
+  const displayTuningStrings = fretboardFlipped ? [...currentTuning.strings].reverse() : currentTuning.strings
+  const displayFretboard = fretboardFlipped ? [...fretboard].reverse() : fretboard
+
 
   // Handle Enter key press
   const handleKeyDown = (e: React.KeyboardEvent, handler: () => void) => {
@@ -286,74 +355,116 @@ export default function StudioBrain() {
     }
   }
 
+  // Input validation helper
+  const sanitizeInput = (input: string): string => {
+    return input.trim().slice(0, 2000) // Limit length and trim whitespace
+  }
+
   // Chat handlers with scale detection
   const handleGeneralQuestion = async () => {
-    if (!generalQuestion.trim()) return
+    const sanitizedQuestion = sanitizeInput(generalQuestion)
+    if (!sanitizedQuestion) return
+    
     setGeneralLoading(true)
     try {
-      const response = await OpenAIService.askGeneral(generalQuestion, lessonMode)
-      setGeneralAnswer(response.response || response.error || 'No response')
-      
-      // Check for scale request and update visualizer
-      if (response.scaleRequest) {
-        handleScaleChange(response.scaleRequest.root, response.scaleRequest.mode)
+      const response = await OpenAIService.askGeneral(sanitizedQuestion, lessonMode)
+      if (isMounted.current) {
+        setGeneralAnswer(response.response || response.error || 'No response')
+        
+        // Check for scale request and update visualizer
+        if (response.scaleRequest) {
+          handleScaleChange(response.scaleRequest.root, response.scaleRequest.mode)
+        }
       }
     } catch (error) {
-      setGeneralAnswer('Error: Unable to get response from StudioBrain.')
+      console.error('General question error:', error)
+      if (isMounted.current) {
+        setGeneralAnswer('Error: Unable to get response from StudioBrain.')
+      }
     }
-    setGeneralLoading(false)
+    if (isMounted.current) {
+      setGeneralLoading(false)
+    }
   }
 
   const handleMixQuestion = async () => {
-    if (!mixQuestion.trim()) return
+    const sanitizedQuestion = sanitizeInput(mixQuestion)
+    if (!sanitizedQuestion) return
+    
     setMixLoading(true)
     try {
-      const response = await OpenAIService.askMix(mixQuestion, lessonMode)
-      setMixAnswer(response.response || response.error || 'No response')
-      setMixPlugins(response.pluginSuggestions || [])
+      const response = await OpenAIService.askMix(sanitizedQuestion, lessonMode)
+      if (isMounted.current) {
+        setMixAnswer(response.response || response.error || 'No response')
+        setMixPlugins(response.pluginSuggestions || [])
+      }
     } catch (error) {
-      setMixAnswer('Error: Unable to get response from StudioBrain.')
-      setMixPlugins([])
+      console.error('Mix question error:', error)
+      if (isMounted.current) {
+        setMixAnswer('Error: Unable to get response from StudioBrain.')
+        setMixPlugins([])
+      }
     }
-    setMixLoading(false)
+    if (isMounted.current) {
+      setMixLoading(false)
+    }
   }
 
   const handleTheoryQuestion = async () => {
-    if (!theoryQuestion.trim()) return
+    const sanitizedQuestion = sanitizeInput(theoryQuestion)
+    if (!sanitizedQuestion) return
+    
     setTheoryLoading(true)
     try {
-      const response = await OpenAIService.askTheory(theoryQuestion, lessonMode)
-      setTheoryAnswer(response.response || response.error || 'No response')
-      
-      // Check for scale request and update visualizer
-      if (response.scaleRequest) {
-        handleScaleChange(response.scaleRequest.root, response.scaleRequest.mode)
+      const response = await OpenAIService.askTheory(sanitizedQuestion, lessonMode)
+      if (isMounted.current) {
+        setTheoryAnswer(response.response || response.error || 'No response')
+        
+        // Check for scale request and update visualizer
+        if (response.scaleRequest) {
+          handleScaleChange(response.scaleRequest.root, response.scaleRequest.mode)
+        }
       }
     } catch (error) {
-      setTheoryAnswer('Error: Unable to get response from StudioBrain.')
+      console.error('Theory question error:', error)
+      if (isMounted.current) {
+        setTheoryAnswer('Error: Unable to get response from StudioBrain.')
+      }
     }
-    setTheoryLoading(false)
+    if (isMounted.current) {
+      setTheoryLoading(false)
+    }
   }
 
   const handleInstrumentQuestion = async () => {
-    if (!instrumentQuestion.trim()) return
+    const sanitizedQuestion = sanitizeInput(instrumentQuestion)
+    if (!sanitizedQuestion) return
+    
     setInstrumentLoading(true)
     try {
-      const response = await OpenAIService.askInstrument(instrumentQuestion, lessonMode, selectedInstrument)
-      setInstrumentAnswer(response.response || response.error || 'No response')
-      
-      // Check for scale request and update visualizer
-      if (response.scaleRequest) {
-        handleScaleChange(response.scaleRequest.root, response.scaleRequest.mode)
+      const response = await OpenAIService.askInstrument(sanitizedQuestion, lessonMode, selectedInstrument)
+      if (isMounted.current) {
+        setInstrumentAnswer(response.response || response.error || 'No response')
+        
+        // Check for scale request and update visualizer
+        if (response.scaleRequest) {
+          handleScaleChange(response.scaleRequest.root, response.scaleRequest.mode)
+        }
       }
     } catch (error) {
-      setInstrumentAnswer('Error: Unable to get response from StudioBrain.')
+      console.error('Instrument question error:', error)
+      if (isMounted.current) {
+        setInstrumentAnswer('Error: Unable to get response from StudioBrain.')
+      }
     }
-    setInstrumentLoading(false)
+    if (isMounted.current) {
+      setInstrumentLoading(false)
+    }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-950 to-neutral-900 text-white p-4">
+    <ErrorBoundary>
+      <div className="min-h-screen bg-gradient-to-br from-neutral-950 to-neutral-900 text-white p-4">
       <div className="max-w-6xl mx-auto">
         {/* Lesson Mode Toggle - Fixed Position */}
         <div className="fixed top-6 right-6 z-50">
@@ -508,10 +619,17 @@ export default function StudioBrain() {
                     <div className="space-y-3">
                       {mixPlugins.map((plugin, index) => (
                         <div key={index} className="flex items-start gap-3 p-3 bg-neutral-800/50 rounded border border-neutral-700 hover:border-gray-600 transition-colors cursor-pointer" 
-                             onClick={() => {
-                               const newAnimation = Date.now().toString()
-                               setMixPluginAnimation(newAnimation)
-                               setTimeout(() => setMixPluginAnimation(''), 300)
+                             onClick={(e) => {
+                               // Simple visual feedback without state
+                               const element = e.currentTarget as HTMLElement
+                               if (element) {
+                                 element.style.transform = 'scale(0.98)'
+                                 addTimeout(setTimeout(() => {
+                                   if (element && isMounted.current) {
+                                     element.style.transform = 'scale(1)'
+                                   }
+                                 }, 150))
+                               }
                              }}>
                           <div className="flex-shrink-0 w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm animate-pulse">
                             {index + 1}
@@ -869,31 +987,34 @@ export default function StudioBrain() {
                           <p className="text-xs text-gray-400 mb-3">Click to update fretboard visualization</p>
                           <div className="space-y-2">
                             {Object.entries(tuningMap).map(([key, tuning]) => (
-                              <div 
+                              <button 
                                 key={key} 
-                                className={`p-2 rounded text-sm cursor-pointer transition-all duration-200 ${
+                                type="button"
+                                className={`w-full text-left p-2 rounded text-sm cursor-pointer transition-all duration-200 ${
                                   selectedTuning === key 
                                     ? 'bg-primary text-primary-foreground border border-primary shadow-md' 
                                     : 'bg-neutral-800 hover:bg-gray-700 border border-transparent'
                                 }`}
                                 onClick={() => handleTuningChange(key)}
+                                disabled={tuningChangeAnimation}
                               >
                                 {tuning.name}
-                              </div>
+                              </button>
                             ))}
                           </div>
                         </div>
                         <div>
                           <h4 className="font-semibold mb-3 text-primary">Voicings</h4>
                           <div className="space-y-2">
-                            {["Open Chords", "Barre Chords", "Jazz Voicings", "Power Chords"].map((voicing, index) => (
-                              <div 
-                                key={index} 
-                                className="p-2 bg-neutral-800 rounded text-sm hover:bg-gray-700 cursor-pointer transition-colors hover:bg-primary/20"
+                            {["Open Chords", "Barre Chords", "Jazz Voicings", "Power Chords"].map((voicing) => (
+                              <button 
+                                key={voicing} 
+                                type="button"
+                                className="w-full text-left p-2 bg-neutral-800 rounded text-sm hover:bg-gray-700 cursor-pointer transition-colors hover:bg-primary/20"
                                 onClick={() => handleVoicingSelect(voicing)}
                               >
                                 {voicing}
-                              </div>
+                              </button>
                             ))}
                           </div>
                         </div>
@@ -925,14 +1046,15 @@ export default function StudioBrain() {
                         <div>
                           <h4 className="font-semibold mb-3 text-primary">Voicings</h4>
                           <div className="space-y-2">
-                            {["Triads", "7th Chords", "Extended Chords", "Inversions"].map((voicing, index) => (
-                              <div 
-                                key={index} 
-                                className="p-2 bg-neutral-800 rounded text-sm hover:bg-gray-700 cursor-pointer transition-colors hover:bg-primary/20"
+                            {["Triads", "7th Chords", "Extended Chords", "Inversions"].map((voicing) => (
+                              <button 
+                                key={voicing} 
+                                type="button"
+                                className="w-full text-left p-2 bg-neutral-800 rounded text-sm hover:bg-gray-700 cursor-pointer transition-colors hover:bg-primary/20"
                                 onClick={() => handleVoicingSelect(voicing)}
                               >
                                 {voicing}
-                              </div>
+                              </button>
                             ))}
                           </div>
                         </div>
@@ -1003,6 +1125,7 @@ export default function StudioBrain() {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+      </div>
+    </ErrorBoundary>
   )
 }
