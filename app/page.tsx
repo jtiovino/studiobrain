@@ -822,9 +822,21 @@ export default function StudioBrain() {
                           </div>
                         ))}
                       </div>
-                      <div className="flex justify-center mt-4 text-xs text-gray-500">
-                        <div className="flex items-center gap-4">
-                          <span>0</span><span>3</span><span>5</span><span>7</span><span>9</span><span>12</span>
+                      <div className="flex justify-start mt-4 text-xs text-gray-500 ml-6">
+                        <div className="flex items-center gap-1">
+                          <span className="w-8 text-center">0</span>
+                          <span className="w-8 text-center">1</span>
+                          <span className="w-8 text-center">2</span>
+                          <span className="w-8 text-center font-semibold">3</span>
+                          <span className="w-8 text-center">4</span>
+                          <span className="w-8 text-center font-semibold">5</span>
+                          <span className="w-8 text-center">6</span>
+                          <span className="w-8 text-center font-semibold">7</span>
+                          <span className="w-8 text-center">8</span>
+                          <span className="w-8 text-center font-semibold">9</span>
+                          <span className="w-8 text-center">10</span>
+                          <span className="w-8 text-center">11</span>
+                          <span className="w-8 text-center font-semibold">12</span>
                         </div>
                       </div>
                     </>
