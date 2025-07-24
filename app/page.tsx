@@ -489,8 +489,8 @@ export default function StudioBrain() {
     <ErrorBoundary>
       <div className="min-h-screen bg-gradient-to-br from-neutral-950 to-neutral-900 text-white p-4">
       <div className="max-w-6xl mx-auto">
-        {/* Lesson Mode Toggle & Settings - Fixed Position */}
-        <div className="flex items-center gap-3 absolute top-4 right-4 z-50">
+        {/* Lesson Mode Toggle & Settings - Responsive Position */}
+        <div className="flex items-center gap-3 absolute top-4 right-4 z-50 sm:top-4 sm:right-4 max-sm:top-2 max-sm:right-2 max-sm:scale-90">
           <SettingsButton />
           <div className={`flex items-center gap-2 p-2 backdrop-blur-sm rounded-lg border shadow-lg ${lessonMode ? 'bg-sky-900/90 border-sky-600/50' : 'bg-neutral-900/90 border-neutral-700'}`}>
             <Lightbulb className={`w-4 h-4 ${lessonMode ? 'text-sky-400' : 'text-gray-500'}`} />
@@ -507,7 +507,7 @@ export default function StudioBrain() {
         </div>
 
         {/* Header */}
-        <div className="mb-8 text-center">
+        <div className="mb-8 text-center mt-16 sm:mt-8">
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="relative">
               <Music className={`w-8 h-8 ${lessonMode ? 'text-sky-400' : 'text-primary'}`} />
