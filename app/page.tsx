@@ -22,6 +22,8 @@ import { Switch } from "@/components/ui/switch"
 import { OpenAIService } from "@/lib/openai-service"
 import { VoicingView } from "@/components/VoicingView"
 import { ChordShape } from "@/lib/voicings"
+import SettingsButton from "@/components/SettingsButton"
+import { useSessionStore } from "@/lib/useSessionStore"
 
 interface PianoKey {
   note: string
@@ -33,6 +35,7 @@ interface PianoKey {
 }
 
 export default function StudioBrain() {
+  const { lastInput, lastOutput, setSession } = useSessionStore()
   const [selectedInstrument, setSelectedInstrument] = useState("guitar")
   const [selectedChord, setSelectedChord] = useState("C")
   const [selectedMode, setSelectedMode] = useState("major")
@@ -268,6 +271,16 @@ export default function StudioBrain() {
     }
   }
 
+  // Rehydration effect - restore last session
+  useEffect(() => {
+    if (lastInput) {
+      setGeneralQuestion(lastInput)
+    }
+    if (lastOutput) {
+      setGeneralAnswer(lastOutput)
+    }
+  }, [lastInput, lastOutput])
+
   // Cleanup effect
   useEffect(() => {
     isMounted.current = true
@@ -365,11 +378,18 @@ export default function StudioBrain() {
     const sanitizedQuestion = sanitizeInput(generalQuestion)
     if (!sanitizedQuestion) return
     
+    // Store the input in session
+    setSession({ lastInput: sanitizedQuestion })
+    
     setGeneralLoading(true)
     try {
       const response = await OpenAIService.askGeneral(sanitizedQuestion, lessonMode)
       if (isMounted.current) {
-        setGeneralAnswer(response.response || response.error || 'No response')
+        const answer = response.response || response.error || 'No response'
+        setGeneralAnswer(answer)
+        
+        // Store the output in session
+        setSession({ lastOutput: answer })
         
         // Check for scale request and update visualizer
         if (response.scaleRequest) {
@@ -379,7 +399,10 @@ export default function StudioBrain() {
     } catch (error) {
       console.error('General question error:', error)
       if (isMounted.current) {
-        setGeneralAnswer('Error: Unable to get response from StudioBrain.')
+        const errorMessage = 'Error: Unable to get response from StudioBrain.'
+        setGeneralAnswer(errorMessage)
+        // Store the error in session
+        setSession({ lastOutput: errorMessage })
       }
     }
     if (isMounted.current) {
@@ -466,8 +489,9 @@ export default function StudioBrain() {
     <ErrorBoundary>
       <div className="min-h-screen bg-gradient-to-br from-neutral-950 to-neutral-900 text-white p-4">
       <div className="max-w-6xl mx-auto">
-        {/* Lesson Mode Toggle - Fixed Position */}
-        <div className="fixed top-6 right-6 z-50">
+        {/* Lesson Mode Toggle & Settings - Fixed Position */}
+        <div className="flex items-center gap-3 absolute top-4 right-4 z-50">
+          <SettingsButton />
           <div className={`flex items-center gap-2 p-2 backdrop-blur-sm rounded-lg border shadow-lg ${lessonMode ? 'bg-sky-900/90 border-sky-600/50' : 'bg-neutral-900/90 border-neutral-700'}`}>
             <Lightbulb className={`w-4 h-4 ${lessonMode ? 'text-sky-400' : 'text-gray-500'}`} />
             <Switch
