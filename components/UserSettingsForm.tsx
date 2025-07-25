@@ -1,8 +1,9 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useUserStore } from '@/lib/useUserStore'
+import { useHydration } from '@/lib/useHydration'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,6 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 
 export default function UserSettingsForm() {
   const router = useRouter()
+  const hasHydrated = useHydration()
   const {
     userLevel,
     roles,
@@ -28,25 +30,42 @@ export default function UserSettingsForm() {
   const [newGuitar, setNewGuitar] = useState('')
   const [newPedal, setNewPedal] = useState('')
   const [newPlugin, setNewPlugin] = useState('')
-  const [genreInput, setGenreInput] = useState(genreInfluence.join(', '))
+  const [genreInput, setGenreInput] = useState('')
+
+  // Update genre input when store hydrates
+  useEffect(() => {
+    if (hasHydrated) {
+      setGenreInput(genreInfluence.join(', '))
+      console.log('🎯 Settings form hydrated - current gear:', gear)
+    }
+  }, [hasHydrated, genreInfluence, gear])
 
   const addGuitar = () => {
     if (newGuitar.trim()) {
-      set({ gear: { ...gear, guitar: [...gear.guitar, newGuitar.trim()] } })
+      const updatedGear = { ...gear, guitar: [...gear.guitar, newGuitar.trim()] }
+      console.log('🎸 Adding guitar:', newGuitar.trim())
+      console.log('🎸 Updated guitars array:', updatedGear.guitar)
+      set({ gear: updatedGear })
       setNewGuitar('')
     }
   }
 
   const addPedal = () => {
     if (newPedal.trim()) {
-      set({ gear: { ...gear, pedals: [...gear.pedals, newPedal.trim()] } })
+      const updatedGear = { ...gear, pedals: [...gear.pedals, newPedal.trim()] }
+      console.log('🎵 Adding pedal:', newPedal.trim())
+      console.log('🎵 Updated pedals array:', updatedGear.pedals)
+      set({ gear: updatedGear })
       setNewPedal('')
     }
   }
 
   const addPlugin = () => {
     if (newPlugin.trim()) {
-      set({ gear: { ...gear, plugins: [...gear.plugins, newPlugin.trim()] } })
+      const updatedGear = { ...gear, plugins: [...gear.plugins, newPlugin.trim()] }
+      console.log('🎛️ Adding plugin:', newPlugin.trim())
+      console.log('🎛️ Updated plugins array:', updatedGear.plugins)
+      set({ gear: updatedGear })
       setNewPlugin('')
     }
   }
@@ -77,6 +96,17 @@ export default function UserSettingsForm() {
     } else {
       set({ roles: [...roles, role] })
     }
+  }
+
+  // Show loading state while hydrating
+  if (!hasHydrated) {
+    return (
+      <div className="max-w-2xl mx-auto p-6 space-y-6">
+        <div className="text-center">
+          <p className="text-slate-600">Loading settings...</p>
+        </div>
+      </div>
+    )
   }
 
   return (

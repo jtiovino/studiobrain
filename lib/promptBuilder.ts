@@ -19,8 +19,19 @@ export function buildPrompt({ tab, input, inputType }: PromptBuilderOptions): st
     lessonMode,
     userLevel,
     mainInstrument,
-    flipFretboardView
+    flipFretboardView,
+    hasHydrated
   } = store
+
+  // Debug logging to see what's in the store
+  console.log('🔍 buildPrompt() - Has hydrated:', hasHydrated)
+  console.log('🔍 buildPrompt() - Current gear from store:', gear)
+  console.log('🔍 buildPrompt() - Plugins specifically:', gear.plugins)
+  
+  // Warn if we're building prompt before hydration
+  if (!hasHydrated) {
+    console.warn('⚠️ buildPrompt() called before Zustand hydration complete - gear may be empty!')
+  }
 
   // Build user context section
   const userContext = `## User Profile:
@@ -65,7 +76,7 @@ DAW: ${gear.daw || 'Not specified'}`
     
     // Add plugin constraints
     if (gear.plugins.length > 0) {
-      gearContext += `\n- The user is using these plugins: ${gear.plugins.join(', ')}. Only recommend tools they own.`
+      gearContext += `\nIMPORTANT: The user only has access to the following plugins: ${gear.plugins.join(', ')}. Do NOT suggest any plugins outside of this list.`
     }
     
     // Add monitoring context
@@ -134,12 +145,20 @@ DAW: ${gear.daw || 'Not specified'}`
     click: 'Interface Interaction:'
   }
 
-  return `${userContext}
+  const finalPrompt = `${userContext}
 
 ${studioContext}
 
-## Question:
+${behaviorInstructions}
+
+${tabInstructions[tab]}
+
+## ${inputContext[inputType]}
 ${input}`
+
+  console.log('Final prompt string:', finalPrompt)
+  
+  return finalPrompt
 }
 
 // Helper function to get a simplified prompt for lightweight requests

@@ -313,7 +313,7 @@ function parseScaleRequest(text: string): ScaleRequest | null {
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, context, lessonMode, instrumentType } = await request.json()
+    const { fullPrompt, originalMessage, context, lessonMode, instrumentType } = await request.json()
 
     if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json({
@@ -322,49 +322,15 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    let systemPrompt = ''
-    
-    switch (context) {
-      case 'general':
-        systemPrompt = `You are StudioBrain, an expert music production assistant. Provide helpful, accurate advice on music production, recording, mixing, mastering, and related topics. 
-
-When users ask about scales or modes (like "show me F lydian", "F# dorian scale", "play C major"), respond naturally while the system automatically updates the visual scale display.
-
-${lessonMode ? 'Format your response as a teaching lesson with clear explanations and steps.' : 'Be concise and practical in your responses.'}`
-        break
-      case 'mix':
-        systemPrompt = `You are StudioBrain, a professional mixing engineer. When providing plugin recommendations, format them using this structure:
-
-PLUGIN: [Plugin Name]
-TYPE: [Category like EQ, Dynamics, Spatial, Time, etc.]
-SETTINGS: [Brief settings description]
-${lessonMode ? 'EXPLANATION: [Why this plugin and these settings work]' : ''}
-
-Then provide your mixing advice. ${lessonMode ? 'Explain the theory behind your recommendations and provide step-by-step guidance.' : 'Give direct, actionable mixing advice.'}`
-        break
-      case 'theory':
-        systemPrompt = `You are StudioBrain, a music theory expert. Analyze chord progressions, scales, harmony, composition techniques, and musical relationships.
-
-When users provide chord progressions (like "Gmaj7 - Amaj7 - Dm"), analyze the harmonic content and modal implications. The system will automatically perform advanced modal analysis and update the visual displays.
-
-When users ask about specific scales or modes, respond naturally while the system updates the visual scale display on both guitar and piano.
-
-Focus on explaining the theory behind harmonic choices, modal interchange, and borrowed chords.
-
-${lessonMode ? 'Structure your response as an educational lesson with examples and exercises.' : 'Provide clear, concise theoretical explanations.'}`
-        break
-      case 'instrument':
-        systemPrompt = `You are StudioBrain, an expert ${instrumentType || 'instrument'} instructor and music specialist. Provide advice on playing techniques, equipment recommendations, practice methods, and instrument-specific knowledge. ${lessonMode ? 'Create a structured lesson plan with practice exercises and progressive steps.' : 'Give practical, actionable advice for the instrument.'}`
-        break
-      default:
-        systemPrompt = 'You are StudioBrain, a helpful music production assistant.'
-    }
+    console.log('🚀 API: Received pre-built prompt from client')
+    console.log('ORIGINAL MESSAGE:', originalMessage)
+    console.log('FULL PROMPT RECEIVED:', fullPrompt)
+    console.log("OPENAI PROMPT SENT:", fullPrompt)
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
       messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: message },
+        { role: 'user', content: fullPrompt },
       ],
       max_tokens: 500,
       temperature: 0.7,
@@ -372,8 +338,8 @@ ${lessonMode ? 'Structure your response as an educational lesson with examples a
 
     const response = completion.choices[0]?.message?.content || ''
     const pluginSuggestions = context === 'mix' ? parsePluginSuggestions(response) : []
-    const scaleRequest = parseScaleRequest(message) // Parse from original user message
-    const modalAnalysis = analyzeChordProgression(message) // Advanced chord analysis
+    const scaleRequest = parseScaleRequest(originalMessage) // Parse from original user message
+    const modalAnalysis = analyzeChordProgression(originalMessage) // Advanced chord analysis
 
     // If we have a strong modal analysis, include it in the response
     let enhancedResponse = response

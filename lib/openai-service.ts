@@ -1,7 +1,10 @@
+import { buildPrompt } from './promptBuilder'
+
 export type TabContext = 'general' | 'mix' | 'theory' | 'instrument'
 
 export interface ChatRequest {
-  message: string
+  fullPrompt: string
+  originalMessage: string
   context: TabContext
   lessonMode: boolean
   instrumentType?: string
@@ -63,24 +66,51 @@ export class OpenAIService {
   }
 
   static async askGeneral(message: string, lessonMode: boolean): Promise<ChatResponse> {
+    const fullPrompt = buildPrompt({
+      tab: 'General',
+      input: message,
+      inputType: 'text'
+    })
+    
+    console.log('🎯 Client-side buildPrompt for General:', fullPrompt)
+    
     return this.makeRequest({
-      message,
+      fullPrompt,
+      originalMessage: message,
       context: 'general',
       lessonMode,
     })
   }
 
   static async askMix(message: string, lessonMode: boolean): Promise<ChatResponse> {
+    const fullPrompt = buildPrompt({
+      tab: 'Mix',
+      input: message,
+      inputType: 'text'
+    })
+    
+    console.log('🎯 Client-side buildPrompt for Mix:', fullPrompt)
+    
     return this.makeRequest({
-      message,
+      fullPrompt,
+      originalMessage: message,
       context: 'mix',
       lessonMode,
     })
   }
 
   static async askTheory(message: string, lessonMode: boolean): Promise<ChatResponse> {
+    const fullPrompt = buildPrompt({
+      tab: 'Theory',
+      input: message,
+      inputType: 'text'
+    })
+    
+    console.log('🎯 Client-side buildPrompt for Theory:', fullPrompt)
+    
     return this.makeRequest({
-      message,
+      fullPrompt,
+      originalMessage: message,
       context: 'theory',
       lessonMode,
     })
@@ -92,8 +122,17 @@ export class OpenAIService {
     instrumentType: string
   ): Promise<ChatResponse> {
     const contextualMessage = `For ${instrumentType}: ${message}`
+    const fullPrompt = buildPrompt({
+      tab: 'Instrument',
+      input: contextualMessage,
+      inputType: 'text'
+    })
+    
+    console.log('🎯 Client-side buildPrompt for Instrument:', fullPrompt)
+    
     return this.makeRequest({
-      message: contextualMessage,
+      fullPrompt,
+      originalMessage: contextualMessage,
       context: 'instrument',
       lessonMode,
       instrumentType,

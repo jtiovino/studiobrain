@@ -3,6 +3,7 @@
 import React from "react"
 import { useState, useEffect, useRef } from "react"
 import ErrorBoundary from "@/components/ErrorBoundary"
+import { HydrationBoundary } from "@/components/HydrationBoundary"
 
 interface PluginSuggestion {
   name: string
@@ -500,7 +501,15 @@ export default function StudioBrain() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gradient-to-br from-neutral-950 to-neutral-900 text-white p-4">
+      <HydrationBoundary fallback={
+        <div className="min-h-screen bg-gradient-to-br from-neutral-950 to-neutral-900 text-white p-4 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-400">Loading StudioBrain...</p>
+          </div>
+        </div>
+      }>
+        <div className="min-h-screen bg-gradient-to-br from-neutral-950 to-neutral-900 text-white p-4">
       <div className="max-w-6xl mx-auto">
         {/* Lesson Mode Toggle & Settings - Responsive Position */}
         <div className="flex items-center gap-3 absolute top-4 right-4 z-50 sm:top-4 sm:right-4 max-sm:top-2 max-sm:right-2 max-sm:scale-90">
@@ -1199,8 +1208,9 @@ export default function StudioBrain() {
             )}
           </TabsContent>
         </Tabs>
-      </div>
-      </div>
+        </div>
+        </div>
+      </HydrationBoundary>
     </ErrorBoundary>
   )
 }
