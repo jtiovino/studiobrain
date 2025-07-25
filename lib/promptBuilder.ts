@@ -33,13 +33,18 @@ export function buildPrompt({ tab, input, inputType }: PromptBuilderOptions): st
     console.warn('⚠️ buildPrompt() called before Zustand hydration complete - gear may be empty!')
   }
 
-  // Build user context section
-  const userContext = `## User Profile:
+  // Build user context section with DAW-aware guidance
+  let userContext = `## User Profile:
 - Roles: ${roles.length > 0 ? roles.join(', ') : 'Not specified'}
 - Experience Level: ${userLevel}
 - Main Instrument: ${mainInstrument}
 - Preferred Tuning: ${preferredTuning}
 - Genre Influences: ${genreInfluence.length > 0 ? genreInfluence.join(', ') : 'Not specified'}`
+
+  // Add DAW-specific context if DAW is set
+  if (gear.daw && gear.daw !== 'none') {
+    userContext += `\n\nYou are assisting a musician who uses ${gear.daw}. When suggesting effects or processing chains, prefer stock plugins from ${gear.daw} when appropriate.`
+  }
 
   const studioContext = `## Studio Setup:
 Guitars: ${gear.guitar?.length ? gear.guitar.join(', ') : 'None'}
@@ -72,6 +77,24 @@ DAW: ${gear.daw || 'Not specified'}`
     // Add DAW-specific guidance
     if (gear.daw && gear.daw !== 'none') {
       gearContext += `\n- DAW is ${gear.daw}. Tailor all advice to this environment and its specific workflow.`
+    }
+    
+    // Add DAW-specific stock plugin instructions for Mix tab
+    if (tab === 'Mix' && gear.daw && gear.daw !== 'none') {
+      const dawLower = gear.daw.toLowerCase()
+      if (dawLower.includes('logic')) {
+        gearContext += `\n\nUse stock Logic Pro plugins when recommending plugin chains. Include specific plugin names such as 'Channel EQ', 'Compressor (Platinum Digital)', 'Enveloper', 'Space Designer', 'ChromaVerb', 'Tape', 'Vintage EQ', 'DeEsser', 'Multipressor', etc.`
+      } else if (dawLower.includes('ableton')) {
+        gearContext += `\n\nUse stock Ableton Live plugins when recommending plugin chains. Include specific plugin names such as 'EQ Eight', 'Compressor', 'Auto Filter', 'Reverb', 'Echo', 'Saturator', 'Multiband Dynamics', 'Utility', etc.`
+      } else if (dawLower.includes('pro tools')) {
+        gearContext += `\n\nUse stock Pro Tools plugins when recommending plugin chains. Include specific plugin names such as 'EQ III', 'Dyn 3 Compressor/Limiter', 'D-Verb', 'Mod Delay III', 'BF-76', 'AIR Vintage Filter', etc.`
+      } else if (dawLower.includes('cubase')) {
+        gearContext += `\n\nUse stock Cubase plugins when recommending plugin chains. Include specific plugin names such as 'Channel Strip', 'Frequency EQ', 'Compressor', 'REVerence', 'ModMachine', 'DeEsser', 'Vintage Compressor', etc.`
+      } else if (dawLower.includes('reaper')) {
+        gearContext += `\n\nUse stock REAPER plugins when recommending plugin chains. Include specific plugin names such as 'ReaEQ', 'ReaComp', 'ReaVerb', 'ReaDelay', 'ReaGate', 'ReaFir', 'ReaXcomp', etc.`
+      } else if (dawLower.includes('fl studio')) {
+        gearContext += `\n\nUse stock FL Studio plugins when recommending plugin chains. Include specific plugin names such as 'Parametric EQ 2', 'Fruity Compressor', 'Fruity Reverb 2', 'Fruity Delay 3', 'Maximus', 'Soundgoodizer', etc.`
+      }
     }
     
     // Add plugin constraints
