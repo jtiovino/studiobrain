@@ -28,15 +28,15 @@ export function buildPrompt({ tab, input, inputType }: PromptBuilderOptions): st
 - Experience Level: ${userLevel}
 - Main Instrument: ${mainInstrument}
 - Preferred Tuning: ${preferredTuning}
-- Genre Influences: ${genreInfluence.length > 0 ? genreInfluence.join(', ') : 'Not specified'}
+- Genre Influences: ${genreInfluence.length > 0 ? genreInfluence.join(', ') : 'Not specified'}`
 
-## Studio Setup:
-- DAW: ${gear.daw === 'none' ? 'Not specified' : gear.daw}
-- Audio Interface: ${gear.interface || 'Not specified'}
-- Studio Monitors: ${gear.monitors || 'Not specified'}
-- Guitars: ${gear.guitar.length > 0 ? gear.guitar.join(', ') : 'Not specified'}
-- Pedals: ${gear.pedals.length > 0 ? gear.pedals.join(', ') : 'Not specified'}
-- Plugins: ${gear.plugins.length > 0 ? gear.plugins.join(', ') : 'Not specified'}`
+  const studioContext = `## Studio Setup:
+Guitars: ${gear.guitar?.length ? gear.guitar.join(', ') : 'None'}
+Pedals: ${gear.pedals?.length ? gear.pedals.join(', ') : 'None'}
+Plugins: ${gear.plugins?.length ? gear.plugins.join(', ') : 'None'}
+Audio Interface: ${gear.interface || 'Not specified'}
+Studio Monitors: ${gear.monitors || 'Not specified'}
+DAW: ${gear.daw || 'Not specified'}`
 
   // Build behavior instructions based on lesson mode
   const behaviorInstructions = lessonMode
@@ -134,19 +134,12 @@ export function buildPrompt({ tab, input, inputType }: PromptBuilderOptions): st
     click: 'Interface Interaction:'
   }
 
-  // Construct the complete prompt
-  const prompt = `${userContext}
+  return `${userContext}
 
-${behaviorInstructions}
+${studioContext}
 
-${tabInstructions[tab]}
-
-## ${inputContext[inputType]}
-${input}
-
-Please provide a helpful response considering all the above context, the user's setup, experience level, and the current mode (${lessonMode ? 'Teaching' : 'Quick'}).`
-
-  return prompt
+## Question:
+${input}`
 }
 
 // Helper function to get a simplified prompt for lightweight requests
