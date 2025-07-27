@@ -543,7 +543,7 @@ export default function StudioBrain() {
 
         {/* Main Interface */}
         <Tabs defaultValue="general" className="space-y-8">
-          <TabsList className={`grid w-full grid-cols-4 h-14 bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl shadow-2xl ${lessonMode ? '[&>[data-state=active]]:bg-neon-cyan/20 [&>[data-state=active]]:text-neon-cyan [&>[data-state=active]]:shadow-lg [&>[data-state=active]]:shadow-neon-cyan/30' : '[&>[data-state=active]]:bg-neon-purple/20 [&>[data-state=active]]:text-neon-purple [&>[data-state=active]]:shadow-lg [&>[data-state=active]]:shadow-neon-purple/30'}`}>
+          <TabsList className={`grid w-full grid-cols-4 h-14 bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl shadow-2xl ${lessonMode ? '[&>[data-state=active]]:bg-neon-cyan/20 [&>[data-state=active]]:text-neon-cyan [&>[data-state=active]]:shadow-[inset_0_1px_0_rgba(6,182,212,0.3),0_0_6px_rgba(6,182,212,0.15)]' : '[&>[data-state=active]]:bg-neon-purple/20 [&>[data-state=active]]:text-neon-purple [&>[data-state=active]]:shadow-[inset_0_1px_0_rgba(139,92,246,0.3),0_0_6px_rgba(139,92,246,0.15)]'}`}>
             <TabsTrigger value="general" className={`transition-all duration-300 rounded-lg font-medium h-full flex items-center justify-center ${lessonMode ? 'text-slate-300 data-[state=active]:bg-neon-cyan/20 data-[state=active]:text-neon-cyan hover:bg-neon-cyan/10 hover:text-neon-cyan' : 'text-slate-300 data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple hover:bg-neon-purple/10 hover:text-neon-purple'}`}>
               <Lightbulb className="w-5 h-5 mr-2" />
               General
