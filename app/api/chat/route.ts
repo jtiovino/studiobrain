@@ -333,7 +333,10 @@ export async function POST(request: NextRequest) {
         { role: 'user', content: fullPrompt },
       ],
       max_tokens: 500,
-      temperature: 0.7,
+      temperature: 0.3,
+      top_p: 1.0,
+      frequency_penalty: 0.2,
+      presence_penalty: 0.0,
     })
 
     const response = completion.choices[0]?.message?.content || ''

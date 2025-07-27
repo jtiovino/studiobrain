@@ -12,7 +12,21 @@ const config: Config = {
   ],
   theme: {
   	extend: {
+  		fontFamily: {
+  			sans: ['Inter', 'system-ui', 'sans-serif'],
+  		},
   		colors: {
+  			// Audio production neon theme
+  			neon: {
+  				purple: '#8B5CF6',
+  				blue: '#06B6D4',
+  				pink: '#EC4899',
+  				cyan: '#00D4FF',
+  			},
+  			glass: {
+  				bg: 'rgba(255, 255, 255, 0.05)',
+  				border: 'rgba(255, 255, 255, 0.1)',
+  			},
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
@@ -85,11 +99,34 @@ const config: Config = {
   				to: {
   					height: '0'
   				}
+  			},
+  			'neon-pulse': {
+  				'0%, 100%': {
+  					opacity: '1',
+  					boxShadow: '0 0 5px currentColor, 0 0 10px currentColor, 0 0 15px currentColor'
+  				},
+  				'50%': {
+  					opacity: '0.8',
+  					boxShadow: '0 0 8px currentColor, 0 0 16px currentColor, 0 0 24px currentColor'
+  				}
+  			},
+  			'glow': {
+  				'0%, 100%': {
+  					boxShadow: '0 0 5px currentColor'
+  				},
+  				'50%': {
+  					boxShadow: '0 0 10px currentColor, 0 0 20px currentColor'
+  				}
   			}
   		},
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
-  			'accordion-up': 'accordion-up 0.2s ease-out'
+  			'accordion-up': 'accordion-up 0.2s ease-out',
+  			'neon-pulse': 'neon-pulse 2s ease-in-out infinite',
+  			'glow': 'glow 1.5s ease-in-out infinite alternate'
+  		},
+  		backdropBlur: {
+  			'xs': '2px',
   		}
   	}
   },

@@ -509,92 +509,94 @@ export default function StudioBrain() {
           </div>
         </div>
       }>
-        <div className="min-h-screen bg-gradient-to-br from-neutral-950 to-neutral-900 text-white p-4">
+        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950/20 to-slate-900 text-white p-6">
       <div className="max-w-6xl mx-auto">
         {/* Lesson Mode Toggle & Settings - Responsive Position */}
-        <div className="flex items-center gap-3 absolute top-4 right-4 z-50 sm:top-4 sm:right-4 max-sm:top-2 max-sm:right-2 max-sm:scale-90">
+        <div className="flex items-center gap-4 absolute top-6 right-6 z-50 sm:top-6 sm:right-6 max-sm:top-4 max-sm:right-4">
           <SettingsButton />
-          <div className={`flex items-center gap-2 p-2 backdrop-blur-sm rounded-lg border shadow-lg ${lessonMode ? 'bg-sky-900/90 border-sky-600/50' : 'bg-neutral-900/90 border-neutral-700'}`}>
-            <Lightbulb className={`w-4 h-4 ${lessonMode ? 'text-sky-400' : 'text-gray-500'}`} />
+          <div className={`flex items-center gap-3 p-3 backdrop-blur-xl rounded-xl border shadow-2xl transition-all duration-300 hover:shadow-neon ${lessonMode ? 'bg-neon-cyan/10 border-neon-cyan/30 shadow-neon-cyan/20' : 'bg-glass-bg border-glass-border'}`}>
+            <Lightbulb className={`w-5 h-5 transition-colors ${lessonMode ? 'text-neon-cyan animate-glow' : 'text-slate-400'}`} />
             <Switch
               id="lesson-mode"
               checked={lessonMode}
               onCheckedChange={setLessonMode}
-              className={lessonMode ? 'data-[state=checked]:bg-sky-500' : ''}
+              className={lessonMode ? 'data-[state=checked]:bg-neon-cyan' : ''}
             />
-            <span className={`text-xs min-w-[40px] text-center ${lessonMode ? 'text-sky-200' : 'text-gray-400'}`}>
+            <span className={`text-sm font-medium min-w-[50px] text-center transition-colors ${lessonMode ? 'text-neon-cyan' : 'text-slate-400'}`}>
               {lessonMode ? 'Lesson' : 'Quick'}
             </span>
           </div>
         </div>
 
         {/* Header */}
-        <div className="mb-8 text-center mt-16 sm:mt-8">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="relative">
-              <Music className={`w-8 h-8 ${lessonMode ? 'text-sky-400' : 'text-primary'}`} />
+        <div className="mb-12 text-center mt-20 sm:mt-12">
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <div className="relative p-3 rounded-xl bg-glass-bg backdrop-blur-md border border-glass-border shadow-lg">
+              <Music className={`w-10 h-10 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'} animate-glow`} />
             </div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-sky-400 bg-clip-text text-transparent">
+            <h1 className="text-6xl font-black tracking-tight bg-gradient-to-r from-neon-purple via-neon-blue to-neon-pink bg-clip-text text-transparent">
               StudioBrain
             </h1>
           </div>
-          <p className="text-gray-400 text-lg">A creative assistant for musicians, powered by AI.</p>
+          <p className="text-slate-400 text-xl font-light max-w-2xl mx-auto leading-relaxed">A sleek, modern creative assistant for musicians - powered by AI</p>
         </div>
 
         {/* Main Interface */}
-        <Tabs defaultValue="general" className="space-y-6">
-          <TabsList className={`grid w-full grid-cols-4 bg-neutral-900 border-neutral-800 ${lessonMode ? '[&>[data-state=active]]:bg-sky-900 [&>[data-state=active]]:text-sky-200' : ''}`}>
-            <TabsTrigger value="general" className={lessonMode ? 'text-sky-400 data-[state=active]:bg-sky-900 data-[state=active]:text-sky-200 hover:bg-sky-800/50 hover:text-sky-300' : 'data-[state=active]:bg-neutral-800'}>
-              <Lightbulb className="w-4 h-4 mr-2" />
+        <Tabs defaultValue="general" className="space-y-8">
+          <TabsList className={`grid w-full grid-cols-4 p-2 bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl shadow-2xl ${lessonMode ? '[&>[data-state=active]]:bg-neon-cyan/20 [&>[data-state=active]]:text-neon-cyan [&>[data-state=active]]:shadow-lg [&>[data-state=active]]:shadow-neon-cyan/30' : '[&>[data-state=active]]:bg-neon-purple/20 [&>[data-state=active]]:text-neon-purple [&>[data-state=active]]:shadow-lg [&>[data-state=active]]:shadow-neon-purple/30'}`}>
+            <TabsTrigger value="general" className={`transition-all duration-300 rounded-lg font-medium ${lessonMode ? 'text-slate-300 data-[state=active]:bg-neon-cyan/20 data-[state=active]:text-neon-cyan hover:bg-neon-cyan/10 hover:text-neon-cyan' : 'text-slate-300 data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple hover:bg-neon-purple/10 hover:text-neon-purple'}`}>
+              <Lightbulb className="w-5 h-5 mr-2" />
               General
             </TabsTrigger>
-            <TabsTrigger value="mix" className={lessonMode ? 'text-sky-400 data-[state=active]:bg-sky-900 data-[state=active]:text-sky-200 hover:bg-sky-800/50 hover:text-sky-300' : 'data-[state=active]:bg-neutral-800'}>
-              <Volume2 className="w-4 h-4 mr-2" />
+            <TabsTrigger value="mix" className={`transition-all duration-300 rounded-lg font-medium ${lessonMode ? 'text-slate-300 data-[state=active]:bg-neon-cyan/20 data-[state=active]:text-neon-cyan hover:bg-neon-cyan/10 hover:text-neon-cyan' : 'text-slate-300 data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple hover:bg-neon-purple/10 hover:text-neon-purple'}`}>
+              <Volume2 className="w-5 h-5 mr-2" />
               Mix
             </TabsTrigger>
-            <TabsTrigger value="theory" className={lessonMode ? 'text-sky-400 data-[state=active]:bg-sky-900 data-[state=active]:text-sky-200 hover:bg-sky-800/50 hover:text-sky-300' : 'data-[state=active]:bg-neutral-800'}>
-              <Music className="w-4 h-4 mr-2" />
+            <TabsTrigger value="theory" className={`transition-all duration-300 rounded-lg font-medium ${lessonMode ? 'text-slate-300 data-[state=active]:bg-neon-cyan/20 data-[state=active]:text-neon-cyan hover:bg-neon-cyan/10 hover:text-neon-cyan' : 'text-slate-300 data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple hover:bg-neon-purple/10 hover:text-neon-purple'}`}>
+              <Music className="w-5 h-5 mr-2" />
               Theory
             </TabsTrigger>
-            <TabsTrigger value="instrument" className={lessonMode ? 'text-sky-400 data-[state=active]:bg-sky-900 data-[state=active]:text-sky-200 hover:bg-sky-800/50 hover:text-sky-300' : 'data-[state=active]:bg-neutral-800'}>
-              <Guitar className="w-4 h-4 mr-2" />
+            <TabsTrigger value="instrument" className={`transition-all duration-300 rounded-lg font-medium ${lessonMode ? 'text-slate-300 data-[state=active]:bg-neon-cyan/20 data-[state=active]:text-neon-cyan hover:bg-neon-cyan/10 hover:text-neon-cyan' : 'text-slate-300 data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple hover:bg-neon-purple/10 hover:text-neon-purple'}`}>
+              <Guitar className="w-5 h-5 mr-2" />
               Instrument
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="general" className="mt-6">
-            <Card className="bg-neutral-900 border-neutral-800">
-              <CardHeader>
-                <CardTitle className={`flex items-center gap-2 ${lessonMode ? 'text-sky-400' : ''}`}>
-                  <Lightbulb className={`w-4 h-4 ${lessonMode ? 'text-sky-400' : ''}`} />
+          <TabsContent value="general" className="mt-8">
+            <Card className="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl shadow-2xl">
+              <CardHeader className="pb-6">
+                <CardTitle className={`flex items-center gap-3 text-2xl font-bold ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}>
+                  <div className={`p-2 rounded-lg ${lessonMode ? 'bg-neon-cyan/20' : 'bg-neon-purple/20'}`}>
+                    <Lightbulb className={`w-6 h-6 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`} />
+                  </div>
                   Ask StudioBrain
                 </CardTitle>
-                <CardDescription className={lessonMode ? 'text-sky-300' : ''}>Get general music production advice and tips</CardDescription>
+                <CardDescription className={`text-lg ${lessonMode ? 'text-slate-300' : 'text-slate-300'}`}>Get general music production advice and tips</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="general-question" className={lessonMode ? 'text-sky-300' : ''}>Your Question</Label>
+              <CardContent className="space-y-6 pt-0">
+                <div className="space-y-3">
+                  <Label htmlFor="general-question" className={`text-base font-medium ${lessonMode ? 'text-slate-200' : 'text-slate-200'}`}>Your Question</Label>
                   <Textarea
                     id="general-question"
                     placeholder="Ask about music production, recording techniques, software, hardware, or general music advice..."
                     value={generalQuestion}
                     onChange={(e) => setGeneralQuestion(e.target.value)}
                     onKeyDown={(e) => handleKeyDown(e, handleGeneralQuestion)}
-                    className={`min-h-[80px] bg-neutral-800 border-neutral-700 ${lessonMode ? 'text-sky-300 focus:border-sky-400 placeholder:text-sky-400/70' : 'focus:border-primary'}`}
+                    className={`min-h-[100px] bg-glass-bg backdrop-blur-sm border border-glass-border rounded-xl p-4 text-white placeholder:text-slate-400 transition-all duration-300 ${lessonMode ? 'focus:border-neon-cyan focus:shadow-lg focus:shadow-neon-cyan/20' : 'focus:border-neon-purple focus:shadow-lg focus:shadow-neon-purple/20'} hover:border-slate-400`}
                   />
                 </div>
                 <Button 
                   onClick={handleGeneralQuestion} 
                   disabled={generalLoading || !generalQuestion.trim()}
-                  className={`w-full disabled:opacity-50 ${
+                  className={`w-full h-12 font-semibold text-lg rounded-xl transition-all duration-300 disabled:opacity-50 ${
                     lessonMode 
-                      ? 'bg-sky-400 hover:bg-sky-500 border-sky-300' 
-                      : 'bg-primary hover:bg-primary/90'
+                      ? 'bg-gradient-to-r from-neon-cyan to-neon-blue hover:from-neon-cyan/90 hover:to-neon-blue/90 text-black shadow-lg shadow-neon-cyan/30 hover:shadow-neon-cyan/50 animate-glow' 
+                      : 'bg-gradient-to-r from-neon-purple to-neon-pink hover:from-neon-purple/90 hover:to-neon-pink/90 text-white shadow-lg shadow-neon-purple/30 hover:shadow-neon-purple/50 animate-glow'
                   }`}
                 >
                   {generalLoading ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="mr-3 h-5 w-5 animate-spin" />
                       Thinking...
                     </>
                   ) : (
@@ -602,48 +604,50 @@ export default function StudioBrain() {
                   )}
                 </Button>
                 {generalAnswer && (
-                  <div className={`mt-4 p-4 rounded-lg border ${lessonMode ? 'bg-gradient-to-r from-sky-900/20 to-blue-900/20 border-sky-400/30' : 'bg-gradient-to-r from-pink-900/20 to-rose-900/20 border-primary/30'}`}>
-                    <h4 className={`font-semibold mb-2 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>StudioBrain's Answer:</h4>
-                    <div className="text-gray-300 whitespace-pre-line">{generalAnswer}</div>
+                  <div className={`mt-6 p-6 rounded-xl border backdrop-blur-sm ${lessonMode ? 'bg-gradient-to-br from-neon-cyan/10 to-neon-blue/5 border-neon-cyan/30 shadow-lg shadow-neon-cyan/10' : 'bg-gradient-to-br from-neon-purple/10 to-neon-pink/5 border-neon-purple/30 shadow-lg shadow-neon-purple/10'}`}>
+                    <h4 className={`font-bold text-lg mb-4 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}>StudioBrain's Answer:</h4>
+                    <div className="text-slate-200 whitespace-pre-line leading-relaxed">{generalAnswer}</div>
                   </div>
                 )}
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="mix" className="mt-6">
-            <Card className="bg-neutral-900 border-neutral-800">
-              <CardHeader>
-                <CardTitle className={`flex items-center gap-2 ${lessonMode ? 'text-sky-400' : ''}`}>
-                  <Volume2 className={`w-4 h-4 ${lessonMode ? 'text-sky-400' : ''}`} />
+          <TabsContent value="mix" className="mt-8">
+            <Card className="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl shadow-2xl">
+              <CardHeader className="pb-6">
+                <CardTitle className={`flex items-center gap-3 text-2xl font-bold ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}>
+                  <div className={`p-2 rounded-lg ${lessonMode ? 'bg-neon-cyan/20' : 'bg-neon-purple/20'}`}>
+                    <Volume2 className={`w-6 h-6 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`} />
+                  </div>
                   Ask StudioBrain
                 </CardTitle>
-                <CardDescription className={lessonMode ? 'text-sky-300' : ''}>Get mixing and mastering advice</CardDescription>
+                <CardDescription className={`text-lg ${lessonMode ? 'text-slate-300' : 'text-slate-300'}`}>Get mixing and mastering advice</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="mix-question" className={lessonMode ? 'text-sky-300' : ''}>Your Question</Label>
+              <CardContent className="space-y-6 pt-0">
+                <div className="space-y-3">
+                  <Label htmlFor="mix-question" className={`text-base font-medium ${lessonMode ? 'text-slate-200' : 'text-slate-200'}`}>Your Question</Label>
                   <Textarea
                     id="mix-question"
                     placeholder="Ask about EQ, compression, reverb, stereo imaging, mixing techniques, or mastering..."
                     value={mixQuestion}
                     onChange={(e) => setMixQuestion(e.target.value)}
                     onKeyDown={(e) => handleKeyDown(e, handleMixQuestion)}
-                    className={`min-h-[80px] bg-neutral-800 border-neutral-700 ${lessonMode ? 'text-sky-300 focus:border-sky-400 placeholder:text-sky-400/70' : 'focus:border-primary'}`}
+                    className={`min-h-[100px] bg-glass-bg backdrop-blur-sm border border-glass-border rounded-xl p-4 text-white placeholder:text-slate-400 transition-all duration-300 ${lessonMode ? 'focus:border-neon-cyan focus:shadow-lg focus:shadow-neon-cyan/20' : 'focus:border-neon-purple focus:shadow-lg focus:shadow-neon-purple/20'} hover:border-slate-400`}
                   />
                 </div>
                 <Button 
                   onClick={handleMixQuestion} 
                   disabled={mixLoading || !mixQuestion.trim()}
-                  className={`w-full disabled:opacity-50 ${
+                  className={`w-full h-12 font-semibold text-lg rounded-xl transition-all duration-300 disabled:opacity-50 ${
                     lessonMode 
-                      ? 'bg-sky-400 hover:bg-sky-500 border-sky-300' 
-                      : 'bg-primary hover:bg-primary/90'
+                      ? 'bg-gradient-to-r from-neon-cyan to-neon-blue hover:from-neon-cyan/90 hover:to-neon-blue/90 text-black shadow-lg shadow-neon-cyan/30 hover:shadow-neon-cyan/50 animate-glow' 
+                      : 'bg-gradient-to-r from-neon-purple to-neon-pink hover:from-neon-purple/90 hover:to-neon-pink/90 text-white shadow-lg shadow-neon-purple/30 hover:shadow-neon-purple/50 animate-glow'
                   }`}
                 >
                   {mixLoading ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="mr-3 h-5 w-5 animate-spin" />
                       Mixing...
                     </>
                   ) : (
@@ -651,21 +655,23 @@ export default function StudioBrain() {
                   )}
                 </Button>
                 {mixAnswer && (
-                  <div className={`mt-4 p-4 rounded-lg border ${lessonMode ? 'bg-gradient-to-r from-sky-900/20 to-blue-900/20 border-sky-400/30' : 'bg-gradient-to-r from-pink-900/20 to-rose-900/20 border-primary/30'}`}>
-                    <h4 className={`font-semibold mb-2 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>StudioBrain's Answer:</h4>
-                    <div className="text-gray-300 whitespace-pre-line">{mixAnswer}</div>
+                  <div className={`mt-6 p-6 rounded-xl border backdrop-blur-sm ${lessonMode ? 'bg-gradient-to-br from-neon-cyan/10 to-neon-blue/5 border-neon-cyan/30 shadow-lg shadow-neon-cyan/10' : 'bg-gradient-to-br from-neon-purple/10 to-neon-pink/5 border-neon-purple/30 shadow-lg shadow-neon-purple/10'}`}>
+                    <h4 className={`font-bold text-lg mb-4 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}>StudioBrain's Answer:</h4>
+                    <div className="text-slate-200 whitespace-pre-line leading-relaxed">{mixAnswer}</div>
                   </div>
                 )}
 
                 {mixPlugins.length > 0 && (
-                  <div className="mt-4 p-4 bg-gradient-to-r from-blue-900/20 to-purple-900/20 rounded-lg border border-blue-500/30">
-                    <h4 className="font-semibold mb-3 text-blue-400 flex items-center gap-2">
-                      <Volume2 className="w-4 h-4" />
+                  <div className={`mt-6 p-6 rounded-xl border backdrop-blur-sm ${lessonMode ? 'bg-gradient-to-br from-neon-blue/10 to-neon-cyan/5 border-neon-blue/30 shadow-lg shadow-neon-blue/10' : 'bg-gradient-to-br from-neon-blue/10 to-neon-purple/5 border-neon-blue/30 shadow-lg shadow-neon-blue/10'}`}>
+                    <h4 className={`font-bold text-lg mb-4 ${lessonMode ? 'text-neon-blue' : 'text-neon-blue'} flex items-center gap-3`}>
+                      <div className="p-2 rounded-lg bg-neon-blue/20">
+                        <Volume2 className="w-5 h-5" />
+                      </div>
                       Suggested Plugin Chain
                     </h4>
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       {mixPlugins.map((plugin, index) => (
-                        <div key={index} className="flex items-start gap-3 p-3 bg-neutral-800/50 rounded border border-neutral-700 hover:border-gray-600 transition-colors cursor-pointer" 
+                        <div key={index} className="flex items-start gap-4 p-4 bg-glass-bg backdrop-blur-sm rounded-xl border border-glass-border hover:border-neon-blue/40 transition-all duration-300 cursor-pointer hover:scale-[1.02] hover:shadow-lg hover:shadow-neon-blue/20" 
                              onClick={(e) => {
                                // Simple visual feedback without state
                                const element = e.currentTarget as HTMLElement
@@ -673,30 +679,30 @@ export default function StudioBrain() {
                                  element.style.transform = 'scale(0.98)'
                                  addTimeout(setTimeout(() => {
                                    if (element && isMounted.current) {
-                                     element.style.transform = 'scale(1)'
+                                     element.style.transform = 'scale(1.02)'
                                    }
                                  }, 150))
                                }
                              }}>
-                          <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm animate-pulse ${lessonMode ? 'bg-sky-400' : 'bg-primary'}`}>
+                          <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold ${lessonMode ? 'bg-neon-cyan animate-glow' : 'bg-neon-purple animate-glow'}`}>
                             {index + 1}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="font-medium text-white">{plugin.name}</span>
-                              <Badge variant="outline" className={`text-xs bg-gray-700 text-gray-300 transition-colors ${lessonMode ? 'hover:bg-sky-400 hover:text-white' : 'hover:bg-primary hover:text-white'}`}>
+                            <div className="flex items-center gap-3 mb-2">
+                              <span className="font-semibold text-white text-lg">{plugin.name}</span>
+                              <Badge variant="outline" className={`px-3 py-1 rounded-lg font-medium transition-all duration-300 ${lessonMode ? 'bg-neon-cyan/20 border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/30' : 'bg-neon-purple/20 border-neon-purple/40 text-neon-purple hover:bg-neon-purple/30'}`}>
                                 {plugin.type}
                               </Badge>
                             </div>
-                            <p className="text-sm text-gray-400 mb-1">{plugin.description}</p>
+                            <p className="text-slate-300 mb-2 leading-relaxed">{plugin.description}</p>
                             {plugin.explanation && (
-                              <p className="text-xs text-gray-500">{plugin.explanation}</p>
+                              <p className="text-slate-400 text-sm leading-relaxed">{plugin.explanation}</p>
                             )}
                           </div>
                         </div>
                       ))}
                     </div>
-                    <div className="mt-3 text-xs text-gray-500 flex items-center gap-1">
+                    <div className="mt-4 text-sm text-slate-400 flex items-center gap-2 p-3 bg-glass-bg rounded-lg border border-glass-border">
                       💡 <span>Click on plugins to highlight them in your chain</span>
                     </div>
                   </div>
@@ -707,46 +713,48 @@ export default function StudioBrain() {
 
           </TabsContent>
 
-          <TabsContent value="theory" className="mt-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <TabsContent value="theory" className="mt-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Chord & Mode Explorer */}
-              <Card className={`bg-neutral-900 border-neutral-800 transition-all duration-300 ${scaleChangeAnimation ? lessonMode ? 'ring-2 ring-sky-400/50 shadow-lg shadow-sky-400/20' : 'ring-2 ring-primary/50 shadow-lg shadow-primary/20' : ''}`}>
-                <CardHeader>
-                  <CardTitle className={`flex items-center gap-2 ${lessonMode ? 'text-sky-400' : ''}`}>
-                    <Music className={`w-5 h-5 ${lessonMode ? 'text-sky-400' : ''}`} />
+              <Card className={`bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl shadow-2xl transition-all duration-300 ${scaleChangeAnimation ? lessonMode ? 'ring-2 ring-neon-cyan/50 shadow-lg shadow-neon-cyan/20' : 'ring-2 ring-neon-purple/50 shadow-lg shadow-neon-purple/20' : ''}`}>
+                <CardHeader className="pb-6">
+                  <CardTitle className={`flex items-center gap-3 text-xl font-bold ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}>
+                    <div className={`p-2 rounded-lg ${lessonMode ? 'bg-neon-cyan/20' : 'bg-neon-purple/20'}`}>
+                      <Music className={`w-6 h-6 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`} />
+                    </div>
                     Chord & Mode Explorer
                   </CardTitle>
-                  <CardDescription className={lessonMode ? 'text-sky-300' : ''}>Explore scales, modes, and chord progressions interactively</CardDescription>
+                  <CardDescription className="text-slate-300 text-base">Explore scales, modes, and chord progressions interactively</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="root-select" className={lessonMode ? 'text-sky-300' : ''}>Root Note</Label>
+                <CardContent className="space-y-8 pt-0">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-3">
+                      <Label htmlFor="root-select" className="text-slate-200 font-medium">Root Note</Label>
                       <Select value={selectedChord} onValueChange={(value) => handleScaleChange(value, selectedMode)}>
-                        <SelectTrigger id="root-select" className={`bg-neutral-800 border-neutral-700 ${lessonMode ? 'focus:border-sky-400 data-[state=open]:border-sky-400' : ''}`}>
+                        <SelectTrigger id="root-select" className={`bg-glass-bg backdrop-blur-sm border border-glass-border rounded-xl h-12 transition-all duration-300 ${lessonMode ? 'focus:border-neon-cyan focus:shadow-lg focus:shadow-neon-cyan/20 data-[state=open]:border-neon-cyan' : 'focus:border-neon-purple focus:shadow-lg focus:shadow-neon-purple/20 data-[state=open]:border-neon-purple'} hover:border-slate-400`}>
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="bg-neutral-800 border-neutral-700">
+                        <SelectContent className="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl">
                           {["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"].map(note => (
-                            <SelectItem key={note} value={note} className={lessonMode ? 'focus:bg-sky-400 focus:text-white data-[highlighted]:bg-sky-400 data-[highlighted]:text-white' : ''}>{note}</SelectItem>
+                            <SelectItem key={note} value={note} className={`rounded-lg ${lessonMode ? 'focus:bg-neon-cyan/20 focus:text-neon-cyan data-[highlighted]:bg-neon-cyan/20 data-[highlighted]:text-neon-cyan' : 'focus:bg-neon-purple/20 focus:text-neon-purple data-[highlighted]:bg-neon-purple/20 data-[highlighted]:text-neon-purple'}`}>{note}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="mode-select" className={lessonMode ? 'text-sky-300' : ''}>Mode</Label>
+                    <div className="space-y-3">
+                      <Label htmlFor="mode-select" className="text-slate-200 font-medium">Mode</Label>
                       <Select value={selectedMode} onValueChange={(value) => handleScaleChange(selectedChord, value)}>
-                        <SelectTrigger id="mode-select" className={`bg-neutral-800 border-neutral-700 ${lessonMode ? 'focus:border-sky-400 data-[state=open]:border-sky-400' : ''}`}>
+                        <SelectTrigger id="mode-select" className={`bg-glass-bg backdrop-blur-sm border border-glass-border rounded-xl h-12 transition-all duration-300 ${lessonMode ? 'focus:border-neon-cyan focus:shadow-lg focus:shadow-neon-cyan/20 data-[state=open]:border-neon-cyan' : 'focus:border-neon-purple focus:shadow-lg focus:shadow-neon-purple/20 data-[state=open]:border-neon-purple'} hover:border-slate-400`}>
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="bg-neutral-800 border-neutral-700">
-                          <SelectItem value="major" className={lessonMode ? 'focus:bg-sky-400 focus:text-white data-[highlighted]:bg-sky-400 data-[highlighted]:text-white' : ''}>Major (Ionian)</SelectItem>
-                          <SelectItem value="minor" className={lessonMode ? 'focus:bg-sky-400 focus:text-white data-[highlighted]:bg-sky-400 data-[highlighted]:text-white' : ''}>Minor (Aeolian)</SelectItem>
-                          <SelectItem value="dorian" className={lessonMode ? 'focus:bg-sky-400 focus:text-white data-[highlighted]:bg-sky-400 data-[highlighted]:text-white' : ''}>Dorian</SelectItem>
-                          <SelectItem value="phrygian" className={lessonMode ? 'focus:bg-sky-400 focus:text-white data-[highlighted]:bg-sky-400 data-[highlighted]:text-white' : ''}>Phrygian</SelectItem>
-                          <SelectItem value="lydian" className={lessonMode ? 'focus:bg-sky-400 focus:text-white data-[highlighted]:bg-sky-400 data-[highlighted]:text-white' : ''}>Lydian</SelectItem>
-                          <SelectItem value="mixolydian" className={lessonMode ? 'focus:bg-sky-400 focus:text-white data-[highlighted]:bg-sky-400 data-[highlighted]:text-white' : ''}>Mixolydian</SelectItem>
-                          <SelectItem value="locrian" className={lessonMode ? 'focus:bg-sky-400 focus:text-white data-[highlighted]:bg-sky-400 data-[highlighted]:text-white' : ''}>Locrian</SelectItem>
+                        <SelectContent className="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl">
+                          <SelectItem value="major" className={`rounded-lg ${lessonMode ? 'focus:bg-neon-cyan/20 focus:text-neon-cyan data-[highlighted]:bg-neon-cyan/20 data-[highlighted]:text-neon-cyan' : 'focus:bg-neon-purple/20 focus:text-neon-purple data-[highlighted]:bg-neon-purple/20 data-[highlighted]:text-neon-purple'}`}>Major (Ionian)</SelectItem>
+                          <SelectItem value="minor" className={`rounded-lg ${lessonMode ? 'focus:bg-neon-cyan/20 focus:text-neon-cyan data-[highlighted]:bg-neon-cyan/20 data-[highlighted]:text-neon-cyan' : 'focus:bg-neon-purple/20 focus:text-neon-purple data-[highlighted]:bg-neon-purple/20 data-[highlighted]:text-neon-purple'}`}>Minor (Aeolian)</SelectItem>
+                          <SelectItem value="dorian" className={`rounded-lg ${lessonMode ? 'focus:bg-neon-cyan/20 focus:text-neon-cyan data-[highlighted]:bg-neon-cyan/20 data-[highlighted]:text-neon-cyan' : 'focus:bg-neon-purple/20 focus:text-neon-purple data-[highlighted]:bg-neon-purple/20 data-[highlighted]:text-neon-purple'}`}>Dorian</SelectItem>
+                          <SelectItem value="phrygian" className={`rounded-lg ${lessonMode ? 'focus:bg-neon-cyan/20 focus:text-neon-cyan data-[highlighted]:bg-neon-cyan/20 data-[highlighted]:text-neon-cyan' : 'focus:bg-neon-purple/20 focus:text-neon-purple data-[highlighted]:bg-neon-purple/20 data-[highlighted]:text-neon-purple'}`}>Phrygian</SelectItem>
+                          <SelectItem value="lydian" className={`rounded-lg ${lessonMode ? 'focus:bg-neon-cyan/20 focus:text-neon-cyan data-[highlighted]:bg-neon-cyan/20 data-[highlighted]:text-neon-cyan' : 'focus:bg-neon-purple/20 focus:text-neon-purple data-[highlighted]:bg-neon-purple/20 data-[highlighted]:text-neon-purple'}`}>Lydian</SelectItem>
+                          <SelectItem value="mixolydian" className={`rounded-lg ${lessonMode ? 'focus:bg-neon-cyan/20 focus:text-neon-cyan data-[highlighted]:bg-neon-cyan/20 data-[highlighted]:text-neon-cyan' : 'focus:bg-neon-purple/20 focus:text-neon-purple data-[highlighted]:bg-neon-purple/20 data-[highlighted]:text-neon-purple'}`}>Mixolydian</SelectItem>
+                          <SelectItem value="locrian" className={`rounded-lg ${lessonMode ? 'focus:bg-neon-cyan/20 focus:text-neon-cyan data-[highlighted]:bg-neon-cyan/20 data-[highlighted]:text-neon-cyan' : 'focus:bg-neon-purple/20 focus:text-neon-purple data-[highlighted]:bg-neon-purple/20 data-[highlighted]:text-neon-purple'}`}>Locrian</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -754,16 +762,16 @@ export default function StudioBrain() {
 
                   {/* Generated Chords */}
                   <div>
-                    <h4 className={`font-medium mb-3 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>{selectedChord} {selectedMode} - Modal Chords</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {generateChords().map((chord, index) => (
+                    <h4 className={`font-bold text-lg mb-4 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}>{selectedChord} {selectedMode} - Modal Chords</h4>
+                    <div className="flex flex-wrap gap-3">
+                      {generateChords().map((chord, chordIndex) => (
                         <Badge
-                          key={index}
+                          key={chordIndex}
                           variant="outline"
-                          className={`cursor-pointer transition-colors ${
+                          className={`cursor-pointer transition-all duration-300 px-4 py-2 rounded-xl font-semibold hover:scale-105 ${
                             lessonMode 
-                              ? `border-sky-400 text-sky-400 hover:bg-sky-400 hover:text-white ${activeChord === chord ? 'bg-sky-400 text-white' : ''}` 
-                              : `border-primary text-primary hover:bg-primary hover:text-primary-foreground ${activeChord === chord ? 'bg-primary text-primary-foreground' : ''}`
+                              ? `border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/20 hover:border-neon-cyan hover:shadow-lg hover:shadow-neon-cyan/30 ${activeChord === chord ? 'bg-neon-cyan/20 border-neon-cyan shadow-lg shadow-neon-cyan/30' : 'bg-glass-bg backdrop-blur-sm'}` 
+                              : `border-neon-purple/40 text-neon-purple hover:bg-neon-purple/20 hover:border-neon-purple hover:shadow-lg hover:shadow-neon-purple/30 ${activeChord === chord ? 'bg-neon-purple/20 border-neon-purple shadow-lg shadow-neon-purple/30' : 'bg-glass-bg backdrop-blur-sm'}`
                           }`}
                           onClick={() => setActiveChord(chord === activeChord ? null : chord)}
                         >
@@ -772,9 +780,9 @@ export default function StudioBrain() {
                       ))}
                     </div>
                     {activeChord && (
-                      <div className="mt-3 p-3 bg-neutral-800 rounded-lg">
-                        <h4 className={`font-medium mb-1 ${lessonMode ? 'text-sky-400' : 'text-primary'}`}>Selected: {activeChord}</h4>
-                        <p className="text-sm text-gray-400">
+                      <div className={`mt-6 p-4 rounded-xl border backdrop-blur-sm ${lessonMode ? 'bg-neon-cyan/10 border-neon-cyan/30' : 'bg-neon-purple/10 border-neon-purple/30'}`}>
+                        <h4 className={`font-bold mb-2 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}>Selected: {activeChord}</h4>
+                        <p className="text-slate-300 leading-relaxed">
                           {activeChord.includes('m') && !activeChord.includes('dim') 
                             ? 'Minor chord - melancholic, introspective sound'
                             : activeChord.includes('dim')
