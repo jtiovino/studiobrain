@@ -338,8 +338,8 @@ export default function StudioBrain() {
     return fretboard
   }
 
-  // Piano keyboard layout (2 octaves starting from C)
-  const generatePianoKeys = (scaleNotes: string[], selectedChord: string, startOctave = 3, numOctaves = 2): PianoKey[] => {
+  // Piano keyboard layout (1 octave starting from C)
+  const generatePianoKeys = (scaleNotes: string[], selectedChord: string, startOctave = 3, numOctaves = 1): PianoKey[] => {
     const notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
     const keys: PianoKey[] = []
     
@@ -367,7 +367,7 @@ export default function StudioBrain() {
   // Memoized values to prevent unnecessary re-renders
   const scaleNotes = React.useMemo(() => generateScaleNotes(), [selectedChord, selectedMode])
   const fretboard = React.useMemo(() => generateFretboardNotes(), [currentTuning])
-  const pianoKeys = React.useMemo(() => generatePianoKeys(scaleNotes, selectedChord), [scaleNotes, selectedChord])
+  const pianoKeys = React.useMemo(() => generatePianoKeys(scaleNotes, selectedChord, 3, 1), [scaleNotes, selectedChord])
 
   // Display tuning strings based on flip state
   const displayTuningStrings = fretboardFlipped ? [...currentTuning.strings].reverse() : currentTuning.strings
@@ -796,36 +796,54 @@ export default function StudioBrain() {
               </Card>
 
               {/* Guitar Fretboard/Piano Visualization */}
-              <Card className={`bg-neutral-900 border-neutral-800 transition-all duration-300 ${scaleChangeAnimation || tuningChangeAnimation || flipAnimation ? lessonMode ? 'ring-2 ring-sky-400/50 shadow-lg shadow-sky-400/20' : 'ring-2 ring-primary/50 shadow-lg shadow-primary/20' : ''}`}>
-                <CardHeader>
+              <Card className={`bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl shadow-2xl transition-all duration-300 ${scaleChangeAnimation || tuningChangeAnimation || flipAnimation ? lessonMode ? 'ring-2 ring-neon-cyan/50 shadow-lg shadow-neon-cyan/20' : 'ring-2 ring-neon-purple/50 shadow-lg shadow-neon-purple/20' : ''}`}>
+                <CardHeader className="pb-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle className={`flex items-center gap-2 ${lessonMode ? 'text-sky-400' : ''}`}>
-                        {visualizerView === 'guitar' ? <Guitar className={`w-5 h-5 ${lessonMode ? 'text-sky-400' : ''}`} /> : <Piano className={`w-5 h-5 ${lessonMode ? 'text-sky-400' : ''}`} />}
+                      <CardTitle className={`flex items-center gap-3 text-xl font-bold ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}>
+                        <div className={`p-2 rounded-lg ${lessonMode ? 'bg-neon-cyan/20' : 'bg-neon-purple/20'}`}>
+                          {visualizerView === 'guitar' ? <Guitar className={`w-6 h-6 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`} /> : <Piano className={`w-6 h-6 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`} />}
+                        </div>
                         {visualizerView === 'guitar' ? 'Guitar Fretboard' : 'Piano Keyboard'}
                       </CardTitle>
-                      <CardDescription className={lessonMode ? 'text-sky-300' : ''}>
-                        {selectedChord} {selectedMode} scale visualization {visualizerView === 'guitar' ? `- ${currentTuning.name}` : '- 2 Octaves (C3-B4)'} - Root notes in {lessonMode ? 'cyan, scale tones in blue' : 'pink, scale tones in purple'}
+                      <CardDescription className="text-slate-300 text-base mt-2">
+                        {selectedChord} {selectedMode} scale visualization {visualizerView === 'guitar' ? `- ${currentTuning.name}` : '- One Octave (C3-B3)'} - Root notes in {lessonMode ? 'cyan, scale tones in blue' : 'purple, scale tones in pink'}
                       </CardDescription>
                     </div>
-                    <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2">
-                      <div className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3">
+                      <div className="flex items-center gap-3">
                         <Button
                           variant={visualizerView === 'guitar' ? 'default' : 'outline'}
                           size="sm"
                           onClick={() => setVisualizerView('guitar')}
-                          className={`h-8 text-xs ${lessonMode ? (visualizerView === 'guitar' ? 'bg-sky-400 hover:bg-sky-500 text-white hover:text-white' : 'border-sky-400 text-sky-400 hover:bg-sky-400/20 hover:text-sky-300') : ''}`}
+                          className={`h-10 px-4 rounded-xl font-medium transition-all duration-300 ${
+                            visualizerView === 'guitar'
+                              ? lessonMode 
+                                ? 'bg-gradient-to-r from-neon-cyan to-neon-blue text-black shadow-lg shadow-neon-cyan/30 hover:shadow-neon-cyan/50'
+                                : 'bg-gradient-to-r from-neon-purple to-neon-pink text-white shadow-lg shadow-neon-purple/30 hover:shadow-neon-purple/50'
+                              : lessonMode
+                                ? 'bg-white/10 backdrop-blur-md border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/10 hover:border-neon-cyan'
+                                : 'bg-white/10 backdrop-blur-md border-neon-purple/40 text-neon-purple hover:bg-neon-purple/10 hover:border-neon-purple'
+                          }`}
                         >
-                          <Guitar className="w-3 h-3 mr-1" />
+                          <Guitar className="w-4 h-4 mr-2" />
                           <span className="hidden sm:inline">Guitar</span>
                         </Button>
                         <Button
                           variant={visualizerView === 'piano' ? 'default' : 'outline'}
                           size="sm"
                           onClick={() => setVisualizerView('piano')}
-                          className={`h-8 text-xs ${lessonMode ? (visualizerView === 'piano' ? 'bg-sky-400 hover:bg-sky-500 text-white hover:text-white' : 'border-sky-400 text-sky-400 hover:bg-sky-400/20 hover:text-sky-300') : ''}`}
+                          className={`h-10 px-4 rounded-xl font-medium transition-all duration-300 ${
+                            visualizerView === 'piano'
+                              ? lessonMode 
+                                ? 'bg-gradient-to-r from-neon-cyan to-neon-blue text-black shadow-lg shadow-neon-cyan/30 hover:shadow-neon-cyan/50'
+                                : 'bg-gradient-to-r from-neon-purple to-neon-pink text-white shadow-lg shadow-neon-purple/30 hover:shadow-neon-purple/50'
+                              : lessonMode
+                                ? 'bg-white/10 backdrop-blur-md border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/10 hover:border-neon-cyan'
+                                : 'bg-white/10 backdrop-blur-md border-neon-purple/40 text-neon-purple hover:bg-neon-purple/10 hover:border-neon-purple'
+                          }`}
                         >
-                          <Piano className="w-3 h-3 mr-1" />
+                          <Piano className="w-4 h-4 mr-2" />
                           <span className="hidden sm:inline">Piano</span>
                         </Button>
                         {visualizerView === 'guitar' && (
@@ -833,77 +851,81 @@ export default function StudioBrain() {
                             variant="outline"
                             size="sm"
                             onClick={handleFretboardFlip}
-                            className={`h-8 w-8 p-0 ${lessonMode ? 'border-sky-400 text-sky-400 hover:bg-sky-400/20 hover:text-sky-300' : ''}`}
+                            className={`h-10 w-10 p-0 rounded-xl transition-all duration-300 ${lessonMode ? 'bg-white/10 backdrop-blur-md border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/10 hover:border-neon-cyan' : 'bg-white/10 backdrop-blur-md border-neon-purple/40 text-neon-purple hover:bg-neon-purple/10 hover:border-neon-purple'}`}
                             title={`${fretboardFlipped ? 'Standard view (High E top)' : 'Inverted view (Low E top)'}`}
                           >
-                            <RotateCcw className="w-3 h-3" />
+                            <RotateCcw className="w-4 h-4" />
                           </Button>
                         )}
                       </div>
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-0 overflow-hidden">
                   {visualizerView === 'guitar' ? (
-                    <>
-                      <div>
-                        <div className={`space-y-1 transition-transform duration-400 ${flipAnimation ? 'scale-y-95' : ''}`}>
-                          {displayFretboard.map((string, stringIndex) => (
-                            <div key={stringIndex} className="flex items-center gap-1">
-                              <div className="w-6 text-xs font-mono text-gray-400 text-right flex-shrink-0">
-                                {displayTuningStrings[stringIndex]}
+                    <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 sm:p-6 shadow-lg w-full">
+                      <div className="bg-black/20 backdrop-blur-sm rounded-lg p-3 sm:p-4">
+                        <div className={`w-full max-w-[600px] mx-auto transition-transform duration-400 ${flipAnimation ? 'scale-y-95' : ''}`}>
+                          <div className="space-y-1 sm:space-y-2">
+                            {displayFretboard.map((string, stringIndex) => (
+                              <div key={stringIndex} className="grid grid-cols-[auto_1fr] items-center gap-2">
+                                <div className="w-6 text-xs font-mono text-slate-300 text-right font-medium">
+                                  {displayTuningStrings[stringIndex]}
+                                </div>
+                                <div className="grid grid-cols-13 gap-0.5 sm:gap-1">
+                                  {string.slice(0, 13).map((note, fretIndex) => {
+                                    const isRoot = note === selectedChord
+                                    const isInScale = scaleNotes.includes(note) && !isRoot
+                                    return (
+                                      <div
+                                        key={fretIndex}
+                                        className={`aspect-square border rounded-md flex items-center justify-center text-[9px] sm:text-xs font-mono font-bold transition-all duration-200 ${
+                                          isRoot 
+                                            ? lessonMode ? 'bg-neon-cyan text-black border-neon-cyan shadow-lg shadow-neon-cyan/30' : 'bg-neon-pink text-white border-neon-pink shadow-lg shadow-neon-pink/30'
+                                            : isInScale 
+                                            ? lessonMode ? 'bg-neon-blue/70 text-white border-neon-blue shadow-md shadow-neon-blue/20' : 'bg-neon-purple/70 text-white border-neon-purple shadow-md shadow-neon-purple/20'
+                                            : 'bg-slate-800/80 text-slate-400 border-slate-600 hover:bg-slate-700/80 hover:border-slate-500'
+                                        }`}
+                                        title={`${note} ${isRoot ? '(Root)' : isInScale ? '(Scale)' : ''}`}
+                                      >
+                                        <span>{note}</span>
+                                      </div>
+                                    )
+                                  })}
+                                </div>
                               </div>
-                              <div className="flex gap-0.5 sm:gap-1">
-                                {string.slice(0, 13).map((note, fretIndex) => {
-                                  const isRoot = note === selectedChord
-                                  const isInScale = scaleNotes.includes(note) && !isRoot
-                                  return (
-                                    <div
-                                      key={fretIndex}
-                                      className={`w-5 h-5 sm:w-8 sm:h-8 border border-gray-600 rounded flex items-center justify-center text-xs font-mono transition-colors duration-200 flex-shrink-0 ${
-                                        isRoot 
-                                          ? lessonMode ? 'bg-cyan-400 text-white border-cyan-300' : 'bg-pink-500 text-white border-pink-400'
-                                          : isInScale 
-                                          ? lessonMode ? 'bg-blue-500/70 text-white border-blue-400' : 'bg-purple-500/70 text-white border-purple-400'
-                                          : 'bg-neutral-800 text-gray-400 hover:bg-gray-700'
-                                      }`}
-                                      title={`${note} ${isRoot ? '(Root)' : isInScale ? '(Scale)' : ''}`}
-                                    >
-                                      <span className="text-xs">{fretIndex === 0 ? note : note}</span>
-                                    </div>
-                                  )
-                                })}
+                            ))}
+                          </div>
+                          <div className="mt-3 sm:mt-4">
+                            <div className="grid grid-cols-[auto_1fr] items-center gap-2">
+                              <div className="w-6"></div>
+                              <div className="grid grid-cols-13 gap-0.5 sm:gap-1">
+                                {Array.from({ length: 13 }, (_, i) => (
+                                  <span key={i} className={`text-center text-[9px] sm:text-xs font-mono ${[3, 5, 7, 9, 12].includes(i) ? 'font-bold text-slate-300' : 'font-medium text-slate-400'}`}>
+                                    {i}
+                                  </span>
+                                ))}
                               </div>
                             </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="mt-4">
-                        <div className="flex justify-start text-xs text-gray-500 ml-6">
-                          <div className="flex items-center gap-0.5 sm:gap-1">
-                            {Array.from({ length: 13 }, (_, i) => (
-                              <span key={i} className={`w-5 sm:w-8 text-center flex-shrink-0 ${[3, 5, 7, 9, 12].includes(i) ? 'font-semibold' : ''}`}>
-                                {i}
-                              </span>
-                            ))}
                           </div>
                         </div>
                       </div>
-                    </>
+                    </div>
                   ) : (
-                    <div className="bg-neutral-800 p-4 rounded-lg">
-                      <div className="flex justify-center overflow-x-auto">
-                        <div className="relative scale-90 origin-center">
+                    <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 sm:p-6 shadow-lg w-full">
+                      <div className="bg-black/20 backdrop-blur-sm rounded-lg p-4 sm:p-6 overflow-hidden">
+                        <div className="w-full max-w-[400px] mx-auto">
+                          <div className="relative w-full mx-auto">
                           {/* White keys */}
                           <div className="flex">
-                            {pianoKeys.filter(key => !key.isBlackKey).map((key, index) => (
+                            {pianoKeys.filter(key => !key.isBlackKey).map((key, keyIndex) => (
                               <div
                                 key={key.fullName}
-                                className={`w-9 h-28 border border-gray-600 rounded-b flex items-end justify-center pb-1 text-xs font-mono transition-colors duration-200 ${
+                                className={`flex-1 h-32 border border-gray-600 rounded-b flex items-end justify-center pb-2 text-sm font-mono font-bold transition-colors duration-200 ${
                                   key.isRoot 
-                                    ? lessonMode ? 'bg-cyan-400 text-white border-cyan-300' : 'bg-pink-500 text-white border-pink-400'
+                                    ? lessonMode ? 'bg-neon-cyan text-black border-neon-cyan shadow-lg shadow-neon-cyan/30' : 'bg-neon-pink text-white border-neon-pink shadow-lg shadow-neon-pink/30'
                                     : key.isInScale 
-                                    ? lessonMode ? 'bg-blue-500/70 text-white border-blue-400' : 'bg-purple-500/70 text-white border-purple-400'
+                                    ? lessonMode ? 'bg-neon-blue/70 text-white border-neon-blue shadow-md shadow-neon-blue/20' : 'bg-neon-purple/70 text-white border-neon-purple shadow-md shadow-neon-purple/20'
                                     : 'bg-white text-black hover:bg-gray-100'
                                 }`}
                                 title={`${key.note}${key.octave} ${key.isRoot ? '(Root)' : key.isInScale ? '(Scale)' : ''}`}
@@ -914,8 +936,8 @@ export default function StudioBrain() {
                           </div>
                           
                           {/* Black keys */}
-                          <div className="absolute top-0 flex">
-                            {pianoKeys.filter(key => !key.isBlackKey).map((whiteKey, index) => {
+                          <div className="absolute top-0 flex w-full">
+                            {pianoKeys.filter(key => !key.isBlackKey).map((whiteKey, whiteIndex) => {
                               const blackKeyNote = pianoKeys.find(key => 
                                 key.isBlackKey && 
                                 key.octave === whiteKey.octave && 
@@ -929,15 +951,15 @@ export default function StudioBrain() {
                               )
                               
                               return blackKeyNote ? (
-                                <div key={blackKeyNote.fullName} className="relative">
-                                  <div className="w-9 h-6"></div>
+                                <div key={blackKeyNote.fullName} className="relative flex-1">
+                                  <div className="h-6"></div>
                                   <div
-                                    className={`absolute top-0 left-7 w-5 h-20 border border-neutral-800 rounded-b flex items-end justify-center pb-1 text-xs font-mono transition-colors duration-200 ${
+                                    className={`absolute top-0 left-1/2 transform -translate-x-1/2 translate-x-4 w-6 h-24 border rounded-b flex items-end justify-center pb-1 text-xs font-mono font-bold transition-colors duration-200 ${
                                       blackKeyNote.isRoot 
-                                        ? lessonMode ? 'bg-cyan-500 text-white border-cyan-400' : 'bg-pink-600 text-white border-pink-500'
+                                        ? lessonMode ? 'bg-neon-cyan text-black border-neon-cyan shadow-lg shadow-neon-cyan/30' : 'bg-neon-pink text-white border-neon-pink shadow-lg shadow-neon-pink/30'
                                         : blackKeyNote.isInScale 
-                                        ? lessonMode ? 'bg-blue-600/80 text-white border-blue-500' : 'bg-purple-600/80 text-white border-purple-500'
-                                        : 'bg-neutral-900 text-white hover:bg-neutral-800'
+                                        ? lessonMode ? 'bg-neon-blue/80 text-white border-neon-blue shadow-md shadow-neon-blue/20' : 'bg-neon-purple/80 text-white border-neon-purple shadow-md shadow-neon-purple/20'
+                                        : 'bg-slate-900 text-white hover:bg-slate-800 border-slate-700'
                                     }`}
                                     title={`${blackKeyNote.note}${blackKeyNote.octave} ${blackKeyNote.isRoot ? '(Root)' : blackKeyNote.isInScale ? '(Scale)' : ''}`}
                                   >
@@ -945,14 +967,15 @@ export default function StudioBrain() {
                                   </div>
                                 </div>
                               ) : (
-                                <div key={`spacer-${index}`} className="w-9 h-6"></div>
+                                <div key={`spacer-${whiteIndex}`} className="flex-1 h-6"></div>
                               )
                             })}
                           </div>
                         </div>
-                      </div>
-                      <div className="text-center mt-4 text-xs text-gray-500">
-                        C3 - B4 (2 Octaves)
+                        <div className="text-center mt-4 sm:mt-6 text-xs sm:text-sm text-slate-400 font-medium">
+                          C3 - B3 (One Octave)
+                        </div>
+                        </div>
                       </div>
                     </div>
                   )}
