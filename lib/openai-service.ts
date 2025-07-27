@@ -1,6 +1,25 @@
 import { buildPrompt } from './promptBuilder'
+import { useUserStore } from './useUserStore'
 
 export type TabContext = 'general' | 'mix' | 'theory' | 'instrument'
+
+export interface UserSettings {
+  userLevel: 'beginner' | 'intermediate' | 'advanced'
+  roles: string[]
+  mainInstrument: 'guitar' | 'keyboard' | 'bass'
+  preferredTuning: string
+  genreInfluence: string[]
+  flipFretboardView: boolean
+  gear: {
+    guitar: string[]
+    pedals: string[]
+    interface: string
+    monitors: string
+    plugins: string[]
+    daw: string
+  }
+  hasHydrated: boolean
+}
 
 export interface ChatRequest {
   fullPrompt: string
@@ -8,6 +27,7 @@ export interface ChatRequest {
   context: TabContext
   lessonMode: boolean
   instrumentType?: string
+  userSettings?: UserSettings
 }
 
 export interface PluginSuggestion {
@@ -37,6 +57,21 @@ export interface ChatResponse {
   scaleRequest?: ScaleRequest | null
   modalAnalysis?: ModalAnalysis | null
   error?: string
+}
+
+// Helper function to extract user settings for API requests
+export function getUserSettingsForAPI(): UserSettings {
+  const store = useUserStore.getState()
+  return {
+    userLevel: store.userLevel,
+    roles: store.roles,
+    mainInstrument: store.mainInstrument,
+    preferredTuning: store.preferredTuning,
+    genreInfluence: store.genreInfluence,
+    flipFretboardView: store.flipFretboardView,
+    gear: store.gear,
+    hasHydrated: store.hasHydrated
+  }
 }
 
 export class OpenAIService {
@@ -74,11 +109,14 @@ export class OpenAIService {
     
     console.log('🎯 Client-side buildPrompt for General:', fullPrompt)
     
+    const userSettings = getUserSettingsForAPI()
+    
     return this.makeRequest({
       fullPrompt,
       originalMessage: message,
       context: 'general',
       lessonMode,
+      userSettings,
     })
   }
 
@@ -91,11 +129,14 @@ export class OpenAIService {
     
     console.log('🎯 Client-side buildPrompt for Mix:', fullPrompt)
     
+    const userSettings = getUserSettingsForAPI()
+    
     return this.makeRequest({
       fullPrompt,
       originalMessage: message,
       context: 'mix',
       lessonMode,
+      userSettings,
     })
   }
 
@@ -108,11 +149,14 @@ export class OpenAIService {
     
     console.log('🎯 Client-side buildPrompt for Theory:', fullPrompt)
     
+    const userSettings = getUserSettingsForAPI()
+    
     return this.makeRequest({
       fullPrompt,
       originalMessage: message,
       context: 'theory',
       lessonMode,
+      userSettings,
     })
   }
 
@@ -130,12 +174,15 @@ export class OpenAIService {
     
     console.log('🎯 Client-side buildPrompt for Instrument:', fullPrompt)
     
+    const userSettings = getUserSettingsForAPI()
+    
     return this.makeRequest({
       fullPrompt,
       originalMessage: contextualMessage,
       context: 'instrument',
       lessonMode,
       instrumentType,
+      userSettings,
     })
   }
 }

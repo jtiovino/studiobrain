@@ -264,6 +264,376 @@ function analyzeChordProgression(chordString: string): ModalAnalysis | null {
   return bestFit
 }
 
+interface UserSettings {
+  userLevel: 'beginner' | 'intermediate' | 'advanced'
+  roles: string[]
+  mainInstrument: 'guitar' | 'keyboard' | 'bass'
+  preferredTuning: string
+  genreInfluence: string[]
+  flipFretboardView: boolean
+  gear: {
+    guitar: string[]
+    pedals: string[]
+    interface: string
+    monitors: string
+    plugins: string[]
+    daw: string
+  }
+  hasHydrated: boolean
+}
+
+// Toggle to enable/disable prompt reframing
+const ENABLE_PROMPT_REFRAMING = true
+
+interface GearSettings {
+  guitar: string[]
+  pedals: string[]
+  interface: string
+  monitors: string
+  plugins: string[]
+  daw: string
+}
+
+function getValidAmpModels(userGear: GearSettings, context: string): string[] {
+  const ampModels: string[] = []
+  
+  // Check for hardware amp modeling devices
+  const allHardware = [...userGear.pedals, userGear.interface].join(' ').toLowerCase()
+  
+  // Quad Cortex / Nano Cortex amp models
+  if (allHardware.includes('quad cortex') || allHardware.includes('cortex')) {
+    ampModels.push(
+      'Fender Twin Reverb', 'Fender Deluxe Reverb', 'Fender Bassman',
+      'Marshall JCM800', 'Marshall JCM2000', 'Marshall Plexi',
+      'Vox AC30', 'Vox AC15',
+      'Mesa Boogie Dual Rectifier', 'Mesa Boogie Mark V',
+      'Orange Rockerverb', 'Orange OR50',
+      'Two-Rock Classic Reverb', 'Two-Rock Custom Reverb'
+    )
+  }
+  
+  // Line 6 HX devices
+  if (allHardware.includes('hx') || allHardware.includes('helix') || allHardware.includes('pod')) {
+    ampModels.push(
+      'US Double Nrm (Twin Reverb)', 'US Double Vib (Twin Reverb Vibrato)',
+      'US Deluxe Nrm (Deluxe Reverb)', 'US Princess (Princeton Reverb)',
+      'Brit 2204 (JCM800)', 'Brit Plexi (Marshall Plexi)', 'Brit J45 Nrm (JTM45)',
+      'AC-30 Fawn (Vox AC30)', 'AC-15 (Vox AC15)',
+      'German Mahadeva (Diezel VH4)', 'German Ubersonic (Bogner Uberschall)',
+      'Cali Rectifire (Mesa Dual Rectifier)', 'Cali IV Lead (Mesa Mark IV)'
+    )
+  }
+  
+  // Kemper amp models
+  if (allHardware.includes('kemper')) {
+    ampModels.push(
+      'AC30 Top Boost', 'Plexi Lead 100W', 'JCM800 2203',
+      'Twin Reverb Normal', 'Deluxe Reverb Vibrato',
+      'Dual Rectifier Modern', 'Mark IIC+ Lead',
+      'VH4 Channel 3', 'Uberschall Lead'
+    )
+  }
+  
+  // Check for plugin-based amp modeling
+  userGear.plugins.forEach(plugin => {
+    const pluginLower = plugin.toLowerCase()
+    
+    // Neural DSP plugins
+    if (pluginLower.includes('neural dsp') || pluginLower.includes('neuraldsp')) {
+      if (pluginLower.includes('nolly') || pluginLower.includes('getgood')) {
+        ampModels.push('5150 Block Letter', '5150 III', 'Marshall 2203', 'Marshall Plexi')
+      }
+      if (pluginLower.includes('plini')) {
+        ampModels.push('Friedman BE-100', 'Morgan AC20', 'Two-Rock Studio Pro')
+      }
+      if (pluginLower.includes('tim henson') || pluginLower.includes('archetype')) {
+        ampModels.push('Fender Twin Reverb', 'Marshall JVM410H', 'Orange OR50')
+      }
+      if (pluginLower.includes('gojira')) {
+        ampModels.push('5150 III', 'Peavey 6505', 'Marshall JCM800')
+      }
+      if (pluginLower.includes('petrucci')) {
+        ampModels.push('Mesa Boogie JP-2C', 'Mesa Mark IIC+', 'Mesa Mark V')
+      }
+      if (pluginLower.includes('abasi')) {
+        ampModels.push('PRS MT15', 'Mesa Mark V', 'Friedman BE-100')
+      }
+      if (pluginLower.includes('wong')) {
+        ampModels.push('Fender Bassman', 'Marshall Plexi', 'Vox AC30')
+      }
+    }
+    
+    // UAD plugins
+    if (pluginLower.includes('uad') || pluginLower.includes('universal audio')) {
+      ampModels.push(
+        'Marshall Plexi Classic', 'Marshall Silver Jubilee',
+        'Fender \'55 Tweed Deluxe', 'Fender Bassman',
+        'Ampeg SVT-VR', 'Gallien-Krueger 800RB'
+      )
+    }
+    
+    // IK Multimedia AmpliTube
+    if (pluginLower.includes('amplitube')) {
+      ampModels.push(
+        'British Tube Lead 100 (JCM800)', 'British Tube Clean (JTM45)',
+        'American Tube Clean 1 (Twin Reverb)', 'American Tube Clean 2 (Deluxe Reverb)',
+        'Modern Hi-Gain (5150)', 'Metal Lead (Dual Rectifier)'
+      )
+    }
+    
+    // Positive Grid BIAS
+    if (pluginLower.includes('bias') && pluginLower.includes('amp')) {
+      ampModels.push(
+        'Twin Reverb', 'Deluxe Reverb', 'Princeton Reverb',
+        'JCM800', 'Plexi', 'JTM45',
+        'AC30', 'AC15',
+        'Dual Rectifier', 'Mark IV', '5150'
+      )
+    }
+    
+    // Logic Pro stock amps
+    if (pluginLower.includes('logic') || userGear.daw.toLowerCase().includes('logic')) {
+      ampModels.push(
+        'British Clean (Vox AC30)', 'British Gain (Marshall JCM800)',
+        'American Clean (Fender Twin)', 'American Gain (Fender Bassman)',
+        'Vintage Drive (Marshall Plexi)', 'Modern Stack (Mesa Dual Rectifier)'
+      )
+    }
+    
+    // Ableton Live stock amps
+    if (pluginLower.includes('ableton') || userGear.daw.toLowerCase().includes('ableton')) {
+      ampModels.push(
+        'Classic Clean (Fender Twin)', 'Lead (Marshall JCM800)',
+        'Bass (Ampeg SVT)', 'Modern (Mesa Dual Rectifier)'
+      )
+    }
+  })
+  
+  // Remove duplicates and return
+  return [...new Set(ampModels)]
+}
+
+function getAmpModelPromptAddendum(validAmps: string[]): string {
+  if (validAmps.length === 0) {
+    return `\n\nAMP RECOMMENDATION GUIDANCE: No specific amp models were detected in the user's setup. Use conservative, generic descriptions like "clean amp platform", "Fender-style amp", "Marshall-style crunch", or "high-gain amp sim" rather than naming specific models. If more precision is needed, ask the user to specify their available amp models.`
+  }
+  
+  return `\n\nAVAILABLE AMP MODELS: When recommending amp models, prioritize these specific models available in their setup: ${validAmps.join(', ')}. Use these exact model names when possible. If recommending alternatives, use generic but accurate descriptions like "clean amp platform" or "British-style mid-gain amp".`
+}
+
+function reframeUserPrompt(originalPrompt: string, userSettings: UserSettings | undefined): string {
+  if (!ENABLE_PROMPT_REFRAMING || !userSettings) {
+    return originalPrompt
+  }
+
+  const { gear, genreInfluence } = userSettings
+  const lowerPrompt = originalPrompt.toLowerCase()
+  
+  // Patterns that indicate tone/artist/gear questions
+  const tonePatterns = [
+    /sound like/i,
+    /tone of/i,
+    /how to get.*tone/i,
+    /recreate.*sound/i,
+    /achieve.*tone/i,
+    /\b(amp|pedal|guitar|pickup).*sound/i,
+    /sound.*\b(amp|pedal|guitar|pickup)/i
+  ]
+  
+  // Common artist name patterns (expand this list as needed)
+  const artistPatterns = [
+    // Guitar players
+    /\b(john mayer|david gilmour|eric clapton|jimi hendrix|eddie van halen|steve vai|joe satriani|yngwie malmsteen)\b/i,
+    /\b(ariel posen|julian lage|mateus asato|ichika nito|plini|intervals|periphery|animals as leaders)\b/i,
+    /\b(adam jones|jerry cantrell|dimebag darrell|zakk wylde|slash|angus young|tony iommi)\b/i,
+    /\b(mark holcomb|misha mansoor|tosin abasi|tim henson|scott lepage|yvette young)\b/i,
+    // Bands known for specific tones
+    /\b(pink floyd|led zeppelin|metallica|tool|alice in chains|pantera|black sabbath)\b/i,
+    /\b(polyphia|periphery|tesseract|architects|spiritbox|bad omens)\b/i
+  ]
+  
+  // Check if this is a tone/artist/gear question
+  const isToneQuestion = tonePatterns.some(pattern => pattern.test(lowerPrompt)) ||
+                        artistPatterns.some(pattern => pattern.test(lowerPrompt))
+  
+  if (!isToneQuestion) {
+    return originalPrompt
+  }
+  
+  // Build gear context string
+  const gearContext = []
+  if (gear?.daw && gear.daw !== 'none') gearContext.push(gear.daw)
+  if (gear?.plugins?.length) gearContext.push(`plugins: ${gear.plugins.join(', ')}`)
+  if (gear?.guitar?.length) gearContext.push(`guitars: ${gear.guitar.join(', ')}`)
+  if (gear?.pedals?.length) gearContext.push(`pedals: ${gear.pedals.join(', ')}`)
+  if (gear?.interface) gearContext.push(`interface: ${gear.interface}`)
+  
+  const genreContext = genreInfluence?.length ? ` Their style is influenced by: ${genreInfluence.join(', ')}.` : ''
+  
+  // Build detailed gear list for user-specific section
+  const buildDetailedGearList = (): string => {
+    const gearLines = []
+    if (gear?.daw && gear.daw !== 'none') gearLines.push(`- DAW: ${gear.daw}`)
+    if (gear?.plugins?.length) gearLines.push(`- Plugins: ${gear.plugins.join(', ')}`)
+    
+    // Build hardware list
+    const hardwareList = []
+    if (gear?.guitar?.length) hardwareList.push(`Guitars: ${gear.guitar.join(', ')}`)
+    if (gear?.pedals?.length) hardwareList.push(`Pedals: ${gear.pedals.join(', ')}`)
+    if (gear?.interface) hardwareList.push(`Interface: ${gear.interface}`)
+    if (gear?.monitors) hardwareList.push(`Monitors: ${gear.monitors}`)
+    
+    if (hardwareList.length) gearLines.push(`- Hardware: ${hardwareList.join(', ')}`)
+    
+    // Add common modeling gear if not already listed
+    const commonModelingGear = ['HX One (can only run one effect at a time)', 'Quad Cortex Nano (amp capture unit)']
+    commonModelingGear.forEach(item => {
+      const deviceName = item.split(' ')[0].toLowerCase()
+      const hasDevice = gear?.pedals?.some(pedal => pedal.toLowerCase().includes(deviceName)) ||
+                       gear?.interface?.toLowerCase().includes(deviceName)
+      if (!hasDevice) {
+        gearLines.push(`- ${item}`)
+      }
+    })
+    
+    return gearLines.join('\n')
+  }
+
+  // Enhanced reframe with clean section separation
+  const reframedPrompt = `${originalPrompt.replace(/^(how do i|how to|can you help me|help me)/i, '').trim().replace(/^to\s+/, '')}.${genreContext}
+
+Please answer in two clear sections:
+
+**1. Authentic Tone Breakdown (Gear-Agnostic)**
+Explain how to achieve the target tone using typical, accurate gear and signal chains.
+Use real-world amps, pedals, mics, and mix techniques — do not reference the user's setup.
+
+**2. Approximate With My Gear**
+Based on my gear and plugins (listed below), show how I can get close to that tone.
+I'm using:
+${buildDetailedGearList()}
+
+Choose the best substitute models and explain tradeoffs if necessary.
+Do not recommend unavailable gear. Be specific with plugin names, amp models, and effect types from the listed tools.`
+
+  return reframedPrompt
+}
+
+function buildSystemMessage(userSettings: UserSettings | undefined, context: string, lessonMode: boolean): string {
+  const { gear, genreInfluence } = userSettings || {}
+  
+  // Get valid amp models for user's gear
+  const validAmpModels = gear ? getValidAmpModels(gear, context) : []
+  const ampModelAddendum = getAmpModelPromptAddendum(validAmpModels)
+  
+  // Build gear description
+  const gearList = []
+  if (gear?.guitar?.length) gearList.push(`Guitars: ${gear.guitar.join(', ')}`)
+  if (gear?.pedals?.length) gearList.push(`Pedals: ${gear.pedals.join(', ')}`)
+  if (gear?.interface) gearList.push(`Interface: ${gear.interface}`)
+  if (gear?.monitors) gearList.push(`Monitors: ${gear.monitors}`)
+  const gearDescription = gearList.length ? gearList.join(', ') : 'basic setup'
+  
+  // Lesson mode instructions
+  const lessonModeInstructions = lessonMode 
+    ? `You are in Teaching Mode. Provide detailed explanations with reasoning, break down complex concepts into steps, include theory background when relevant, suggest practice exercises, and explain the "why" behind recommendations. Be patient, thorough, and encouraging.`
+    : `You are in Efficiency Mode. Provide direct, actionable solutions with concise but complete explanations. Focus on immediate practical results and workflow efficiency with specific settings and parameters.`
+  
+  // Section capitalization
+  const sectionName = context.charAt(0).toUpperCase() + context.slice(1)
+  
+  // Add tab-specific technical language requirements
+  const getTechnicalLanguageModifier = (context: string): string => {
+    switch (context) {
+      case 'mix':
+        return `\n\nTECHNICAL LANGUAGE REQUIREMENT: Use precise audio engineering terminology. Always specify:
+- EQ: exact frequencies (e.g., "high-pass at 80Hz, boost 3dB at 2.5kHz with Q of 1.2")
+- Compression: ratios, attack/release times, threshold values (e.g., "4:1 ratio, 10ms attack, 100ms release, -12dB threshold")
+- Delay: specific times in milliseconds and mix percentages (e.g., "slapback delay at 80ms with 25% mix")
+- Reverb: decay times, pre-delay, specific reverb types (e.g., "plate reverb, 1.8s decay, 15ms pre-delay")
+- Plugin settings: actual parameter values, not vague descriptions
+- Signal chain order: specify exact routing and processing order`
+        
+      case 'instrument':
+        return `\n\nTECHNICAL LANGUAGE REQUIREMENT: Use specific gear and tone terminology. Always specify:
+- Amp settings: exact knob positions and values (e.g., "Gain at 6, Bass at 4, Mid at 7, Treble at 5")
+- Pedal settings: specific parameter values and signal chain order (e.g., "Tube Screamer: Drive at 9 o'clock, Tone at 12, Level at 2 o'clock, placed before amp")
+- Guitar specifics: pickup selection, pickup heights, string gauges (e.g., "bridge humbucker, lowered 2mm from strings")
+- Playing technique: exact fret positions, fingering patterns, pick attack descriptions
+- Amp sim models: specific amp and cab combinations with mic placement details`
+        
+      default:
+        return ''
+    }
+  }
+
+  const technicalModifier = getTechnicalLanguageModifier(context)
+
+  const systemMessage = `You are StudioBrain — an AI-powered creative assistant for musicians.
+
+The user is working in a ${gear?.daw || 'unspecified DAW'} environment with the following tools and plugins: ${gear?.plugins?.length ? gear.plugins.join(', ') : 'stock plugins'}. Their gear includes: ${gearDescription}. Their musical style is influenced by: ${genreInfluence?.length ? genreInfluence.join(', ') : 'various genres'}.
+
+You are currently responding in the "${sectionName}" section of the app.
+
+You are a world-class session musician, producer, and tone expert. You've studied thousands of artist rigs and mixing sessions. You give incredibly accurate gear recommendations, plugin chains, and music theory explanations — always grounded in the user's tools, style, and context.
+
+When asked about a specific artist or sound, draw on detailed knowledge of amps, pedals, guitars, production choices, and genre conventions. If multiple gear options could achieve a tone, list them. Use specific brand and model names when known.
+
+Use fluent modern music language: talk like someone who watches Rig Rundowns, knows plugin quirks, and has played hundreds of live and studio gigs.
+
+Be concise but packed with knowledge. Only use vague terms like "vibe" or "feel" when no concrete option exists.
+
+GLOBAL ACCURACY MANDATE:
+If you are not certain about any part of your answer, do not guess. StudioBrain must never be confidently wrong. Instead:
+- Use accurate general language (e.g., "a clean amp sim" instead of guessing specific models)
+- Ask the user for clarification when needed
+- Offer multiple possibilities with clear uncertainty ("This might refer to either X or Y, depending on context")
+- Explain your uncertainty rather than making confident incorrect statements
+
+CRITICAL GEAR ACCURACY REQUIREMENTS:
+- Never recommend gear the user doesn't own or have access to
+- Never suggest using incorrect gear types (e.g., don't use a Pultec as an amp sim, don't use a compressor as a drive pedal)
+- Respect hardware limitations (e.g., HX One runs only 1 effect at a time, Quad Cortex has specific routing constraints)
+- When making substitutions, explain why the alternative works and what sonic differences to expect
+- Be historically accurate about what gear artists actually used
+
+CATEGORY-SPECIFIC ACCURACY GUIDELINES:
+
+AMPS & GUITAR TONE:
+- Only recommend actual amp models you're certain about
+- If unsure, use descriptive language: "clean amp platform", "Fender-style tone", "British-style crunch"
+- Never recommend EQs, compressors, or reverbs as amp simulators
+- Never suggest plugins/devices for roles they're not designed for
+
+PEDALS & EFFECTS:
+- If unsure about specific pedal models, describe the effect type: "transparent overdrive", "analog-style delay", "modulated reverb"
+- Don't guess brand names or model numbers unless certain
+- Prioritize describing the sonic characteristic over naming specific gear
+
+MUSIC THEORY:
+- If scale, chord function, or mode isn't clearly implied, ask for context
+- Use phrases like "this could be interpreted as..." or "depending on context, this might be..."
+- Offer multiple valid interpretations when ambiguous
+- Don't force theory onto ambiguous musical examples
+
+PLUGIN CHAINS & MIXING:
+- Prioritize the user's available plugins
+- If none specified, use generic terms: "any EQ plugin", "any compressor with sidechain capability"
+- Never claim a plugin does something it doesn't
+- Avoid made-up terminology or unverified processing chains
+- When suggesting alternatives, explain why they work similarly
+
+PRODUCTION TECHNIQUES:
+- Stick to established, verified techniques
+- If multiple approaches exist, mention alternatives
+- Don't present experimental ideas as established practice
+- Clarify when something is subjective vs. technical fact${technicalModifier}${ampModelAddendum}
+
+${lessonModeInstructions}`
+
+  return systemMessage
+}
+
 function parseScaleRequest(text: string): ScaleRequest | null {
   const normalizedText = text.toLowerCase()
   
@@ -313,7 +683,7 @@ function parseScaleRequest(text: string): ScaleRequest | null {
 
 export async function POST(request: NextRequest) {
   try {
-    const { fullPrompt, originalMessage, context, lessonMode, instrumentType } = await request.json()
+    const { fullPrompt, originalMessage, context, lessonMode, userSettings } = await request.json()
 
     if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json({
@@ -325,15 +695,26 @@ export async function POST(request: NextRequest) {
     console.log('🚀 API: Received pre-built prompt from client')
     console.log('ORIGINAL MESSAGE:', originalMessage)
     console.log('FULL PROMPT RECEIVED:', fullPrompt)
+    console.log('USER SETTINGS:', userSettings)
     console.log("OPENAI PROMPT SENT:", fullPrompt)
 
+    // Build dynamic system message based on user settings
+    const systemMessage = buildSystemMessage(userSettings, context, lessonMode)
+    
+    // Reframe user prompt if it's a tone/artist/gear question
+    const processedMessage = reframeUserPrompt(originalMessage, userSettings)
+    
+    console.log('🎸 Original message:', originalMessage)
+    console.log('🎛️ Processed message:', processedMessage)
+    
     const completion = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
       messages: [
-        { role: 'user', content: fullPrompt },
+        { role: 'system', content: systemMessage },
+        { role: 'user', content: processedMessage },
       ],
-      max_tokens: 500,
-      temperature: 0.3,
+      max_tokens: lessonMode ? 750 : 500,
+      temperature: lessonMode ? 0.4 : 0.3,
       top_p: 1.0,
       frequency_penalty: 0.2,
       presence_penalty: 0.0,
