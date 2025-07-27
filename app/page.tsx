@@ -530,15 +530,15 @@ export default function StudioBrain() {
 
         {/* Header */}
         <div className="mb-12 text-center mt-20 sm:mt-12">
-          <div className="flex items-center justify-center gap-4 mb-6">
-            <div className="relative p-3 rounded-xl bg-glass-bg backdrop-blur-md border border-glass-border shadow-lg">
-              <Music className={`w-10 h-10 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`} />
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-6">
+            <div className="relative p-2 sm:p-3 rounded-xl bg-glass-bg backdrop-blur-md border border-glass-border shadow-lg">
+              <Music className={`w-8 h-8 sm:w-10 sm:h-10 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`} />
             </div>
-            <h1 className="text-6xl font-black tracking-tight bg-gradient-to-r from-neon-purple via-neon-blue to-neon-pink bg-clip-text text-transparent">
+            <h1 className="text-5xl sm:text-5xl lg:text-6xl font-black tracking-tight bg-gradient-to-r from-neon-purple via-neon-blue to-neon-pink bg-clip-text text-transparent max-w-xs sm:max-w-none truncate sm:whitespace-normal">
               StudioBrain
             </h1>
           </div>
-          <p className="text-slate-400 text-xl font-light max-w-2xl mx-auto leading-relaxed">A sleek, modern creative assistant for musicians - powered by AI</p>
+          <p className="text-slate-400 text-xl font-light max-w-2xl mx-auto leading-relaxed">A creative assistant for musicians, powered by AI.</p>
         </div>
 
         {/* Main Interface */}
