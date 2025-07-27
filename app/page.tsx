@@ -502,14 +502,14 @@ export default function StudioBrain() {
   return (
     <ErrorBoundary>
       <HydrationBoundary fallback={
-        <div className="min-h-screen bg-gradient-to-br from-neutral-950 to-neutral-900 text-white p-4 flex items-center justify-center">
+        <div className="min-h-screen bg-[#2a2632] text-white p-4 flex items-center justify-center">
           <div className="text-center">
             <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <p className="text-gray-400">Loading StudioBrain...</p>
           </div>
         </div>
       }>
-        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950/20 to-slate-900 text-white p-6">
+        <div className="min-h-screen bg-[#2a2632] text-white p-6">
       <div className="max-w-6xl mx-auto">
         {/* Lesson Mode Toggle & Settings - Responsive Position */}
         <div className="flex items-center gap-4 absolute top-6 right-6 z-50 sm:top-6 sm:right-6 max-sm:top-4 max-sm:right-4">
