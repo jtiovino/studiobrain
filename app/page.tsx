@@ -590,8 +590,8 @@ export default function StudioBrain() {
                   disabled={generalLoading || !generalQuestion.trim()}
                   className={`w-full h-12 font-semibold text-lg rounded-xl transition-all duration-300 disabled:opacity-50 ${
                     lessonMode 
-                      ? 'bg-gradient-to-r from-neon-cyan to-neon-blue hover:from-neon-cyan/90 hover:to-neon-blue/90 text-black shadow-lg shadow-neon-cyan/30 hover:shadow-neon-cyan/50' 
-                      : 'bg-gradient-to-r from-neon-purple to-neon-pink hover:from-neon-purple/90 hover:to-neon-pink/90 text-white shadow-lg shadow-neon-purple/30 hover:shadow-neon-purple/50'
+                      ? 'bg-gradient-to-r from-[#22d3ee] to-[#3b82f6] hover:from-[#22d3ee]/90 hover:to-[#3b82f6]/90 text-black shadow-lg shadow-[#22d3ee]/30 hover:shadow-[#22d3ee]/50' 
+                      : 'bg-gradient-to-r from-[#a855f7] to-[#ec4899] hover:from-[#a855f7]/90 hover:to-[#ec4899]/90 text-white shadow-lg shadow-[#a855f7]/30 hover:shadow-[#a855f7]/50'
                   }`}
                 >
                   {generalLoading ? (
@@ -641,8 +641,8 @@ export default function StudioBrain() {
                   disabled={mixLoading || !mixQuestion.trim()}
                   className={`w-full h-12 font-semibold text-lg rounded-xl transition-all duration-300 disabled:opacity-50 ${
                     lessonMode 
-                      ? 'bg-gradient-to-r from-neon-cyan to-neon-blue hover:from-neon-cyan/90 hover:to-neon-blue/90 text-black shadow-lg shadow-neon-cyan/30 hover:shadow-neon-cyan/50' 
-                      : 'bg-gradient-to-r from-neon-purple to-neon-pink hover:from-neon-purple/90 hover:to-neon-pink/90 text-white shadow-lg shadow-neon-purple/30 hover:shadow-neon-purple/50'
+                      ? 'bg-gradient-to-r from-[#22d3ee] to-[#3b82f6] hover:from-[#22d3ee]/90 hover:to-[#3b82f6]/90 text-black shadow-lg shadow-[#22d3ee]/30 hover:shadow-[#22d3ee]/50' 
+                      : 'bg-gradient-to-r from-[#a855f7] to-[#ec4899] hover:from-[#a855f7]/90 hover:to-[#ec4899]/90 text-white shadow-lg shadow-[#a855f7]/30 hover:shadow-[#a855f7]/50'
                   }`}
                 >
                   {mixLoading ? (
@@ -1011,8 +1011,8 @@ export default function StudioBrain() {
                     disabled={theoryLoading || !theoryQuestion.trim()}
                     className={`w-full h-12 font-semibold text-lg rounded-xl transition-all duration-300 disabled:opacity-50 ${
                       lessonMode 
-                        ? 'bg-gradient-to-r from-neon-cyan to-neon-blue hover:from-neon-cyan/90 hover:to-neon-blue/90 text-black shadow-lg shadow-neon-cyan/30 hover:shadow-neon-cyan/50' 
-                        : 'bg-gradient-to-r from-neon-purple to-neon-pink hover:from-neon-purple/90 hover:to-neon-pink/90 text-white shadow-lg shadow-neon-purple/30 hover:shadow-neon-purple/50'
+                        ? 'bg-gradient-to-r from-[#22d3ee] to-[#3b82f6] hover:from-[#22d3ee]/90 hover:to-[#3b82f6]/90 text-black shadow-lg shadow-[#22d3ee]/30 hover:shadow-[#22d3ee]/50' 
+                        : 'bg-gradient-to-r from-[#a855f7] to-[#ec4899] hover:from-[#a855f7]/90 hover:to-[#ec4899]/90 text-white shadow-lg shadow-[#a855f7]/30 hover:shadow-[#a855f7]/50'
                     }`}
                   >
                     {theoryLoading ? (
@@ -1221,8 +1221,8 @@ export default function StudioBrain() {
                         disabled={instrumentLoading || !instrumentQuestion.trim()}
                         className={`w-full h-12 font-semibold text-lg rounded-xl transition-all duration-300 disabled:opacity-50 ${
                           lessonMode 
-                            ? 'bg-gradient-to-r from-neon-cyan to-neon-blue hover:from-neon-cyan/90 hover:to-neon-blue/90 text-black shadow-lg shadow-neon-cyan/30 hover:shadow-neon-cyan/50' 
-                            : 'bg-gradient-to-r from-neon-purple to-neon-pink hover:from-neon-purple/90 hover:to-neon-pink/90 text-white shadow-lg shadow-neon-purple/30 hover:shadow-neon-purple/50'
+                            ? 'bg-gradient-to-r from-[#22d3ee] to-[#3b82f6] hover:from-[#22d3ee]/90 hover:to-[#3b82f6]/90 text-black shadow-lg shadow-[#22d3ee]/30 hover:shadow-[#22d3ee]/50' 
+                            : 'bg-gradient-to-r from-[#a855f7] to-[#ec4899] hover:from-[#a855f7]/90 hover:to-[#ec4899]/90 text-white shadow-lg shadow-[#a855f7]/30 hover:shadow-[#a855f7]/50'
                         }`}
                       >
                         {instrumentLoading ? (
