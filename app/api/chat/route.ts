@@ -1,6 +1,77 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 
+// Rate limiting storage - in production, consider using Redis or a database
+interface RateLimitEntry {
+  count: number
+  resetTime: number
+}
+
+// Memory store for rate limiting (consider Redis for production)
+const rateLimitStore = new Map<string, RateLimitEntry>()
+
+// Rate limiting configuration
+const RATE_LIMITS = {
+  DEFAULT_DAILY_LIMIT: 50,
+  LESSON_MODE_DAILY_LIMIT: 25,
+  RESET_INTERVAL_MS: 24 * 60 * 60 * 1000 // 24 hours
+}
+
+function getRateLimitKey(request: NextRequest): string {
+  // Try to get IP address from various headers (for different deployment environments)
+  const forwarded = request.headers.get('x-forwarded-for')
+  const realIp = request.headers.get('x-real-ip')
+  const cfConnectingIp = request.headers.get('cf-connecting-ip') // Cloudflare
+  
+  const ip = forwarded?.split(',')[0] || realIp || cfConnectingIp || 'unknown'
+  
+  // Fallback to session ID if available (you could also use cookies here)
+  const sessionId = request.headers.get('x-session-id')
+  
+  return sessionId || ip
+}
+
+function checkRateLimit(userKey: string, lessonMode: boolean): { allowed: boolean; remaining: number } {
+  const now = Date.now()
+  const limit = lessonMode ? RATE_LIMITS.LESSON_MODE_DAILY_LIMIT : RATE_LIMITS.DEFAULT_DAILY_LIMIT
+  
+  // Get or create rate limit entry
+  let entry = rateLimitStore.get(userKey)
+  
+  // Check if we need to reset the counter (24 hours have passed)
+  if (!entry || now >= entry.resetTime) {
+    entry = {
+      count: 0,
+      resetTime: now + RATE_LIMITS.RESET_INTERVAL_MS
+    }
+    rateLimitStore.set(userKey, entry)
+  }
+  
+  // Check if user has exceeded limit
+  if (entry.count >= limit) {
+    return { allowed: false, remaining: 0 }
+  }
+  
+  // Increment counter and update store
+  entry.count += 1
+  rateLimitStore.set(userKey, entry)
+  
+  return { allowed: true, remaining: limit - entry.count }
+}
+
+// Optional: Cleanup function to remove expired entries (call periodically)
+function cleanupExpiredEntries() {
+  const now = Date.now()
+  for (const [key, entry] of rateLimitStore.entries()) {
+    if (now >= entry.resetTime) {
+      rateLimitStore.delete(key)
+    }
+  }
+}
+
+// Run cleanup every hour
+setInterval(cleanupExpiredEntries, 60 * 60 * 1000)
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || '',
 })
@@ -294,6 +365,59 @@ interface GearSettings {
   daw: string
 }
 
+// Plugin categorization for tab-specific recommendations
+function categorizeUserPlugins(plugins: string[], context: string): { valid: string[], invalid: string[] } {
+  const mixingPlugins = [
+    'uad', '1176', 'la-2a', 'pultec', 'neve', 'ssl', 'fairchild', 'distressor',
+    'waves', 'channel eq', 'compressor', 'chromaverb', 'space designer', 'tape',
+    'vintage eq', 'deesser', 'multipressor', 'enveloper', 'linear phase eq'
+  ]
+  
+  const tonePlugins = [
+    'neural dsp', 'archetype', 'plini', 'nolly', 'gojira', 'petrucci', 'abasi',
+    'bias amp', 'amplitube', 'guitar rig', 'logic amp', 'amp designer',
+    'helix native', 'axe fx', 'kemper', 'th-u'
+  ]
+  
+  const valid: string[] = []
+  const invalid: string[] = []
+  
+  plugins.forEach(plugin => {
+    const lowerPlugin = plugin.toLowerCase()
+    
+    if (context === 'mix') {
+      // Mix tab should get mixing plugins and tone plugins for amp simulation
+      const isMixingPlugin = mixingPlugins.some(mix => lowerPlugin.includes(mix))
+      const isTonePlugin = tonePlugins.some(tone => lowerPlugin.includes(tone))
+      
+      if (isMixingPlugin || isTonePlugin) {
+        valid.push(plugin)
+      } else {
+        invalid.push(plugin)
+      }
+    } else if (context === 'instrument') {
+      // Instrument tab should get tone plugins but NOT mixing plugins
+      const isTonePlugin = tonePlugins.some(tone => lowerPlugin.includes(tone))
+      const isMixingPlugin = mixingPlugins.some(mix => lowerPlugin.includes(mix)) && 
+                            !tonePlugins.some(tone => lowerPlugin.includes(tone)) // Exclude Neural DSP which can be both
+      
+      if (isTonePlugin && !isMixingPlugin) {
+        valid.push(plugin)
+      } else if (isMixingPlugin) {
+        invalid.push(plugin)
+      } else {
+        // Unknown plugins go to valid for now
+        valid.push(plugin)
+      }
+    } else {
+      // Other tabs get all plugins
+      valid.push(plugin)
+    }
+  })
+  
+  return { valid, invalid }
+}
+
 function getValidAmpModels(userGear: GearSettings, context: string): string[] {
   const ampModels: string[] = []
   
@@ -526,6 +650,9 @@ function buildSystemMessage(userSettings: UserSettings | undefined, context: str
   const validAmpModels = gear ? getValidAmpModels(gear, context) : []
   const ampModelAddendum = getAmpModelPromptAddendum(validAmpModels)
   
+  // Categorize plugins based on context
+  const pluginCategories = gear?.plugins ? categorizeUserPlugins(gear.plugins, context) : { valid: [], invalid: [] }
+  
   // Build gear description
   const gearList = []
   if (gear?.guitar?.length) gearList.push(`Guitars: ${gear.guitar.join(', ')}`)
@@ -542,25 +669,51 @@ function buildSystemMessage(userSettings: UserSettings | undefined, context: str
   // Section capitalization
   const sectionName = context.charAt(0).toUpperCase() + context.slice(1)
   
-  // Add tab-specific technical language requirements
+  // Add tab-specific technical language requirements and behavior
   const getTechnicalLanguageModifier = (context: string): string => {
     switch (context) {
       case 'mix':
-        return `\n\nTECHNICAL LANGUAGE REQUIREMENT: Use precise audio engineering terminology. Always specify:
+        return `\n\nMIX TAB BEHAVIOR - PLUGIN-BASED MIXING FOCUS:
+You are now in Mix mode. Prioritize PLUGIN-BASED mixing suggestions for Logic Pro X workflow.
+
+PLUGIN RECOMMENDATIONS:
+- UAD plugins: 1176, LA-2A, Pultec, Neve, SSL, Fairchild, etc.
+- Neural DSP: Archetype Plini, Archetype Nolly (for guitar amp simulation only)
+- Logic stock plugins: Channel EQ, Compressor, ChromaVerb, Space Designer, Tape, Vintage EQ, DeEsser
+
+TECHNICAL LANGUAGE REQUIREMENT: Use precise audio engineering terminology. Always specify:
 - EQ: exact frequencies (e.g., "high-pass at 80Hz, boost 3dB at 2.5kHz with Q of 1.2")
 - Compression: ratios, attack/release times, threshold values (e.g., "4:1 ratio, 10ms attack, 100ms release, -12dB threshold")
 - Delay: specific times in milliseconds and mix percentages (e.g., "slapback delay at 80ms with 25% mix")
 - Reverb: decay times, pre-delay, specific reverb types (e.g., "plate reverb, 1.8s decay, 15ms pre-delay")
-- Plugin settings: actual parameter values, not vague descriptions
-- Signal chain order: specify exact routing and processing order`
+- Plugin chains: exact order of operations and gain staging
+- Signal routing: specify exact processing order and parallel/serial configurations
+
+AVOID: Physical gear recommendations unless specifically asked. Focus on in-the-box mixing workflow.`
         
       case 'instrument':
-        return `\n\nTECHNICAL LANGUAGE REQUIREMENT: Use specific gear and tone terminology. Always specify:
-- Amp settings: exact knob positions and values (e.g., "Gain at 6, Bass at 4, Mid at 7, Treble at 5")
-- Pedal settings: specific parameter values and signal chain order (e.g., "Tube Screamer: Drive at 9 o'clock, Tone at 12, Level at 2 o'clock, placed before amp")
-- Guitar specifics: pickup selection, pickup heights, string gauges (e.g., "bridge humbucker, lowered 2mm from strings")
+        return `\n\nINSTRUMENT TAB BEHAVIOR - PHYSICAL GEAR FOCUS:
+You are now in Instrument mode. Prioritize PHYSICAL GEAR and performance-based tone suggestions.
+
+GEAR RECOMMENDATIONS:
+- Physical guitars: HH Strat, Tele, 7-string characteristics and pickup selection
+- Physical pedals: Nano Cortex, HX One, Klon-style overdrive, ambient reverb
+- Amps: amp captures, physical amp settings, amp modeling devices
+- Performance: pickup selection, tone knob use, pedal stacking, playing technique
+
+WHEN TO MENTION PLUGINS:
+- Amp sims: Neural DSP Archetype Plini/Nolly, Logic amp sims (for tone shaping)
+- Guitar effects: only when user specifically asks to work "in-the-box"
+- NEVER suggest mixing plugins: No UAD compressors, Pultec EQs, or mixing reverbs
+
+TECHNICAL LANGUAGE REQUIREMENT: Use specific gear and performance terminology:
+- Amp settings: exact knob positions (e.g., "Gain at 6, Bass at 4, Mid at 7, Treble at 5")
+- Pedal settings: specific values and signal chain order (e.g., "Klon: Drive at 9 o'clock, placed before Nano Cortex")
+- Guitar specifics: pickup selection, pickup heights, string gauges (e.g., "bridge humbucker, tone knob at 7")
 - Playing technique: exact fret positions, fingering patterns, pick attack descriptions
-- Amp sim models: specific amp and cab combinations with mic placement details`
+- Performance nuance: pickup selection impact, physical tone shaping through playing
+
+FOCUS: Physical performance, gear interaction, and tone shaping through hardware manipulation.`
         
       default:
         return ''
@@ -569,9 +722,18 @@ function buildSystemMessage(userSettings: UserSettings | undefined, context: str
 
   const technicalModifier = getTechnicalLanguageModifier(context)
 
+  // Build plugin context string
+  const pluginContext = pluginCategories.valid.length > 0 
+    ? `Available plugins for this context: ${pluginCategories.valid.join(', ')}.` 
+    : 'Using stock DAW plugins.'
+  
+  const invalidPluginWarning = pluginCategories.invalid.length > 0 && context === 'instrument'
+    ? ` IMPORTANT: Do not recommend these mixing plugins in Instrument tab: ${pluginCategories.invalid.join(', ')}.`
+    : ''
+
   const systemMessage = `You are StudioBrain — an AI-powered creative assistant for musicians.
 
-The user is working in a ${gear?.daw || 'unspecified DAW'} environment with the following tools and plugins: ${gear?.plugins?.length ? gear.plugins.join(', ') : 'stock plugins'}. Their gear includes: ${gearDescription}. Their musical style is influenced by: ${genreInfluence?.length ? genreInfluence.join(', ') : 'various genres'}.
+The user is working in a ${gear?.daw || 'unspecified DAW'} environment. ${pluginContext}${invalidPluginWarning} Their gear includes: ${gearDescription}. Their musical style is influenced by: ${genreInfluence?.length ? genreInfluence.join(', ') : 'various genres'}.
 
 You are currently responding in the "${sectionName}" section of the app.
 
@@ -691,6 +853,20 @@ export async function POST(request: NextRequest) {
         error: 'OpenAI API key not configured. Please set OPENAI_API_KEY in your environment variables.',
       })
     }
+
+    // Rate limiting check - prevent abuse of OpenAI API
+    const userKey = getRateLimitKey(request)
+    const rateLimitResult = checkRateLimit(userKey, lessonMode)
+    
+    if (!rateLimitResult.allowed) {
+      console.log(`🚫 Rate limit exceeded for user: ${userKey}`)
+      return NextResponse.json({
+        response: '',
+        error: "You've reached your StudioBrain usage limit for today. Try again tomorrow!",
+      })
+    }
+    
+    console.log(`✅ Rate limit check passed for user: ${userKey}, remaining: ${rateLimitResult.remaining}`)
 
     console.log('🚀 API: Received pre-built prompt from client')
     console.log('ORIGINAL MESSAGE:', originalMessage)

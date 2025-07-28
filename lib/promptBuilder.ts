@@ -135,12 +135,14 @@ DAW: ${gear.daw || 'Not specified'}`
 - Give practical advice for their specific DAW and gear`),
 
     Mix: buildGearInstructions(`## Mixing and Audio Analysis Focus:
-- Analyze audio issues and provide specific fixes
-- Suggest EQ, compression, and effects settings
-- Consider the user's monitoring setup and plugins
-- Provide frequency ranges and technical parameters
-- Focus on achieving professional sound quality
-- Take into account their studio monitors and interface`),
+- PRIORITIZE PLUGIN-BASED MIXING SOLUTIONS for Logic Pro X workflow
+- Focus on plugin chains, gain staging, EQ/compression settings, and order of operations
+- Suggest specific plugin models when available: UAD 1176, Neural DSP Archetype (for amps), Logic stock plugins
+- Analyze audio issues and provide specific plugin-based fixes
+- Provide exact frequency ranges, compression ratios, and technical parameters
+- Focus on in-the-box mixing workflow and professional sound quality
+- AVOID physical gear recommendations unless specifically requested
+- Consider the user's monitoring setup and available plugins for accurate recommendations`),
 
     Theory: buildGearInstructions(`## Music Theory and Composition Focus:
 - Analyze chord progressions, scales, and harmonic content
@@ -151,11 +153,16 @@ DAW: ${gear.daw || 'Not specified'}`
 - Connect theory to practical application on their instrument`),
 
     Instrument: buildGearInstructions(`## Instrument-Specific Focus:
+- PRIORITIZE PHYSICAL GEAR: guitars, pickups, pedals, amps, amp captures, and performance nuance
+- Focus on physical tone shaping: pickup selection, tone knob use, pedal stacking, amp captures
+- Recommend amp plugins (Neural DSP, Logic amps) when appropriate for tone, but NOT mixing plugins
+- NEVER suggest UAD compressors, Pultec EQs, or mixing reverbs - this is performance-focused
 - Show visual representations when possible (fretboard diagrams, chord charts)
 - Provide scale patterns and fingerings for ${mainInstrument}
 - Consider their tuning: ${preferredTuning}
-- Suggest chord voicings and positions
-- Include technique tips and exercises
+- Suggest chord voicings and positions based on physical instrument capabilities
+- Include performance technique tips and exercises
+- Focus on gear like: HH Strat, Tele, Nano Cortex, HX One, Klon-style OD, ambient reverb
 - Adapt to their experience level (${userLevel})
 - ${flipFretboardView ? 'Note: User prefers flipped fretboard view (high strings on top)' : 'Note: User prefers standard fretboard view (low strings on top)'}`)
   }
