@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { reviewResponse, shouldSkipCritic } from '@/lib/criticService'
 
 // Rate limiting storage - in production, consider using Redis or a database
 interface RateLimitEntry {
@@ -897,12 +898,10 @@ export async function POST(request: NextRequest) {
     })
 
     const response = completion.choices[0]?.message?.content || ''
-    const pluginSuggestions = context === 'mix' ? parsePluginSuggestions(response) : []
-    const scaleRequest = parseScaleRequest(originalMessage) // Parse from original user message
-    const modalAnalysis = analyzeChordProgression(originalMessage) // Advanced chord analysis
-
+    
     // If we have a strong modal analysis, include it in the response
     let enhancedResponse = response
+    const modalAnalysis = analyzeChordProgression(originalMessage) // Advanced chord analysis
     if (modalAnalysis && modalAnalysis.confidence > 0.7 && context === 'theory') {
       enhancedResponse += `\n\n**Modal Analysis:**\n• **Best scale:** ${modalAnalysis.bestRoot} ${modalAnalysis.bestMode}\n• **Reason:** ${modalAnalysis.reason}`
       
@@ -913,8 +912,37 @@ export async function POST(request: NextRequest) {
       enhancedResponse += `\n• **All notes used:** ${modalAnalysis.allNotesUsed.join(', ')}`
     }
 
+    // Internal critic review - always-on pipeline
+    let finalResponse = enhancedResponse
+    const skipCritic = await shouldSkipCritic(originalMessage, enhancedResponse)
+    
+    if (!skipCritic) {
+      console.log('🔍 Running internal critic review...')
+      const criticResult = await reviewResponse({
+        originalPrompt: originalMessage,
+        assistantResponse: enhancedResponse,
+        userSettings,
+        context,
+        lessonMode
+      })
+      
+      finalResponse = criticResult.finalResponse
+      
+      if (criticResult.wasCriticAdjusted) {
+        console.log('✏️ Response was adjusted by critic for accuracy/safety')
+      } else {
+        console.log('✅ Response passed critic review unchanged')
+      }
+    } else {
+      console.log('⏭️ Skipping critic review (response type doesn\'t require it)')
+    }
+    
+    // Parse plugin suggestions from the final response (after critic review)
+    const pluginSuggestions = context === 'mix' ? parsePluginSuggestions(finalResponse) : []
+    const scaleRequest = parseScaleRequest(originalMessage) // Parse from original user message
+
     return NextResponse.json({
-      response: enhancedResponse,
+      response: finalResponse,
       pluginSuggestions,
       scaleRequest,
       modalAnalysis,

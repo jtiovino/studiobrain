@@ -56,6 +56,7 @@ export interface ChatResponse {
   pluginSuggestions?: PluginSuggestion[]
   scaleRequest?: ScaleRequest | null
   modalAnalysis?: ModalAnalysis | null
+  wasCriticAdjusted?: boolean
   error?: string
 }
 
@@ -120,10 +121,14 @@ export class OpenAIService {
     })
   }
 
-  static async askMix(message: string, lessonMode: boolean): Promise<ChatResponse> {
+  static async askMix(message: string, lessonMode: boolean, gearChain?: any[]): Promise<ChatResponse> {
+    const contextualMessage = gearChain && gearChain.length > 0 
+      ? `${message}\n\nCurrent gear chain: ${gearChain.map(item => item.name).join(' → ')}`
+      : message
+
     const fullPrompt = buildPrompt({
       tab: 'Mix',
-      input: message,
+      input: contextualMessage,
       inputType: 'text'
     })
     
@@ -133,7 +138,7 @@ export class OpenAIService {
     
     return this.makeRequest({
       fullPrompt,
-      originalMessage: message,
+      originalMessage: contextualMessage,
       context: 'mix',
       lessonMode,
       userSettings,
@@ -163,9 +168,15 @@ export class OpenAIService {
   static async askInstrument(
     message: string,
     lessonMode: boolean,
-    instrumentType: string
+    instrumentType: string,
+    gearChain?: any[]
   ): Promise<ChatResponse> {
-    const contextualMessage = `For ${instrumentType}: ${message}`
+    let contextualMessage = `For ${instrumentType}: ${message}`
+    
+    if (gearChain && gearChain.length > 0) {
+      contextualMessage += `\n\nCurrent gear chain: ${gearChain.map(item => item.name).join(' → ')}`
+    }
+    
     const fullPrompt = buildPrompt({
       tab: 'Instrument',
       input: contextualMessage,

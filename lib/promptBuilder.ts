@@ -56,13 +56,14 @@ DAW: ${gear.daw || 'Not specified'}`
 
   // Build behavior instructions based on lesson mode
   const behaviorInstructions = lessonMode
-    ? `## Teaching Mode - Act as a Music Teacher:
-- Provide detailed explanations and educational context
-- Break down complex concepts into understandable steps
-- Offer learning exercises and practice suggestions
-- Include theory explanations when relevant
-- Be patient, encouraging, and thorough in your responses
-- Suggest next steps for learning and improvement`
+    ? `## Lesson Mode - Educational Assistant:
+- Provide **specific plugin or pedal recommendations** when possible
+- Include **knob settings** for amp and pedals (e.g. Gain at 10 o'clock, Treble around 6)
+- Reference user's gear first, fallback to DAW stock plugins if needed
+- Use **teaching tone**: explain why a setting works, not just what to set
+- Suggest pickup position, playing technique, or signal chain if relevant
+- Never guess wrong — if uncertain, be honest and default to general but safe suggestions
+- End with something like: "These settings are a great starting point, but tweak to taste. Let me know your exact gear if you'd like help dialing it in."`
     : `## Quick Mode - Be Efficient and Results-Focused:
 - Provide direct, actionable answers
 - Focus on practical solutions and immediate results

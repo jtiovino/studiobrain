@@ -25,6 +25,8 @@ import { VoicingView } from "@/components/VoicingView"
 import { ChordShape } from "@/lib/voicings"
 import SettingsButton from "@/components/SettingsButton"
 import { useSessionStore } from "@/lib/useSessionStore"
+import GearChain from "@/components/GearChain"
+import { GearItem } from "@/lib/gearService"
 
 interface PianoKey {
   note: string
@@ -69,6 +71,7 @@ export default function StudioBrain() {
   const [instrumentQuestion, setInstrumentQuestion] = useState("")
   const [instrumentAnswer, setInstrumentAnswer] = useState("")
   const [instrumentLoading, setInstrumentLoading] = useState(false)
+  const [currentGearChain, setCurrentGearChain] = useState<GearItem[]>([])
 
   // Generate chords based on selected root and mode
   const generateChords = () => {
@@ -430,7 +433,7 @@ export default function StudioBrain() {
     
     setMixLoading(true)
     try {
-      const response = await OpenAIService.askMix(sanitizedQuestion, lessonMode)
+      const response = await OpenAIService.askMix(sanitizedQuestion, lessonMode, currentGearChain)
       if (isMounted.current) {
         setMixAnswer(response.response || response.error || 'No response')
         setMixPlugins(response.pluginSuggestions || [])
@@ -479,7 +482,7 @@ export default function StudioBrain() {
     
     setInstrumentLoading(true)
     try {
-      const response = await OpenAIService.askInstrument(sanitizedQuestion, lessonMode, selectedInstrument)
+      const response = await OpenAIService.askInstrument(sanitizedQuestion, lessonMode, selectedInstrument, currentGearChain)
       if (isMounted.current) {
         setInstrumentAnswer(response.response || response.error || 'No response')
         
@@ -1146,51 +1149,11 @@ export default function StudioBrain() {
                     </CardContent>
                   </Card>
                   
-                  <Card className="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl shadow-2xl">
-                    <CardHeader className="pb-6">
-                      <CardTitle className={`flex items-center gap-3 text-xl font-bold ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}>
-                        <div className={`p-2 rounded-lg ${lessonMode ? 'bg-neon-cyan/20' : 'bg-neon-purple/20'}`}>
-                          <Guitar className={`w-5 h-5 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`} />
-                        </div>
-                        Gear
-                      </CardTitle>
-                      <CardDescription className="text-slate-300 text-base">Guitar equipment and accessories</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-8 pt-0">
-                      <div>
-                        <h4 className={`font-bold text-lg mb-4 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}>Amplifiers</h4>
-                        <div className="space-y-3">
-                          {["Tube Amps", "Solid State", "Modeling Amps", "Practice Amps"].map((amp, index) => (
-                            <div key={index} className="p-4 bg-white/10 backdrop-blur-md rounded-xl text-sm font-medium text-white hover:bg-white/20 cursor-pointer transition-all duration-300 border border-white/20 hover:border-white/40 hover:shadow-lg">
-                              {amp}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <h4 className={`font-bold text-lg mb-4 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}>Effects</h4>
-                        <div className="space-y-3">
-                          {["Distortion", "Reverb", "Delay", "Chorus"].map((effect, index) => (
-                            <div key={index} className="p-4 bg-white/10 backdrop-blur-md rounded-xl text-sm font-medium text-white hover:bg-white/20 cursor-pointer transition-all duration-300 border border-white/20 hover:border-white/40 hover:shadow-lg">
-                              {effect}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <h4 className={`font-bold text-lg mb-4 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}>Hardware</h4>
-                        <div className="space-y-3">
-                          {["Pickups", "Strings", "Picks", "Capos"].map((hardware, index) => (
-                            <div key={index} className="p-4 bg-white/10 backdrop-blur-md rounded-xl text-sm font-medium text-white hover:bg-white/20 cursor-pointer transition-all duration-300 border border-white/20 hover:border-white/40 hover:shadow-lg">
-                              {hardware}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <GearChain 
+                    lessonMode={lessonMode}
+                    studioBrainResponse={instrumentAnswer}
+                    onGearUpdate={setCurrentGearChain}
+                  />
                 </div>
                 
                 <div className="mt-8">

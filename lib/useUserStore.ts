@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { GearItem, GearChain } from './gearService'
 
 interface UserState {
   userLevel: 'beginner' | 'intermediate' | 'advanced'
@@ -17,6 +18,12 @@ interface UserState {
     monitors: string
     plugins: string[]
     daw: string
+  }
+  gearChains: {
+    selectedMode: 'studiobrainSuggestion' | 'customChain'
+    studioBrainChain: GearItem[]
+    customChain: GearItem[]
+    savedChains: GearChain[]
   }
   hasHydrated: boolean
   set: (partial: Partial<Omit<UserState, 'set' | 'hasHydrated'>>) => void
@@ -41,6 +48,12 @@ export const useUserStore = create<UserState>()(
         monitors: '',
         plugins: [],
         daw: 'none'
+      },
+      gearChains: {
+        selectedMode: 'studiobrainSuggestion',
+        studioBrainChain: [],
+        customChain: [],
+        savedChains: []
       },
       hasHydrated: false,
       set: (partial) => {
@@ -90,7 +103,8 @@ export const useUserStore = create<UserState>()(
         lessonMode: state.lessonMode,
         flipFretboardView: state.flipFretboardView,
         defaultTab: state.defaultTab,
-        gear: state.gear
+        gear: state.gear,
+        gearChains: state.gearChains
       })
     }
   )
