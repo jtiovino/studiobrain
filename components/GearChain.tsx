@@ -175,41 +175,72 @@ export default function GearChain({ lessonMode, studioBrainResponse, onGearUpdat
       const gearItems = GearService.suggestionsToGearItems(suggestions)
       
       if (gearItems.length > 0) {
-        const updatedGearChains = {
-          ...gearChains,
-          studioBrainChain: gearItems
-        }
-        set({ gearChains: updatedGearChains })
-        
-        if (gearChains.selectedMode === 'studiobrainSuggestion') {
-          onGearUpdate?.(gearItems)
-        }
+        // Use functional update to avoid stale closure issues
+        set((currentState) => {
+          // Check if the gear items are actually different to prevent unnecessary updates
+          const currentChain = currentState.gearChains.studioBrainChain
+          const isSameChain = currentChain.length === gearItems.length && 
+            currentChain.every((item, index) => item.name === gearItems[index]?.name)
+          
+          if (isSameChain) {
+            return currentState // No change needed
+          }
+          
+          const updatedGearChains = {
+            ...currentState.gearChains,
+            studioBrainChain: gearItems
+          }
+          
+          // Call onGearUpdate if this mode is selected
+          if (currentState.gearChains.selectedMode === 'studiobrainSuggestion') {
+            // Use setTimeout to avoid calling during render
+            setTimeout(() => onGearUpdate?.(gearItems), 0)
+          }
+          
+          return { ...currentState, gearChains: updatedGearChains }
+        })
       }
     }
-  }, [studioBrainResponse, gearChains, set, onGearUpdate])
+  }, [studioBrainResponse, set, onGearUpdate])
 
   // Initialize custom chain from user gear if empty
   useEffect(() => {
-    if (gearChains.customChain.length === 0 && (gear.guitar.length > 0 || gear.pedals.length > 0)) {
-      const customChain = GearService.createCustomChainFromUserGear(gear.guitar, gear.pedals)
-      const updatedGearChains = {
-        ...gearChains,
-        customChain
+    // Use functional update to get current state and avoid dependency on gearChains
+    set((currentState) => {
+      const { gearChains: currentGearChains } = currentState
+      const { guitar, pedals } = currentState.gear
+      
+      // Only update if custom chain is empty and we have gear to add
+      if (currentGearChains.customChain.length === 0 && (guitar.length > 0 || pedals.length > 0)) {
+        const customChain = GearService.createCustomChainFromUserGear(guitar, pedals)
+        const updatedGearChains = {
+          ...currentGearChains,
+          customChain
+        }
+        return { ...currentState, gearChains: updatedGearChains }
       }
-      set({ gearChains: updatedGearChains })
-    }
-  }, [gear.guitar, gear.pedals, gearChains, set])
+      
+      return currentState // No change needed
+    })
+  }, [set]) // Only depend on set function, get current state from within the update
 
   const handleModeToggle = (mode: 'studiobrainSuggestion' | 'customChain') => {
-    const updatedGearChains = {
-      ...gearChains,
-      selectedMode: mode
-    }
-    set({ gearChains: updatedGearChains })
-    
-    // Update parent component with active chain
-    const activeChain = mode === 'studiobrainSuggestion' ? gearChains.studioBrainChain : gearChains.customChain
-    onGearUpdate?.(activeChain)
+    set((currentState) => {
+      const updatedGearChains = {
+        ...currentState.gearChains,
+        selectedMode: mode
+      }
+      
+      // Update parent component with active chain
+      const activeChain = mode === 'studiobrainSuggestion' 
+        ? currentState.gearChains.studioBrainChain 
+        : currentState.gearChains.customChain
+      
+      // Use setTimeout to avoid calling during render
+      setTimeout(() => onGearUpdate?.(activeChain), 0)
+      
+      return { ...currentState, gearChains: updatedGearChains }
+    })
   }
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -228,27 +259,38 @@ export default function GearChain({ lessonMode, studioBrainResponse, onGearUpdat
       // Clear active ID after a small delay to ensure smooth drop animation
       setTimeout(() => setActiveId(null), 150)
 
-      if (!over || active.id === over.id || gearChains.selectedMode !== 'customChain') {
+      if (!over || active.id === over.id) {
         return
       }
 
-      const oldIndex = gearChains.customChain.findIndex(item => item.id === active.id)
-      const newIndex = gearChains.customChain.findIndex(item => item.id === over.id)
-
-      // Safety check to ensure both indices are valid
-      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-        const reorderedItems = arrayMove(gearChains.customChain, oldIndex, newIndex).map((item, index) => ({
-          ...item,
-          order: index
-        }))
-
-        const updatedGearChains = {
-          ...gearChains,
-          customChain: reorderedItems
+      set((currentState) => {
+        if (currentState.gearChains.selectedMode !== 'customChain') {
+          return currentState
         }
-        set({ gearChains: updatedGearChains })
-        onGearUpdate?.(reorderedItems)
-      }
+
+        const oldIndex = currentState.gearChains.customChain.findIndex(item => item.id === active.id)
+        const newIndex = currentState.gearChains.customChain.findIndex(item => item.id === over.id)
+
+        // Safety check to ensure both indices are valid
+        if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+          const reorderedItems = arrayMove(currentState.gearChains.customChain, oldIndex, newIndex).map((item, index) => ({
+            ...item,
+            order: index
+          }))
+
+          const updatedGearChains = {
+            ...currentState.gearChains,
+            customChain: reorderedItems
+          }
+          
+          // Use setTimeout to avoid calling during render
+          setTimeout(() => onGearUpdate?.(reorderedItems), 0)
+          
+          return { ...currentState, gearChains: updatedGearChains }
+        }
+        
+        return currentState
+      })
     } catch (error) {
       console.error('Drag end error:', error)
       // Ensure we clear the active ID even if there's an error
@@ -257,16 +299,20 @@ export default function GearChain({ lessonMode, studioBrainResponse, onGearUpdat
   }
 
   const removeFromCustomChain = (itemId: string) => {
-    const updatedCustomChain = gearChains.customChain.filter(item => item.id !== itemId)
-    const updatedGearChains = {
-      ...gearChains,
-      customChain: updatedCustomChain
-    }
-    set({ gearChains: updatedGearChains })
-    
-    if (gearChains.selectedMode === 'customChain') {
-      onGearUpdate?.(updatedCustomChain)
-    }
+    set((currentState) => {
+      const updatedCustomChain = currentState.gearChains.customChain.filter(item => item.id !== itemId)
+      const updatedGearChains = {
+        ...currentState.gearChains,
+        customChain: updatedCustomChain
+      }
+      
+      if (currentState.gearChains.selectedMode === 'customChain') {
+        // Use setTimeout to avoid calling during render
+        setTimeout(() => onGearUpdate?.(updatedCustomChain), 0)
+      }
+      
+      return { ...currentState, gearChains: updatedGearChains }
+    })
   }
 
 
@@ -396,13 +442,18 @@ export default function GearChain({ lessonMode, studioBrainResponse, onGearUpdat
                   size="sm"
                   variant="outline"
                   onClick={() => {
-                    const newChain = GearService.createCustomChainFromUserGear(gear.guitar, gear.pedals)
-                    const updatedGearChains = {
-                      ...gearChains,
-                      customChain: newChain
-                    }
-                    set({ gearChains: updatedGearChains })
-                    onGearUpdate?.(newChain)
+                    set((currentState) => {
+                      const newChain = GearService.createCustomChainFromUserGear(currentState.gear.guitar, currentState.gear.pedals)
+                      const updatedGearChains = {
+                        ...currentState.gearChains,
+                        customChain: newChain
+                      }
+                      
+                      // Use setTimeout to avoid calling during render
+                      setTimeout(() => onGearUpdate?.(newChain), 0)
+                      
+                      return { ...currentState, gearChains: updatedGearChains }
+                    })
                   }}
                   className={`w-full sm:w-auto ${lessonMode ? 'border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/10' : 'border-neon-purple/40 text-neon-purple hover:bg-neon-purple/10'}`}
                 >

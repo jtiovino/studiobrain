@@ -26,7 +26,7 @@ interface UserState {
     savedChains: GearChain[]
   }
   hasHydrated: boolean
-  set: (partial: Partial<Omit<UserState, 'set' | 'hasHydrated'>>) => void
+  set: (partial: Partial<Omit<UserState, 'set' | 'hasHydrated'>> | ((state: UserState) => UserState)) => void
   setHasHydrated: (state: boolean) => void
 }
 
@@ -59,12 +59,42 @@ export const useUserStore = create<UserState>()(
       set: (partial) => {
         console.log('🔧 Zustand Store Update:', partial)
         console.log('🔧 Current state before update:', get())
-        set((state) => {
-          const newState = { ...state, ...partial }
-          console.log('📦 Full gear state after update:', newState.gear)
-          console.log('📦 Complete new state:', newState)
-          return newState
-        })
+        
+        if (typeof partial === 'function') {
+          // Functional update pattern
+          set((state) => {
+            const newState = partial(state)
+            console.log('📦 Complete new state after functional update:', newState)
+            return newState
+          })
+        } else {
+          // Object update pattern
+          set((state) => {
+            const newState = { ...state, ...partial }
+            
+            // Check if the update actually changes anything to prevent unnecessary renders
+            const hasChanged = Object.keys(partial).some(key => {
+              const currentVal = state[key as keyof typeof state]
+              const newVal = partial[key as keyof typeof partial]
+              
+              // Deep comparison for objects
+              if (typeof currentVal === 'object' && typeof newVal === 'object' && currentVal !== null && newVal !== null) {
+                return JSON.stringify(currentVal) !== JSON.stringify(newVal)
+              }
+              
+              return currentVal !== newVal
+            })
+            
+            if (!hasChanged) {
+              console.log('🔧 No actual change detected, skipping update')
+              return state // Return current state if no change
+            }
+            
+            console.log('📦 Full gear state after update:', newState.gear)
+            console.log('📦 Complete new state:', newState)
+            return newState
+          })
+        }
       },
       setHasHydrated: (state) => {
         set({ hasHydrated: state })

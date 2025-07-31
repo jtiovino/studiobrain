@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import ErrorBoundary from "@/components/ErrorBoundary"
 import { HydrationBoundary } from "@/components/HydrationBoundary"
 
@@ -72,6 +72,11 @@ export default function StudioBrain() {
   const [instrumentAnswer, setInstrumentAnswer] = useState("")
   const [instrumentLoading, setInstrumentLoading] = useState(false)
   const [currentGearChain, setCurrentGearChain] = useState<GearItem[]>([])
+
+  // Create a stable callback for gear updates to prevent infinite loops
+  const handleGearUpdate = useCallback((newChain: GearItem[]) => {
+    setCurrentGearChain(newChain)
+  }, [])
 
   // Generate chords based on selected root and mode
   const generateChords = () => {
@@ -609,7 +614,9 @@ export default function StudioBrain() {
                 {generalAnswer && (
                   <div className={`mt-6 p-6 rounded-xl border backdrop-blur-sm ${lessonMode ? 'bg-gradient-to-br from-neon-cyan/10 to-neon-blue/5 border-neon-cyan/30 shadow-lg shadow-neon-cyan/10' : 'bg-gradient-to-br from-neon-purple/10 to-neon-pink/5 border-neon-purple/30 shadow-lg shadow-neon-purple/10'}`}>
                     <h4 className={`font-bold text-lg mb-4 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}>StudioBrain's Answer:</h4>
-                    <div className="text-slate-200 whitespace-pre-line leading-relaxed">{generalAnswer}</div>
+                    <div className="text-slate-200 whitespace-pre-line leading-relaxed">
+                      {typeof generalAnswer === 'string' ? generalAnswer : JSON.stringify(generalAnswer, null, 2)}
+                    </div>
                   </div>
                 )}
               </CardContent>
@@ -660,7 +667,9 @@ export default function StudioBrain() {
                 {mixAnswer && (
                   <div className={`mt-6 p-6 rounded-xl border backdrop-blur-sm ${lessonMode ? 'bg-gradient-to-br from-neon-cyan/10 to-neon-blue/5 border-neon-cyan/30 shadow-lg shadow-neon-cyan/10' : 'bg-gradient-to-br from-neon-purple/10 to-neon-pink/5 border-neon-purple/30 shadow-lg shadow-neon-purple/10'}`}>
                     <h4 className={`font-bold text-lg mb-4 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}>StudioBrain's Answer:</h4>
-                    <div className="text-slate-200 whitespace-pre-line leading-relaxed">{mixAnswer}</div>
+                    <div className="text-slate-200 whitespace-pre-line leading-relaxed">
+                      {typeof mixAnswer === 'string' ? mixAnswer : JSON.stringify(mixAnswer, null, 2)}
+                    </div>
                   </div>
                 )}
 
@@ -1030,7 +1039,9 @@ export default function StudioBrain() {
                   {theoryAnswer && (
                     <div className={`mt-6 p-6 rounded-xl border backdrop-blur-sm ${lessonMode ? 'bg-gradient-to-br from-neon-cyan/10 to-neon-blue/5 border-neon-cyan/30 shadow-lg shadow-neon-cyan/10' : 'bg-gradient-to-br from-neon-purple/10 to-neon-pink/5 border-neon-purple/30 shadow-lg shadow-neon-purple/10'}`}>
                       <h4 className={`font-bold text-lg mb-4 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}>StudioBrain's Answer:</h4>
-                      <div className="text-slate-200 whitespace-pre-line leading-relaxed">{theoryAnswer}</div>
+                      <div className="text-slate-200 whitespace-pre-line leading-relaxed">
+                        {typeof theoryAnswer === 'string' ? theoryAnswer : JSON.stringify(theoryAnswer, null, 2)}
+                      </div>
                     </div>
                   )}
                 </CardContent>
@@ -1152,7 +1163,7 @@ export default function StudioBrain() {
                   <GearChain 
                     lessonMode={lessonMode}
                     studioBrainResponse={instrumentAnswer}
-                    onGearUpdate={setCurrentGearChain}
+                    onGearUpdate={handleGearUpdate}
                   />
                 </div>
                 
@@ -1200,7 +1211,9 @@ export default function StudioBrain() {
                       {instrumentAnswer && (
                         <div className={`mt-6 p-6 rounded-xl border backdrop-blur-sm ${lessonMode ? 'bg-gradient-to-br from-neon-cyan/10 to-neon-blue/5 border-neon-cyan/30 shadow-lg shadow-neon-cyan/10' : 'bg-gradient-to-br from-neon-purple/10 to-neon-pink/5 border-neon-purple/30 shadow-lg shadow-neon-purple/10'}`}>
                           <h4 className={`font-bold text-lg mb-4 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}>StudioBrain's Answer:</h4>
-                          <div className="text-slate-200 whitespace-pre-line leading-relaxed">{instrumentAnswer}</div>
+                          <div className="text-slate-200 whitespace-pre-line leading-relaxed">
+                            {typeof instrumentAnswer === 'string' ? instrumentAnswer : JSON.stringify(instrumentAnswer, null, 2)}
+                          </div>
                         </div>
                       )}
                     </CardContent>
