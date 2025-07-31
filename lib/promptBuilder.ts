@@ -50,8 +50,6 @@ export function buildPrompt({ tab, input, inputType }: PromptBuilderOptions): st
 Guitars: ${gear.guitar?.length ? gear.guitar.join(', ') : 'None'}
 Pedals: ${gear.pedals?.length ? gear.pedals.join(', ') : 'None'}
 Plugins: ${gear.plugins?.length ? gear.plugins.join(', ') : 'None'}
-Audio Interface: ${gear.interface || 'Not specified'}
-Studio Monitors: ${gear.monitors || 'Not specified'}
 DAW: ${gear.daw || 'Not specified'}`
 
   // Build behavior instructions based on lesson mode
@@ -62,7 +60,7 @@ DAW: ${gear.daw || 'Not specified'}`
 - Reference user's gear first, fallback to DAW stock plugins if needed
 - Use **teaching tone**: explain why a setting works, not just what to set
 - Suggest pickup position, playing technique, or signal chain if relevant
-- Never guess wrong — if uncertain, be honest and default to general but safe suggestions
+- Never guess gear names — if uncertain about model names, leave them out rather than guessing
 - End with something like: "These settings are a great starting point, but tweak to taste. Let me know your exact gear if you'd like help dialing it in."`
     : `## Quick Mode - Be Efficient and Results-Focused:
 - Provide direct, actionable answers
@@ -103,13 +101,13 @@ DAW: ${gear.daw || 'Not specified'}`
       gearContext += `\nIMPORTANT: The user only has access to the following plugins: ${gear.plugins.join(', ')}. Do NOT suggest any plugins outside of this list.`
     }
     
-    // Add monitoring context
-    if (gear.monitors) {
+    // Add monitoring context only for Mix tab
+    if (tab === 'Mix' && gear.monitors) {
       gearContext += `\n- Monitors: ${gear.monitors}. Be mindful of their frequency response and low-end perception.`
     }
     
-    // Add interface context
-    if (gear.interface) {
+    // Add interface context only for Mix tab
+    if (tab === 'Mix' && gear.interface) {
       gearContext += `\n- Audio Interface: ${gear.interface}. Consider its capabilities and limitations.`
     }
     
@@ -142,7 +140,7 @@ DAW: ${gear.daw || 'Not specified'}`
 - Analyze audio issues and provide specific plugin-based fixes
 - Provide exact frequency ranges, compression ratios, and technical parameters
 - Focus on in-the-box mixing workflow and professional sound quality
-- AVOID physical gear recommendations unless specifically requested
+- AVOID studio monitor or interface recommendations unless specifically requested for monitoring/mixing tasks
 - Consider the user's monitoring setup and available plugins for accurate recommendations`),
 
     Theory: buildGearInstructions(`## Music Theory and Composition Focus:
@@ -163,7 +161,7 @@ DAW: ${gear.daw || 'Not specified'}`
 - Consider their tuning: ${preferredTuning}
 - Suggest chord voicings and positions based on physical instrument capabilities
 - Include performance technique tips and exercises
-- Focus on gear like: HH Strat, Tele, Nano Cortex, HX One, Klon-style OD, ambient reverb
+- Focus on guitar gear: guitars, pedals, amp models, and effects - avoid studio peripherals unless specifically relevant
 - Adapt to their experience level (${userLevel})
 - ${flipFretboardView ? 'Note: User prefers flipped fretboard view (high strings on top)' : 'Note: User prefers standard fretboard view (low strings on top)'}`)
   }

@@ -611,7 +611,7 @@ function reframeUserPrompt(originalPrompt: string, userSettings: UserSettings | 
     if (hardwareList.length) gearLines.push(`- Hardware: ${hardwareList.join(', ')}`)
     
     // Add common modeling gear if not already listed
-    const commonModelingGear = ['HX One (can only run one effect at a time)', 'Quad Cortex Nano (amp capture unit)']
+    const commonModelingGear = ['HX One (single-effect stereo pedal - only one algorithm at a time)', 'Nano Cortex (amp capture unit)']
     commonModelingGear.forEach(item => {
       const deviceName = item.split(' ')[0].toLowerCase()
       const hasDevice = gear?.pedals?.some(pedal => pedal.toLowerCase().includes(deviceName)) ||
@@ -756,7 +756,10 @@ If you are not certain about any part of your answer, do not guess. StudioBrain 
 CRITICAL GEAR ACCURACY REQUIREMENTS:
 - Never recommend gear the user doesn't own or have access to
 - Never suggest using incorrect gear types (e.g., don't use a Pultec as an amp sim, don't use a compressor as a drive pedal)
-- Respect hardware limitations (e.g., HX One runs only 1 effect at a time, Quad Cortex has specific routing constraints)
+- Respect hardware limitations:
+  • HX One: Single-effect stereo pedal - only runs ONE algorithm at a time (don't suggest "stacking" multiple HX One effects)
+  • Nano Cortex: Amp capture unit with specific routing
+  • Other multi-FX units: Check actual capabilities before recommendations
 - When making substitutions, explain why the alternative works and what sonic differences to expect
 - Be historically accurate about what gear artists actually used
 
@@ -772,6 +775,7 @@ PEDALS & EFFECTS:
 - If unsure about specific pedal models, describe the effect type: "transparent overdrive", "analog-style delay", "modulated reverb"
 - Don't guess brand names or model numbers unless certain
 - Prioritize describing the sonic characteristic over naming specific gear
+- HX One specific guidance: Treat as a flexible single-slot pedal. Recommend which SINGLE effect model to load based on tone goal, not multiple stacked effects
 
 MUSIC THEORY:
 - If scale, chord function, or mode isn't clearly implied, ask for context
