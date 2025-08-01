@@ -966,7 +966,7 @@ export default function StudioBrain() {
           <div className="flex-1 p-6">
             <div className="max-w-6xl mx-auto">
         {/* Lesson Mode Toggle & Settings - Responsive Position */}
-        <div className="flex items-center gap-4 absolute top-6 right-6 z-50 sm:top-6 sm:right-6 max-sm:top-4 max-sm:right-4">
+        <div className="flex items-center gap-4 fixed top-6 right-6 z-50 sm:top-6 sm:right-6 max-sm:top-4 max-sm:right-4">
           <Button
             variant="ghost"
             size="sm"
