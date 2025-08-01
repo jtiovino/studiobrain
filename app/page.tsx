@@ -26,13 +26,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { Music, Guitar, Piano, Volume2, Lightbulb, Loader2, RotateCcw } from "lucide-react"
+import { Music, Guitar, Piano, Volume2, Lightbulb, Loader2, RotateCcw, History, X } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { OpenAIService } from "@/lib/openai-service"
 import { VoicingView } from "@/components/VoicingView"
 import { ChordShape } from "@/lib/voicings"
 import SettingsButton from "@/components/SettingsButton"
 import { useSessionStore } from "@/lib/useSessionStore"
+import { useChatHistoryStore, ChatSession, Message } from "@/lib/useChatHistoryStore"
+import ChatHistoryPanel from "@/components/ChatHistoryPanel"
 import GearChain from "@/components/GearChain"
 import { GearItem } from "@/lib/gearService"
 
@@ -47,6 +49,7 @@ interface PianoKey {
 
 export default function StudioBrain() {
   const { lastInput, lastOutput, setSession } = useSessionStore()
+  const chatHistory = useChatHistoryStore()
   const [selectedInstrument, setSelectedInstrument] = useState("guitar")
   const [selectedChord, setSelectedChord] = useState("C")
   const [selectedMode, setSelectedMode] = useState("major")
@@ -61,6 +64,8 @@ export default function StudioBrain() {
   const [selectedVoicing, setSelectedVoicing] = useState<string | null>(null)
   const [voicingView, setVoicingView] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [showChatHistory, setShowChatHistory] = useState(false)
+  const [currentActiveTab, setCurrentActiveTab] = useState<'general' | 'mix' | 'theory' | 'instrument'>('general')
 
   // Chat states for different tabs - now using message arrays
   const [generalMessages, setGeneralMessages] = useState<ChatMessage[]>([])
@@ -98,6 +103,101 @@ export default function StudioBrain() {
   const handleGearUpdate = useCallback((newChain: GearItem[]) => {
     setCurrentGearChain(newChain)
   }, [])
+
+  // Helper functions to convert between ChatMessage and Message formats
+  const chatMessageToMessage = (chatMsg: ChatMessage): Message => ({
+    role: chatMsg.type as 'user' | 'assistant',
+    content: chatMsg.content,
+    timestamp: new Date(chatMsg.timestamp),
+    plugins: chatMsg.plugins
+  })
+
+  const messageToChatMessage = (msg: Message): ChatMessage => ({
+    id: `${msg.role}-${msg.timestamp.getTime()}-${Math.random().toString(36).substr(2, 9)}`,
+    type: msg.role,
+    content: msg.content,
+    timestamp: msg.timestamp.getTime(),
+    plugins: msg.plugins
+  })
+
+  // Session management handlers
+  const handleSessionSelect = (session: ChatSession) => {
+    // Load session messages into the appropriate tab
+    const chatMessages = session.messages.map(messageToChatMessage)
+    
+    switch (session.tabType) {
+      case 'general':
+        setGeneralMessages(chatMessages)
+        break
+      case 'mix':
+        setMixMessages(chatMessages)
+        break
+      case 'theory':
+        setTheoryMessages(chatMessages)
+        break
+      case 'instrument':
+        setInstrumentMessages(chatMessages)
+        break
+    }
+    
+    // Set current session and close history panel
+    chatHistory.setCurrentSession(session.id)
+    setCurrentActiveTab(session.tabType)
+    setShowChatHistory(false)
+  }
+
+  const handleNewSession = (tabType: ChatSession['tabType']) => {
+    // Clear messages for the specific tab
+    switch (tabType) {
+      case 'general':
+        setGeneralMessages([])
+        break
+      case 'mix':
+        setMixMessages([])
+        break
+      case 'theory':
+        setTheoryMessages([])
+        break
+      case 'instrument':
+        setInstrumentMessages([])
+        break
+    }
+    
+    // Set current tab and clear current session
+    setCurrentActiveTab(tabType)
+    chatHistory.setCurrentSession(null)
+    setShowChatHistory(false)
+  }
+
+  // Auto-save messages to history
+  const saveMessagesToHistory = useCallback((tabType: ChatSession['tabType'], messages: ChatMessage[]) => {
+    if (messages.length === 0) return
+
+    const historyMessages = messages.map(chatMessageToMessage)
+    
+    if (chatHistory.currentSessionId) {
+      // Update existing session with new messages
+      const currentSession = chatHistory.sessions.find(s => s.id === chatHistory.currentSessionId)
+      if (currentSession && messages.length > currentSession.messages.length) {
+        // Only add new messages
+        const newMessages = historyMessages.slice(currentSession.messages.length)
+        newMessages.forEach(msg => {
+          chatHistory.addMessageToSession(chatHistory.currentSessionId!, msg)
+        })
+      }
+    } else if (messages.length > 0) {
+      // Create new session with first message
+      const firstMessage = historyMessages[0]
+      const sessionId = chatHistory.createSession(tabType, firstMessage)
+      
+      // Add remaining messages if any
+      if (historyMessages.length > 1) {
+        historyMessages.slice(1).forEach(msg => {
+          chatHistory.addMessageToSession(sessionId, msg)
+        })
+      }
+    }
+  }, [chatHistory])
 
   // Generate chords based on selected root and mode
   const generateChords = () => {
@@ -302,10 +402,10 @@ export default function StudioBrain() {
     }
   }
 
-  // Rehydration effect - restore last session
+  // Rehydration effect - restore last session and migrate old data
   useEffect(() => {
-    if (lastInput && lastOutput) {
-      // Restore as message history
+    if (lastInput && lastOutput && chatHistory.sessions.length === 0) {
+      // Migrate old session data to new chat history system
       const restoredMessages: ChatMessage[] = [
         {
           id: 'restored-user',
@@ -321,8 +421,19 @@ export default function StudioBrain() {
         }
       ]
       setGeneralMessages(restoredMessages)
+      
+      // Create a session for the migrated data
+      const historyMessages = restoredMessages.map(chatMessageToMessage)
+      if (historyMessages.length > 0) {
+        const sessionId = chatHistory.createSession('general', historyMessages[0])
+        if (historyMessages.length > 1) {
+          historyMessages.slice(1).forEach(msg => {
+            chatHistory.addMessageToSession(sessionId, msg)
+          })
+        }
+      }
     }
-  }, [lastInput, lastOutput])
+  }, [lastInput, lastOutput, chatHistory, chatMessageToMessage])
 
   // Mobile detection effect
   useEffect(() => {
@@ -404,6 +515,23 @@ export default function StudioBrain() {
   useLayoutEffect(() => {
     scrollToBottom('instrument')
   }, [instrumentMessages, scrollToBottom])
+
+  // Auto-save messages to history when they change
+  useEffect(() => {
+    saveMessagesToHistory('general', generalMessages)
+  }, [generalMessages, saveMessagesToHistory])
+
+  useEffect(() => {
+    saveMessagesToHistory('mix', mixMessages)
+  }, [mixMessages, saveMessagesToHistory])
+
+  useEffect(() => {
+    saveMessagesToHistory('theory', theoryMessages)
+  }, [theoryMessages, saveMessagesToHistory])
+
+  useEffect(() => {
+    saveMessagesToHistory('instrument', instrumentMessages)
+  }, [instrumentMessages, saveMessagesToHistory])
 
   // Cleanup effect
   useEffect(() => {
@@ -814,17 +942,40 @@ export default function StudioBrain() {
   return (
     <ErrorBoundary>
       <HydrationBoundary fallback={
-        <div className="min-h-screen bg-[#2a2632] text-white p-4 flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-400">Loading StudioBrain...</p>
+        <div className="fixed inset-0 bg-zinc-900 text-white flex items-center justify-center z-50">
+          <div className="text-center animate-fade-in">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-xl text-gray-300 mt-6">Loading StudioBrain...</p>
           </div>
         </div>
       }>
-        <div className="min-h-screen bg-[#2a2632] text-white p-6">
-      <div className="max-w-6xl mx-auto">
+        <div className="min-h-screen bg-[#2a2632] text-white flex">
+          {/* Chat History Sidebar */}
+          {showChatHistory && (
+            <div className="hidden lg:block">
+              <ChatHistoryPanel
+                currentTab={currentActiveTab}
+                lessonMode={lessonMode}
+                onSessionSelect={handleSessionSelect}
+                onNewSession={handleNewSession}
+              />
+            </div>
+          )}
+
+          {/* Main Content Area */}
+          <div className="flex-1 p-6">
+            <div className="max-w-6xl mx-auto">
         {/* Lesson Mode Toggle & Settings - Responsive Position */}
         <div className="flex items-center gap-4 absolute top-6 right-6 z-50 sm:top-6 sm:right-6 max-sm:top-4 max-sm:right-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowChatHistory(!showChatHistory)}
+            className={`p-3 backdrop-blur-xl rounded-xl border shadow-2xl transition-all duration-300 hover:shadow-neon ${showChatHistory ? (lessonMode ? 'bg-neon-cyan/10 border-neon-cyan/30 shadow-neon-cyan/20' : 'bg-neon-purple/10 border-neon-purple/30 shadow-neon-purple/20') : 'bg-glass-bg border-glass-border'}`}
+            title="Chat History"
+          >
+            <History className={`w-5 h-5 transition-colors ${showChatHistory ? (lessonMode ? 'text-neon-cyan' : 'text-neon-purple') : 'text-slate-400'}`} />
+          </Button>
           <SettingsButton />
           <div className={`flex items-center gap-3 p-3 backdrop-blur-xl rounded-xl border shadow-2xl transition-all duration-300 hover:shadow-neon ${lessonMode ? 'bg-neon-cyan/10 border-neon-cyan/30 shadow-neon-cyan/20' : 'bg-glass-bg border-glass-border'}`}>
             <Lightbulb className={`w-5 h-5 transition-colors ${lessonMode ? 'text-neon-cyan' : 'text-slate-400'}`} />
@@ -853,8 +1004,45 @@ export default function StudioBrain() {
           <p className="text-slate-400 text-xl font-light max-w-2xl mx-auto leading-relaxed">A creative assistant for musicians, powered by AI.</p>
         </div>
 
+        {/* Mobile Chat History Overlay */}
+        {showChatHistory && (
+          <div className="fixed inset-0 z-40 lg:hidden">
+            {/* Mobile overlay */}
+            <div 
+              className="absolute inset-0 bg-black/50"
+              onClick={() => setShowChatHistory(false)}
+            />
+            
+            {/* Mobile Sidebar */}
+            <div className="absolute left-0 top-0 h-full w-80">
+              <div className="relative h-full">
+                <ChatHistoryPanel
+                  currentTab={currentActiveTab}
+                  lessonMode={lessonMode}
+                  onSessionSelect={handleSessionSelect}
+                  onNewSession={handleNewSession}
+                />
+                
+                {/* Close button for mobile */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowChatHistory(false)}
+                  className="absolute top-4 right-4 z-10 p-2 hover:bg-slate-700"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Main Interface */}
-        <Tabs defaultValue="general" className="space-y-8">
+        <Tabs 
+          defaultValue="general" 
+          className="space-y-8"
+          onValueChange={(value) => setCurrentActiveTab(value as 'general' | 'mix' | 'theory' | 'instrument')}
+        >
           <TabsList className={`grid w-full grid-cols-4 h-14 bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl shadow-2xl ${lessonMode ? '[&>[data-state=active]]:bg-neon-cyan/20 [&>[data-state=active]]:text-neon-cyan [&>[data-state=active]]:shadow-[inset_0_1px_0_rgba(6,182,212,0.3),0_0_6px_rgba(6,182,212,0.15)]' : '[&>[data-state=active]]:bg-neon-purple/20 [&>[data-state=active]]:text-neon-purple [&>[data-state=active]]:shadow-[inset_0_1px_0_rgba(139,92,246,0.3),0_0_6px_rgba(139,92,246,0.15)]'}`}>
             <TabsTrigger value="general" className={`transition-all duration-300 rounded-lg font-medium h-full flex items-center justify-center ${lessonMode ? 'text-slate-300 data-[state=active]:bg-neon-cyan/20 data-[state=active]:text-neon-cyan hover:bg-neon-cyan/10 hover:text-neon-cyan' : 'text-slate-300 data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple hover:bg-neon-purple/10 hover:text-neon-purple'}`}>
               <Lightbulb className="w-5 h-5 mr-2" />
@@ -1452,7 +1640,8 @@ export default function StudioBrain() {
             )}
           </TabsContent>
         </Tabs>
-        </div>
+            </div>
+          </div>
         </div>
       </HydrationBoundary>
     </ErrorBoundary>
