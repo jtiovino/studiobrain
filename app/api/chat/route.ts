@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { reviewResponse, shouldSkipCritic } from '@/lib/criticService'
+import { detectGuitarTab, parseGuitarTab, identifyChordFromTab, tabToChordShape, ParsedTab } from '@/lib/tabParser'
 
 // Rate limiting storage - in production, consider using Redis or a database
 interface RateLimitEntry {
@@ -1046,8 +1047,38 @@ export async function POST(request: NextRequest) {
     
     console.log(`✅ Rate limit check passed for user: ${userKey}, remaining: ${rateLimitResult.remaining}`)
 
+    // Tab detection and parsing
+    let parsedTab: ParsedTab | null = null
+    let identifiedChord: string | null = null
+    let enhancedMessage = originalMessage
+    
+    if (detectGuitarTab(originalMessage)) {
+      console.log('🎸 Guitar tab detected in message')
+      parsedTab = parseGuitarTab(originalMessage)
+      
+      if (parsedTab) {
+        identifiedChord = identifyChordFromTab(parsedTab)
+        console.log('🎵 Parsed tab notes:', parsedTab.notes.length)
+        console.log('🎯 Identified chord:', identifiedChord || 'Unknown')
+        
+        // Enhance the message with tab context for AI
+        const tabAnalysis = `
+
+TAB ANALYSIS DETECTED:
+- Found ${parsedTab.notes.length} notes across ${parsedTab.measures.length} measures
+- Notes: ${parsedTab.notes.map(n => `String ${n.string + 1} Fret ${n.fret}`).join(', ')}
+${identifiedChord ? `- Identified chord/shape: ${identifiedChord}` : '- No clear chord pattern identified'}
+${parsedTab.isChord ? '- Appears to be a chord (simultaneous notes)' : '- Appears to be a melodic sequence'}
+
+Please analyze this tab and provide insights about the notes, fingering, and technique. ${lessonMode ? 'Include detailed music theory explanation since Lesson Mode is enabled.' : ''}`
+
+        enhancedMessage = originalMessage + tabAnalysis
+      }
+    }
+
     console.log('🚀 API: Received pre-built prompt from client')
     console.log('ORIGINAL MESSAGE:', originalMessage)
+    console.log('ENHANCED MESSAGE:', enhancedMessage)
     console.log('FULL PROMPT RECEIVED:', fullPrompt)
     console.log('USER SETTINGS:', userSettings)
     console.log("OPENAI PROMPT SENT:", fullPrompt)
@@ -1058,7 +1089,7 @@ export async function POST(request: NextRequest) {
       userSettings, 
       context, 
       lessonMode, 
-      originalMessage
+      enhancedMessage
     )
     
     console.log('🎸 Original message:', originalMessage)
@@ -1124,6 +1155,11 @@ export async function POST(request: NextRequest) {
       pluginSuggestions,
       scaleRequest,
       modalAnalysis,
+      tabData: parsedTab ? {
+        parsedTab,
+        identifiedChord,
+        chordShape: parsedTab ? tabToChordShape(parsedTab, identifiedChord || undefined) : null
+      } : null,
       error: null,
     })
   } catch (error) {

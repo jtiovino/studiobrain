@@ -85,6 +85,10 @@ export default function StudioBrain() {
   const [instrumentLoading, setInstrumentLoading] = useState(false)
   const [currentGearChain, setCurrentGearChain] = useState<GearItem[]>([])
 
+  // Tab data state for fretboard visualization
+  const [activeTabNotes, setActiveTabNotes] = useState<Array<{string: number, fret: number}>>([])
+  const [showTabNotes, setShowTabNotes] = useState(false)
+
   // Refs for scroll containers
   const generalScrollRef = useRef<HTMLDivElement>(null)
   const mixScrollRef = useRef<HTMLDivElement>(null)
@@ -311,6 +315,12 @@ export default function StudioBrain() {
   const handleBackFromVoicing = () => {
     setVoicingView(false)
     setSelectedVoicing(null)
+  }
+
+  // Function to clear tab notes
+  const clearTabNotes = () => {
+    setActiveTabNotes([])
+    setShowTabNotes(false)
   }
 
   // Function to handle chord playback using Web Audio API
@@ -765,6 +775,25 @@ export default function StudioBrain() {
         if (response.scaleRequest) {
           handleScaleChange(response.scaleRequest.root, response.scaleRequest.mode)
         }
+        
+        // Check for tab data and update fretboard
+        if (response.tabData && response.tabData.parsedTab) {
+          console.log('🎸 Tab data received in General:', response.tabData)
+          setActiveTabNotes(response.tabData.parsedTab.notes.map((note: any) => ({
+            string: note.string,
+            fret: note.fret
+          })))
+          setShowTabNotes(true)
+          
+          // If a chord was identified, also update the chord display
+          if (response.tabData.identifiedChord) {
+            console.log('🎯 Setting chord to:', response.tabData.identifiedChord)
+            const chordMatch = response.tabData.identifiedChord.match(/^([A-G][#b]?)/)
+            if (chordMatch) {
+              setSelectedChord(chordMatch[1])
+            }
+          }
+        }
       }
     } catch (error) {
       console.error('General question error:', error)
@@ -868,6 +897,26 @@ export default function StudioBrain() {
         if (response.scaleRequest) {
           handleScaleChange(response.scaleRequest.root, response.scaleRequest.mode)
         }
+        
+        // Check for tab data and update fretboard
+        if (response.tabData && response.tabData.parsedTab) {
+          console.log('🎸 Tab data received:', response.tabData)
+          setActiveTabNotes(response.tabData.parsedTab.notes.map((note: any) => ({
+            string: note.string,
+            fret: note.fret
+          })))
+          setShowTabNotes(true)
+          
+          // If a chord was identified, also update the chord display
+          if (response.tabData.identifiedChord) {
+            console.log('🎯 Setting chord to:', response.tabData.identifiedChord)
+            // Extract just the root note from the chord name
+            const chordMatch = response.tabData.identifiedChord.match(/^([A-G][#b]?)/)
+            if (chordMatch) {
+              setSelectedChord(chordMatch[1])
+            }
+          }
+        }
       }
     } catch (error) {
       console.error('Theory question error:', error)
@@ -919,6 +968,25 @@ export default function StudioBrain() {
         // Check for scale request and update visualizer
         if (response.scaleRequest) {
           handleScaleChange(response.scaleRequest.root, response.scaleRequest.mode)
+        }
+        
+        // Check for tab data and update fretboard
+        if (response.tabData && response.tabData.parsedTab) {
+          console.log('🎸 Tab data received in Instrument:', response.tabData)
+          setActiveTabNotes(response.tabData.parsedTab.notes.map((note: any) => ({
+            string: note.string,
+            fret: note.fret
+          })))
+          setShowTabNotes(true)
+          
+          // If a chord was identified, also update the chord display
+          if (response.tabData.identifiedChord) {
+            console.log('🎯 Setting chord to:', response.tabData.identifiedChord)
+            const chordMatch = response.tabData.identifiedChord.match(/^([A-G][#b]?)/)
+            if (chordMatch) {
+              setSelectedChord(chordMatch[1])
+            }
+          }
         }
       }
     } catch (error) {
@@ -1296,15 +1364,28 @@ export default function StudioBrain() {
                           <span className="hidden sm:inline">Piano</span>
                         </Button>
                         {visualizerView === 'guitar' && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={handleFretboardFlip}
-                            className={`h-10 w-10 p-0 rounded-xl transition-all duration-300 ${lessonMode ? 'bg-white/10 backdrop-blur-md border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/10 hover:border-neon-cyan' : 'bg-white/10 backdrop-blur-md border-neon-purple/40 text-neon-purple hover:bg-neon-purple/10 hover:border-neon-purple'}`}
-                            title={`${fretboardFlipped ? 'Standard view (High E top)' : 'Inverted view (Low E top)'}`}
-                          >
-                            <RotateCcw className="w-4 h-4" />
-                          </Button>
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleFretboardFlip}
+                              className={`h-10 w-10 p-0 rounded-xl transition-all duration-300 ${lessonMode ? 'bg-white/10 backdrop-blur-md border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/10 hover:border-neon-cyan' : 'bg-white/10 backdrop-blur-md border-neon-purple/40 text-neon-purple hover:bg-neon-purple/10 hover:border-neon-purple'}`}
+                              title={`${fretboardFlipped ? 'Standard view (High E top)' : 'Inverted view (Low E top)'}`}
+                            >
+                              <RotateCcw className="w-4 h-4" />
+                            </Button>
+                            {showTabNotes && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={clearTabNotes}
+                                className="h-10 w-10 p-0 rounded-xl transition-all duration-300 bg-orange-500/20 backdrop-blur-md border-orange-400/40 text-orange-400 hover:bg-orange-500/30 hover:border-orange-400"
+                                title="Clear tab notes from fretboard"
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
@@ -1325,17 +1406,25 @@ export default function StudioBrain() {
                                   {string.slice(0, 13).map((note, fretIndex) => {
                                     const isRoot = note === selectedChord
                                     const isInScale = scaleNotes.includes(note) && !isRoot
+                                    
+                                    // Check if this fret is part of the active tab
+                                    const actualStringIndex = fretboardFlipped ? (displayFretboard.length - 1 - stringIndex) : stringIndex
+                                    const isTabNote = showTabNotes && activeTabNotes.some(tabNote => 
+                                      tabNote.string === actualStringIndex && tabNote.fret === fretIndex
+                                    )
                                     return (
                                       <div
                                         key={fretIndex}
                                         className={`aspect-square border rounded-md flex items-center justify-center text-[9px] sm:text-xs font-mono font-bold transition-all duration-200 ${
-                                          isRoot 
+                                          isTabNote
+                                            ? 'bg-orange-500 text-white border-orange-400 shadow-lg shadow-orange-500/50 ring-2 ring-orange-300/50'
+                                            : isRoot 
                                             ? lessonMode ? 'bg-neon-cyan text-black border-neon-cyan shadow-lg shadow-neon-cyan/30' : 'bg-neon-pink text-white border-neon-pink shadow-lg shadow-neon-pink/30'
                                             : isInScale 
                                             ? lessonMode ? 'bg-neon-blue/70 text-white border-neon-blue shadow-md shadow-neon-blue/20' : 'bg-neon-purple/70 text-white border-neon-purple shadow-md shadow-neon-purple/20'
                                             : 'bg-slate-800/80 text-slate-400 border-slate-600 hover:bg-slate-700/80 hover:border-slate-500'
                                         }`}
-                                        title={`${note} ${isRoot ? '(Root)' : isInScale ? '(Scale)' : ''}`}
+                                        title={`${note} ${isTabNote ? '(Tab Note)' : isRoot ? '(Root)' : isInScale ? '(Scale)' : ''}`}
                                       >
                                         <span>{note}</span>
                                       </div>

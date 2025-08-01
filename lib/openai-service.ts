@@ -57,11 +57,23 @@ export interface ModalAnalysis {
   allNotesUsed: string[]
 }
 
+export interface TabData {
+  parsedTab: {
+    notes: Array<{string: number, fret: number, timing?: number}>
+    isChord: boolean
+    measures: Array<Array<{string: number, fret: number}>>
+    originalText: string
+  }
+  identifiedChord: string | null
+  chordShape: any | null
+}
+
 export interface ChatResponse {
   response: string
   pluginSuggestions?: PluginSuggestion[]
   scaleRequest?: ScaleRequest | null
   modalAnalysis?: ModalAnalysis | null
+  tabData?: TabData | null
   wasCriticAdjusted?: boolean
   error?: string
 }
