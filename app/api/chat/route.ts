@@ -707,17 +707,74 @@ FOLLOW-UP QUESTION BEHAVIOR (Quick Mode):
   // Section capitalization
   const sectionName = context.charAt(0).toUpperCase() + context.slice(1)
   
+  // Build DAW-specific context and shortcuts
+  const getDawSpecificContext = (dawName: string | undefined): string => {
+    if (!dawName || dawName === 'none') {
+      return `\n\nDAW AWARENESS: No specific DAW selected. Ask "What DAW are you using?" before giving DAW-specific advice. Use generic terminology until DAW is specified.`
+    }
+
+    const dawLower = dawName.toLowerCase()
+    
+    if (dawLower.includes('logic')) {
+      return `\n\nLOGIC PRO WORKFLOW:
+- Shortcuts: Cmd+D (duplicate), Cmd+T (new track), Cmd+U (mute), Option+drag (copy), Shift+D (duplicate region)
+- Navigation: Track > Bounce in Place, Mix > Create Track Stack, Track Area > Track Header Components
+- Plugin slots: Know channel strip order (EQ > Compressor > Send slots), aux sends, bus routing
+- Stock plugins: Channel EQ, Compressor (Platinum Digital), ChromaVerb, Space Designer, Tape, Vintage EQ, DeEsser, Multipressor, Enveloper
+- Logic-specific features: Flex Time, Flex Pitch, Track Stacks, Summing Stacks, Sculpture, Alchemy`
+    } else if (dawLower.includes('ableton')) {
+      return `\n\nABLETON LIVE WORKFLOW:
+- Shortcuts: Cmd+D (duplicate), Cmd+Shift+T (new audio track), Cmd+Shift+M (new MIDI track), Tab (session/arrangement view)
+- Navigation: session view vs arrangement view, clip launching, scene launching
+- Routing: return tracks, master track, audio/MIDI effects, instrument racks
+- Stock plugins: EQ Eight, Compressor, Auto Filter, Reverb, Echo, Saturator, Multiband Dynamics, Utility, Operator, Simpler
+- Live-specific features: Max for Live devices, Push integration, warping algorithms`
+    } else if (dawLower.includes('pro tools')) {
+      return `\n\nPRO TOOLS WORKFLOW:
+- Shortcuts: Cmd+D (duplicate), Cmd+Shift+N (new track), Option+Shift+D (duplicate playlist)
+- Navigation: Edit/Mix windows, track view selectors, edit modes (slip, grid, spot, shuffle)
+- Routing: aux sends, bus assignments, I/O setup, hardware inserts
+- Stock plugins: EQ III, Dyn 3 Compressor/Limiter, D-Verb, Mod Delay III, BF-76, AIR Vintage Filter
+- Pro Tools features: elastic audio, clip gain, automation modes, HD DSP management`
+    } else if (dawLower.includes('cubase')) {
+      return `\n\nCUBASE WORKFLOW:
+- Shortcuts: Ctrl+D (duplicate), Ctrl+T (new track), Alt+X (split), F3 (mixer)
+- Navigation: Project window, MixConsole, MediaBay, track versions
+- Routing: group channels, FX channels, sends, inserts, cue sends
+- Stock plugins: Channel Strip, Frequency EQ, Compressor, REVerence, ModMachine, DeEsser, Vintage Compressor
+- Cubase features: Expression Maps, Logical Editor, VariAudio, Audio Quantize`
+    } else if (dawLower.includes('reaper')) {
+      return `\n\nREAPER WORKFLOW:
+- Shortcuts: Ctrl+D (duplicate), Ctrl+Shift+T (new track), S (split), X (cut)
+- Navigation: arrange view, mixer, routing matrix, actions list
+- Routing: flexible routing matrix, track sends, hardware outputs, ReaRoute
+- Stock plugins: ReaEQ, ReaComp, ReaVerb, ReaDelay, ReaGate, ReaFir, ReaXcomp, ReaSynth
+- REAPER features: JS plugins, custom actions, SWS extensions, flexible routing`
+    } else if (dawLower.includes('fl studio')) {
+      return `\n\nFL STUDIO WORKFLOW:
+- Shortcuts: Ctrl+L (clone), Ctrl+Shift+L (new audio track), F9 (mixer), F5 (playlist)
+- Navigation: channel rack, playlist, mixer, piano roll, browser
+- Routing: mixer tracks, send tracks, sidechain routing, master track
+- Stock plugins: Parametric EQ 2, Fruity Compressor, Fruity Reverb 2, Fruity Delay 3, Maximus, Soundgoodizer
+- FL features: lifetime free updates, step sequencer, Gross Beat, Harmor, FL Keys`
+    } else {
+      return `\n\nDAW WORKFLOW (${dawName}): Using generic DAW terminology. Stock plugins and routing may vary.`
+    }
+  }
+
   // Add tab-specific technical language requirements and behavior
-  const getTechnicalLanguageModifier = (context: string): string => {
+  const getTechnicalLanguageModifier = (context: string, dawName: string | undefined): string => {
+    const dawContext = getDawSpecificContext(dawName)
+    
     switch (context) {
       case 'mix':
-        return `\n\nMIX TAB BEHAVIOR - PLUGIN-BASED MIXING FOCUS:
-You are now in Mix mode. Prioritize PLUGIN-BASED mixing suggestions for Logic Pro X workflow.
+        return `\n\nMIX TAB BEHAVIOR - DAW-AWARE MIXING FOCUS:
+You are now in Mix mode. Prioritize PLUGIN-BASED mixing suggestions tailored to the user's DAW workflow.${dawContext}
 
-PLUGIN RECOMMENDATIONS:
-- UAD plugins: 1176, LA-2A, Pultec, Neve, SSL, Fairchild, etc.
-- Neural DSP: Archetype Plini, Archetype Nolly (for guitar amp simulation only)
-- Logic stock plugins: Channel EQ, Compressor, ChromaVerb, Space Designer, Tape, Vintage EQ, DeEsser
+PLUGIN RECOMMENDATIONS PRIORITY:
+1. User's specified plugins (if any)
+2. DAW stock plugins (DAW-specific names and features)
+3. Common third-party plugins as alternatives
 
 TECHNICAL LANGUAGE REQUIREMENT: Use precise audio engineering terminology. Always specify:
 - EQ: exact frequencies (e.g., "high-pass at 80Hz, boost 3dB at 2.5kHz with Q of 1.2")
@@ -731,7 +788,7 @@ AVOID: Physical gear recommendations unless specifically asked. Focus on in-the-
         
       case 'instrument':
         return `\n\nINSTRUMENT TAB BEHAVIOR - PHYSICAL GEAR FOCUS:
-You are now in Instrument mode. Prioritize PHYSICAL GEAR and performance-based tone suggestions.
+You are now in Instrument mode. Prioritize PHYSICAL GEAR and performance-based tone suggestions.${dawContext}
 
 GEAR RECOMMENDATIONS:
 - Physical guitars: HH Strat, Tele, 7-string characteristics and pickup selection
@@ -740,7 +797,7 @@ GEAR RECOMMENDATIONS:
 - Performance: pickup selection, tone knob use, pedal stacking, playing technique
 
 WHEN TO MENTION PLUGINS:
-- Amp sims: Neural DSP Archetype Plini/Nolly, Logic amp sims (for tone shaping)
+- Amp sims: Neural DSP Archetype series, DAW stock amp sims (for tone shaping)
 - Guitar effects: only when user specifically asks to work "in-the-box"
 - NEVER suggest mixing plugins: No UAD compressors, Pultec EQs, or mixing reverbs
 
@@ -752,13 +809,42 @@ TECHNICAL LANGUAGE REQUIREMENT: Use specific gear and performance terminology:
 - Performance nuance: pickup selection impact, physical tone shaping through playing
 
 FOCUS: Physical performance, gear interaction, and tone shaping through hardware manipulation.`
+
+      case 'general':
+        return `\n\nGENERAL TAB BEHAVIOR - DAW-AWARE CREATIVE ASSISTANCE:
+You are now in General mode. Provide creative guidance, workflow optimization, and production advice tailored to the user's setup.${dawContext}
+
+FOCUS AREAS:
+- Creative brainstorming and song arrangement ideas
+- DAW-specific workflow optimization and shortcuts
+- Genre-appropriate production techniques
+- Integration between physical and digital tools
+- Session planning and project organization
+
+TECHNICAL SUPPORT:
+- Use DAW-specific terminology and features when applicable
+- Reference actual menu paths, shortcuts, and workflow patterns
+- Suggest DAW-appropriate routing and organization strategies
+- Balance creative suggestions with practical implementation advice`
         
       default:
         return ''
     }
   }
 
-  const technicalModifier = getTechnicalLanguageModifier(context)
+  const technicalModifier = getTechnicalLanguageModifier(context, gear?.daw)
+
+  // Check if user has HX One in their gear
+  const hasHxOne = gear?.pedals?.some(pedal => pedal.toLowerCase().includes('hx one')) || false
+  
+  // Build HX One specific guidance
+  const hxOneGuidance = hasHxOne ? `\n\nHX ONE DETECTED IN YOUR GEAR:
+When suggesting effects for your HX One:
+- Only recommend ONE effect model at a time (single-slot limitation)
+- Prioritize specific known models: 'Teemah!' (overdrive), 'Cosmos Echo' (delay), 'Chamber' (reverb), 'Ubiquitous Vibe' (modulation)
+- Never suggest stacking multiple HX One effects
+- Explain how the selected model fits your tone goal
+- Consider which single effect will have the most impact for your sound` : ''
 
   // Build plugin context string
   const pluginContext = pluginCategories.valid.length > 0 
@@ -772,6 +858,14 @@ FOCUS: Physical performance, gear interaction, and tone shaping through hardware
   const systemMessage = `You are StudioBrain — an AI-powered creative assistant for musicians.
 
 The user is working in a ${gear?.daw || 'unspecified DAW'} environment. ${pluginContext}${invalidPluginWarning} Their gear includes: ${gearDescription}. Their musical style is influenced by: ${genreInfluence?.length ? genreInfluence.join(', ') : 'various genres'}.
+
+GEAR-AWARE RECOMMENDATIONS:
+1. ALWAYS prioritize the user's actual gear and plugins when making suggestions
+2. If the user has no DAW specified, ask "What DAW are you using?" before giving DAW-specific advice
+3. Use the user's available plugins first, then fallback to DAW stock plugins
+4. Never recommend gear the user doesn't own unless suggesting alternatives or upgrades
+5. Respect hardware limitations (especially single-slot devices like HX One)
+6. When unsure about gear models, use descriptive language rather than guessing specific names
 
 You are currently responding in the "${sectionName}" section of the app.
 
@@ -814,6 +908,17 @@ PEDALS & EFFECTS:
 - Prioritize describing the sonic characteristic over naming specific gear
 - HX One specific guidance: Treat as a flexible single-slot pedal. Recommend which SINGLE effect model to load based on tone goal, not multiple stacked effects
 
+HX ONE SPECIAL HANDLING:
+When a user asks for help with tone and mentions the Line 6 HX One:
+- Only suggest one effect model at a time
+- Recommend specific named models such as:
+  - 'Teemah!' (overdrive)
+  - 'Cosmos Echo' (delay)
+  - 'Chamber' (reverb)
+  - 'Ubiquitous Vibe' (modulation)
+- Never suggest stacking effects
+- Explain how the selected model fits the user's goal
+
 MUSIC THEORY:
 - If scale, chord function, or mode isn't clearly implied, ask for context
 - Use phrases like "this could be interpreted as..." or "depending on context, this might be..."
@@ -831,7 +936,7 @@ PRODUCTION TECHNIQUES:
 - Stick to established, verified techniques
 - If multiple approaches exist, mention alternatives
 - Don't present experimental ideas as established practice
-- Clarify when something is subjective vs. technical fact${technicalModifier}${ampModelAddendum}
+- Clarify when something is subjective vs. technical fact${technicalModifier}${ampModelAddendum}${hxOneGuidance}
 
 ${lessonModeInstructions}`
 

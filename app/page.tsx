@@ -1078,7 +1078,7 @@ export default function StudioBrain() {
                   <Label htmlFor="general-question" className={`text-base font-medium ${lessonMode ? 'text-slate-200' : 'text-slate-200'}`}>Your Question</Label>
                   <Textarea
                     id="general-question"
-                    placeholder="Ask about music production, recording techniques, software, hardware, or general music advice..."
+                    placeholder="Ask about production, workflow, creative direction, or general music help."
                     value={generalQuestion}
                     onChange={(e) => setGeneralQuestion(e.target.value)}
                     onKeyDown={(e) => handleKeyDown(e, handleGeneralQuestion)}
@@ -1124,7 +1124,7 @@ export default function StudioBrain() {
                   <Label htmlFor="mix-question" className={`text-base font-medium ${lessonMode ? 'text-slate-200' : 'text-slate-200'}`}>Your Question</Label>
                   <Textarea
                     id="mix-question"
-                    placeholder="Ask about EQ, compression, reverb, stereo imaging, mixing techniques, or mastering..."
+                    placeholder="Ask for plugin chains, tone shaping tips, mix fixes, mastering, or DAW help."
                     value={mixQuestion}
                     onChange={(e) => setMixQuestion(e.target.value)}
                     onKeyDown={(e) => handleKeyDown(e, handleMixQuestion)}
@@ -1442,7 +1442,7 @@ export default function StudioBrain() {
                     <Label htmlFor="theory-question" className={`text-base font-medium ${lessonMode ? 'text-slate-200' : 'text-slate-200'}`}>Your Question</Label>
                     <Textarea
                       id="theory-question"
-                      placeholder="Ask about scales, chords, progressions, harmony, composition, songwriting, or analysis..."
+                      placeholder="Ask about scales, modes, progressions, or musical theory."
                       value={theoryQuestion}
                       onChange={(e) => setTheoryQuestion(e.target.value)}
                       onKeyDown={(e) => handleKeyDown(e, handleTheoryQuestion)}
@@ -1607,7 +1607,7 @@ export default function StudioBrain() {
                         <Label htmlFor="instrument-question" className={`text-base font-medium ${lessonMode ? 'text-slate-200' : 'text-slate-200'}`}>Your Question</Label>
                         <Textarea
                           id="instrument-question"
-                          placeholder={`Ask about ${selectedInstrument} techniques, gear recommendations, playing tips, or instrument-specific questions...`}
+                          placeholder="Ask about your gear, tone settings, voicings, or how to practice better."
                           value={instrumentQuestion}
                           onChange={(e) => setInstrumentQuestion(e.target.value)}
                           onKeyDown={(e) => handleKeyDown(e, handleInstrumentQuestion)}
