@@ -28,6 +28,12 @@ export interface ChatRequest {
   lessonMode: boolean
   instrumentType?: string
   userSettings?: UserSettings
+  messageHistory?: Array<{
+    id: string
+    type: 'user' | 'assistant'
+    content: string
+    timestamp: number
+  }>
 }
 
 export interface PluginSuggestion {
@@ -101,7 +107,7 @@ export class OpenAIService {
     }
   }
 
-  static async askGeneral(message: string, lessonMode: boolean): Promise<ChatResponse> {
+  static async askGeneral(message: string, lessonMode: boolean, messageHistory?: Array<any>): Promise<ChatResponse> {
     const fullPrompt = buildPrompt({
       tab: 'General',
       input: message,
@@ -118,10 +124,11 @@ export class OpenAIService {
       context: 'general',
       lessonMode,
       userSettings,
+      messageHistory,
     })
   }
 
-  static async askMix(message: string, lessonMode: boolean, gearChain?: any[]): Promise<ChatResponse> {
+  static async askMix(message: string, lessonMode: boolean, gearChain?: any[], messageHistory?: Array<any>): Promise<ChatResponse> {
     const contextualMessage = gearChain && gearChain.length > 0 
       ? `${message}\n\nCurrent gear chain: ${gearChain.map(item => item.name).join(' → ')}`
       : message
@@ -142,10 +149,11 @@ export class OpenAIService {
       context: 'mix',
       lessonMode,
       userSettings,
+      messageHistory,
     })
   }
 
-  static async askTheory(message: string, lessonMode: boolean): Promise<ChatResponse> {
+  static async askTheory(message: string, lessonMode: boolean, messageHistory?: Array<any>): Promise<ChatResponse> {
     const fullPrompt = buildPrompt({
       tab: 'Theory',
       input: message,
@@ -162,6 +170,7 @@ export class OpenAIService {
       context: 'theory',
       lessonMode,
       userSettings,
+      messageHistory,
     })
   }
 
@@ -169,7 +178,8 @@ export class OpenAIService {
     message: string,
     lessonMode: boolean,
     instrumentType: string,
-    gearChain?: any[]
+    gearChain?: any[],
+    messageHistory?: Array<any>
   ): Promise<ChatResponse> {
     let contextualMessage = `For ${instrumentType}: ${message}`
     
@@ -194,6 +204,7 @@ export class OpenAIService {
       lessonMode,
       instrumentType,
       userSettings,
+      messageHistory,
     })
   }
 }

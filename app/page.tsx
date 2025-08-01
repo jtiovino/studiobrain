@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef, useCallback, useLayoutEffect } from "react"
 import ErrorBoundary from "@/components/ErrorBoundary"
 import { HydrationBoundary } from "@/components/HydrationBoundary"
 
@@ -10,6 +10,14 @@ interface PluginSuggestion {
   type: string
   description: string
   explanation?: string
+}
+
+interface ChatMessage {
+  id: string
+  type: 'user' | 'assistant'
+  content: string
+  timestamp: number
+  plugins?: PluginSuggestion[]
 }
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -54,24 +62,37 @@ export default function StudioBrain() {
   const [voicingView, setVoicingView] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
 
-  // Chat states for different tabs
+  // Chat states for different tabs - now using message arrays
+  const [generalMessages, setGeneralMessages] = useState<ChatMessage[]>([])
   const [generalQuestion, setGeneralQuestion] = useState("")
-  const [generalAnswer, setGeneralAnswer] = useState("")
   const [generalLoading, setGeneralLoading] = useState(false)
 
+  const [mixMessages, setMixMessages] = useState<ChatMessage[]>([])
   const [mixQuestion, setMixQuestion] = useState("")
-  const [mixAnswer, setMixAnswer] = useState("")
-  const [mixPlugins, setMixPlugins] = useState<PluginSuggestion[]>([])
   const [mixLoading, setMixLoading] = useState(false)
 
+  const [theoryMessages, setTheoryMessages] = useState<ChatMessage[]>([])
   const [theoryQuestion, setTheoryQuestion] = useState("")
-  const [theoryAnswer, setTheoryAnswer] = useState("")
   const [theoryLoading, setTheoryLoading] = useState(false)
 
+  const [instrumentMessages, setInstrumentMessages] = useState<ChatMessage[]>([])
   const [instrumentQuestion, setInstrumentQuestion] = useState("")
-  const [instrumentAnswer, setInstrumentAnswer] = useState("")
   const [instrumentLoading, setInstrumentLoading] = useState(false)
   const [currentGearChain, setCurrentGearChain] = useState<GearItem[]>([])
+
+  // Refs for scroll containers
+  const generalScrollRef = useRef<HTMLDivElement>(null)
+  const mixScrollRef = useRef<HTMLDivElement>(null)
+  const theoryScrollRef = useRef<HTMLDivElement>(null)
+  const instrumentScrollRef = useRef<HTMLDivElement>(null)
+
+  // State to track if user has scrolled up
+  const [isUserScrolled, setIsUserScrolled] = useState({
+    general: false,
+    mix: false,
+    theory: false,
+    instrument: false
+  })
 
   // Create a stable callback for gear updates to prevent infinite loops
   const handleGearUpdate = useCallback((newChain: GearItem[]) => {
@@ -283,11 +304,23 @@ export default function StudioBrain() {
 
   // Rehydration effect - restore last session
   useEffect(() => {
-    if (lastInput) {
-      setGeneralQuestion(lastInput)
-    }
-    if (lastOutput) {
-      setGeneralAnswer(lastOutput)
+    if (lastInput && lastOutput) {
+      // Restore as message history
+      const restoredMessages: ChatMessage[] = [
+        {
+          id: 'restored-user',
+          type: 'user',
+          content: lastInput,
+          timestamp: Date.now() - 1000
+        },
+        {
+          id: 'restored-assistant',
+          type: 'assistant',
+          content: lastOutput,
+          timestamp: Date.now()
+        }
+      ]
+      setGeneralMessages(restoredMessages)
     }
   }, [lastInput, lastOutput])
 
@@ -303,12 +336,85 @@ export default function StudioBrain() {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
+  // Auto-scroll to bottom function with delay to avoid conflicts
+  const scrollToBottom = useCallback((tabName: 'general' | 'mix' | 'theory' | 'instrument') => {
+    const scrollRef = {
+      general: generalScrollRef,
+      mix: mixScrollRef,
+      theory: theoryScrollRef,
+      instrument: instrumentScrollRef
+    }[tabName]
+    
+    if (scrollRef.current && !isUserScrolled[tabName]) {
+      // Add a small delay to let any user scroll actions complete first
+      setTimeout(() => {
+        if (scrollRef.current && !isUserScrolled[tabName]) {
+          scrollRef.current.scrollTo({
+            top: scrollRef.current.scrollHeight,
+            behavior: 'smooth'
+          })
+        }
+      }, 150)
+    }
+  }, [isUserScrolled])
+
+  // Debounced scroll handler to prevent conflicts
+  const scrollTimeoutRef = useRef<{ [key: string]: NodeJS.Timeout }>({})
+  
+  const handleScroll = useCallback((tabName: 'general' | 'mix' | 'theory' | 'instrument') => {
+    const scrollRef = {
+      general: generalScrollRef,
+      mix: mixScrollRef,
+      theory: theoryScrollRef,
+      instrument: instrumentScrollRef
+    }[tabName]
+    
+    if (scrollRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current
+      const isAtBottom = Math.abs(scrollHeight - scrollTop - clientHeight) < 10
+      
+      // Clear existing timeout for this tab
+      if (scrollTimeoutRef.current[tabName]) {
+        clearTimeout(scrollTimeoutRef.current[tabName])
+      }
+      
+      // Set new timeout to update state after scroll settles
+      scrollTimeoutRef.current[tabName] = setTimeout(() => {
+        setIsUserScrolled(prev => ({
+          ...prev,
+          [tabName]: !isAtBottom
+        }))
+      }, 100)
+    }
+  }, [])
+
+  // Auto-scroll when new messages are added
+  useLayoutEffect(() => {
+    scrollToBottom('general')
+  }, [generalMessages, scrollToBottom])
+
+  useLayoutEffect(() => {
+    scrollToBottom('mix')
+  }, [mixMessages, scrollToBottom])
+
+  useLayoutEffect(() => {
+    scrollToBottom('theory')
+  }, [theoryMessages, scrollToBottom])
+
+  useLayoutEffect(() => {
+    scrollToBottom('instrument')
+  }, [instrumentMessages, scrollToBottom])
+
   // Cleanup effect
   useEffect(() => {
     isMounted.current = true
     return () => {
       isMounted.current = false
       clearAllTimeouts()
+      // Clear scroll timeouts
+      Object.values(scrollTimeoutRef.current).forEach(timeout => {
+        if (timeout) clearTimeout(timeout)
+      })
     }
   }, [])
 
@@ -395,6 +501,102 @@ export default function StudioBrain() {
     return input.trim().slice(0, 2000) // Limit length and trim whitespace
   }
 
+  // Message list renderer
+  const renderMessageList = (
+    messages: ChatMessage[], 
+    scrollRef: React.RefObject<HTMLDivElement>, 
+    tabName: 'general' | 'mix' | 'theory' | 'instrument',
+    loading: boolean
+  ) => {
+    if (messages.length === 0 && !loading) return null
+    
+    return (
+      <div 
+        ref={scrollRef}
+        className="h-96 max-h-[60vh] overflow-y-scroll mb-6 p-3 sm:p-4 rounded-xl border space-y-3 sm:space-y-4"
+        style={{
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehavior: 'contain',
+          scrollBehavior: 'auto', // Allow manual control of smooth scrolling
+          background: lessonMode 
+            ? '#0e1117'
+            : '#1a1625',
+          borderColor: lessonMode 
+            ? 'rgba(6, 182, 212, 0.3)' 
+            : 'rgba(168, 85, 247, 0.3)',
+          touchAction: 'pan-y' // Only allow vertical scrolling on touch
+        }}
+        onScroll={() => handleScroll(tabName)}
+      >
+        {messages.map((message) => (
+          <div 
+            key={message.id} 
+            className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
+            <div 
+              className={`max-w-[85%] sm:max-w-[80%] rounded-xl p-3 sm:p-4 ${
+                message.type === 'user'
+                  ? lessonMode
+                    ? 'text-black'
+                    : 'text-white'
+                  : 'border border-slate-600/50 text-slate-200'
+              }`}
+              style={{
+                backgroundColor: message.type === 'user'
+                  ? lessonMode
+                    ? '#06b6d4'
+                    : '#a855f7'
+                  : '#1e293b'
+              }}
+            >
+              <div className="whitespace-pre-line leading-relaxed">
+                {message.content}
+              </div>
+              {message.plugins && message.plugins.length > 0 && (
+                <div className="mt-4 space-y-3">
+                  <h5 className={`font-bold text-sm ${lessonMode ? 'text-neon-blue' : 'text-neon-blue'}`}>
+                    Suggested Plugin Chain:
+                  </h5>
+                  {message.plugins.map((plugin, index) => (
+                    <div key={index} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg border border-slate-600/50" style={{ backgroundColor: '#334155' }}>
+                      <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm ${lessonMode ? 'bg-neon-cyan' : 'bg-neon-purple'}`}>
+                        {index + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1 sm:gap-2 mb-1 flex-wrap">
+                          <span className="font-semibold text-white text-xs sm:text-sm">{plugin.name}</span>
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${lessonMode ? 'bg-neon-cyan/20 text-neon-cyan' : 'bg-neon-purple/20 text-neon-purple'}`}>
+                            {plugin.type}
+                          </span>
+                        </div>
+                        <p className="text-slate-300 text-xs sm:text-sm mb-1">{plugin.description}</p>
+                        {plugin.explanation && (
+                          <p className="text-slate-400 text-xs">{plugin.explanation}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+        {loading && (
+          <div className="flex justify-start">
+            <div className="border border-slate-600/50 text-slate-200 rounded-xl p-3 sm:p-4 max-w-[85%] sm:max-w-[80%]" style={{ backgroundColor: '#1e293b' }}>
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                <span className="text-slate-400 text-xs sm:text-sm ml-1 sm:ml-2">StudioBrain is thinking...</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   // Chat handlers with scale detection
   const handleGeneralQuestion = async () => {
     const sanitizedQuestion = sanitizeInput(generalQuestion)
@@ -403,12 +605,30 @@ export default function StudioBrain() {
     // Store the input in session
     setSession({ lastInput: sanitizedQuestion })
     
+    // Add user message to chat
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      type: 'user',
+      content: sanitizedQuestion,
+      timestamp: Date.now()
+    }
+    setGeneralMessages(prev => [...prev, userMessage])
+    setGeneralQuestion('') // Clear input
+    
     setGeneralLoading(true)
     try {
-      const response = await OpenAIService.askGeneral(sanitizedQuestion, lessonMode)
+      const response = await OpenAIService.askGeneral(sanitizedQuestion, lessonMode, generalMessages)
       if (isMounted.current) {
         const answer = response.response || response.error || 'No response'
-        setGeneralAnswer(answer)
+        
+        // Add assistant message to chat
+        const assistantMessage: ChatMessage = {
+          id: `assistant-${Date.now()}`,
+          type: 'assistant',
+          content: answer,
+          timestamp: Date.now()
+        }
+        setGeneralMessages(prev => [...prev, assistantMessage])
         
         // Store the output in session
         setSession({ lastOutput: answer })
@@ -422,7 +642,13 @@ export default function StudioBrain() {
       console.error('General question error:', error)
       if (isMounted.current) {
         const errorMessage = 'Error: Unable to get response from StudioBrain.'
-        setGeneralAnswer(errorMessage)
+        const errorAssistantMessage: ChatMessage = {
+          id: `assistant-error-${Date.now()}`,
+          type: 'assistant',
+          content: errorMessage,
+          timestamp: Date.now()
+        }
+        setGeneralMessages(prev => [...prev, errorAssistantMessage])
         // Store the error in session
         setSession({ lastOutput: errorMessage })
       }
@@ -436,18 +662,44 @@ export default function StudioBrain() {
     const sanitizedQuestion = sanitizeInput(mixQuestion)
     if (!sanitizedQuestion) return
     
+    // Add user message to chat
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      type: 'user',
+      content: sanitizedQuestion,
+      timestamp: Date.now()
+    }
+    setMixMessages(prev => [...prev, userMessage])
+    setMixQuestion('') // Clear input
+    
     setMixLoading(true)
     try {
-      const response = await OpenAIService.askMix(sanitizedQuestion, lessonMode, currentGearChain)
+      const response = await OpenAIService.askMix(sanitizedQuestion, lessonMode, currentGearChain, mixMessages)
       if (isMounted.current) {
-        setMixAnswer(response.response || response.error || 'No response')
-        setMixPlugins(response.pluginSuggestions || [])
+        const answer = response.response || response.error || 'No response'
+        const plugins = response.pluginSuggestions || []
+        
+        // Add assistant message to chat
+        const assistantMessage: ChatMessage = {
+          id: `assistant-${Date.now()}`,
+          type: 'assistant',
+          content: answer,
+          timestamp: Date.now(),
+          plugins: plugins.length > 0 ? plugins : undefined
+        }
+        setMixMessages(prev => [...prev, assistantMessage])
       }
     } catch (error) {
       console.error('Mix question error:', error)
       if (isMounted.current) {
-        setMixAnswer('Error: Unable to get response from StudioBrain.')
-        setMixPlugins([])
+        const errorMessage = 'Error: Unable to get response from StudioBrain.'
+        const errorAssistantMessage: ChatMessage = {
+          id: `assistant-error-${Date.now()}`,
+          type: 'assistant',
+          content: errorMessage,
+          timestamp: Date.now()
+        }
+        setMixMessages(prev => [...prev, errorAssistantMessage])
       }
     }
     if (isMounted.current) {
@@ -459,11 +711,30 @@ export default function StudioBrain() {
     const sanitizedQuestion = sanitizeInput(theoryQuestion)
     if (!sanitizedQuestion) return
     
+    // Add user message to chat
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      type: 'user',
+      content: sanitizedQuestion,
+      timestamp: Date.now()
+    }
+    setTheoryMessages(prev => [...prev, userMessage])
+    setTheoryQuestion('') // Clear input
+    
     setTheoryLoading(true)
     try {
-      const response = await OpenAIService.askTheory(sanitizedQuestion, lessonMode)
+      const response = await OpenAIService.askTheory(sanitizedQuestion, lessonMode, theoryMessages)
       if (isMounted.current) {
-        setTheoryAnswer(response.response || response.error || 'No response')
+        const answer = response.response || response.error || 'No response'
+        
+        // Add assistant message to chat
+        const assistantMessage: ChatMessage = {
+          id: `assistant-${Date.now()}`,
+          type: 'assistant',
+          content: answer,
+          timestamp: Date.now()
+        }
+        setTheoryMessages(prev => [...prev, assistantMessage])
         
         // Check for scale request and update visualizer
         if (response.scaleRequest) {
@@ -473,7 +744,14 @@ export default function StudioBrain() {
     } catch (error) {
       console.error('Theory question error:', error)
       if (isMounted.current) {
-        setTheoryAnswer('Error: Unable to get response from StudioBrain.')
+        const errorMessage = 'Error: Unable to get response from StudioBrain.'
+        const errorAssistantMessage: ChatMessage = {
+          id: `assistant-error-${Date.now()}`,
+          type: 'assistant',
+          content: errorMessage,
+          timestamp: Date.now()
+        }
+        setTheoryMessages(prev => [...prev, errorAssistantMessage])
       }
     }
     if (isMounted.current) {
@@ -485,11 +763,30 @@ export default function StudioBrain() {
     const sanitizedQuestion = sanitizeInput(instrumentQuestion)
     if (!sanitizedQuestion) return
     
+    // Add user message to chat
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      type: 'user',
+      content: sanitizedQuestion,
+      timestamp: Date.now()
+    }
+    setInstrumentMessages(prev => [...prev, userMessage])
+    setInstrumentQuestion('') // Clear input    
+    
     setInstrumentLoading(true)
     try {
-      const response = await OpenAIService.askInstrument(sanitizedQuestion, lessonMode, selectedInstrument, currentGearChain)
+      const response = await OpenAIService.askInstrument(sanitizedQuestion, lessonMode, selectedInstrument, currentGearChain, instrumentMessages)
       if (isMounted.current) {
-        setInstrumentAnswer(response.response || response.error || 'No response')
+        const answer = response.response || response.error || 'No response'
+        
+        // Add assistant message to chat
+        const assistantMessage: ChatMessage = {
+          id: `assistant-${Date.now()}`,
+          type: 'assistant',
+          content: answer,
+          timestamp: Date.now()
+        }
+        setInstrumentMessages(prev => [...prev, assistantMessage])
         
         // Check for scale request and update visualizer
         if (response.scaleRequest) {
@@ -499,7 +796,14 @@ export default function StudioBrain() {
     } catch (error) {
       console.error('Instrument question error:', error)
       if (isMounted.current) {
-        setInstrumentAnswer('Error: Unable to get response from StudioBrain.')
+        const errorMessage = 'Error: Unable to get response from StudioBrain.'
+        const errorAssistantMessage: ChatMessage = {
+          id: `assistant-error-${Date.now()}`,
+          type: 'assistant',
+          content: errorMessage,
+          timestamp: Date.now()
+        }
+        setInstrumentMessages(prev => [...prev, errorAssistantMessage])
       }
     }
     if (isMounted.current) {
@@ -611,14 +915,7 @@ export default function StudioBrain() {
                     'Ask StudioBrain'
                   )}
                 </Button>
-                {generalAnswer && (
-                  <div className={`mt-6 p-6 rounded-xl border backdrop-blur-sm ${lessonMode ? 'bg-gradient-to-br from-neon-cyan/10 to-neon-blue/5 border-neon-cyan/30 shadow-lg shadow-neon-cyan/10' : 'bg-gradient-to-br from-neon-purple/10 to-neon-pink/5 border-neon-purple/30 shadow-lg shadow-neon-purple/10'}`}>
-                    <h4 className={`font-bold text-lg mb-4 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}>StudioBrain's Answer:</h4>
-                    <div className="text-slate-200 whitespace-pre-line leading-relaxed">
-                      {typeof generalAnswer === 'string' ? generalAnswer : JSON.stringify(generalAnswer, null, 2)}
-                    </div>
-                  </div>
-                )}
+                {renderMessageList(generalMessages, generalScrollRef, 'general', generalLoading)}
               </CardContent>
             </Card>
           </TabsContent>
@@ -664,61 +961,7 @@ export default function StudioBrain() {
                     'Ask StudioBrain'
                   )}
                 </Button>
-                {mixAnswer && (
-                  <div className={`mt-6 p-6 rounded-xl border backdrop-blur-sm ${lessonMode ? 'bg-gradient-to-br from-neon-cyan/10 to-neon-blue/5 border-neon-cyan/30 shadow-lg shadow-neon-cyan/10' : 'bg-gradient-to-br from-neon-purple/10 to-neon-pink/5 border-neon-purple/30 shadow-lg shadow-neon-purple/10'}`}>
-                    <h4 className={`font-bold text-lg mb-4 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}>StudioBrain's Answer:</h4>
-                    <div className="text-slate-200 whitespace-pre-line leading-relaxed">
-                      {typeof mixAnswer === 'string' ? mixAnswer : JSON.stringify(mixAnswer, null, 2)}
-                    </div>
-                  </div>
-                )}
-
-                {mixPlugins.length > 0 && (
-                  <div className={`mt-6 p-6 rounded-xl border backdrop-blur-sm ${lessonMode ? 'bg-gradient-to-br from-neon-blue/10 to-neon-cyan/5 border-neon-blue/30 shadow-lg shadow-neon-blue/10' : 'bg-gradient-to-br from-neon-blue/10 to-neon-purple/5 border-neon-blue/30 shadow-lg shadow-neon-blue/10'}`}>
-                    <h4 className={`font-bold text-lg mb-4 ${lessonMode ? 'text-neon-blue' : 'text-neon-blue'} flex items-center gap-3`}>
-                      <div className="p-2 rounded-lg bg-neon-blue/20">
-                        <Volume2 className="w-5 h-5" />
-                      </div>
-                      Suggested Plugin Chain
-                    </h4>
-                    <div className="space-y-4">
-                      {mixPlugins.map((plugin, index) => (
-                        <div key={index} className="flex items-start gap-4 p-4 bg-glass-bg backdrop-blur-sm rounded-xl border border-glass-border hover:border-neon-blue/40 transition-all duration-300 cursor-pointer hover:scale-[1.02] hover:shadow-lg hover:shadow-neon-blue/20" 
-                             onClick={(e) => {
-                               // Simple visual feedback without state
-                               const element = e.currentTarget as HTMLElement
-                               if (element) {
-                                 element.style.transform = 'scale(0.98)'
-                                 addTimeout(setTimeout(() => {
-                                   if (element && isMounted.current) {
-                                     element.style.transform = 'scale(1.02)'
-                                   }
-                                 }, 150))
-                               }
-                             }}>
-                          <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold ${lessonMode ? 'bg-neon-cyan' : 'bg-neon-purple'}`}>
-                            {index + 1}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-3 mb-2">
-                              <span className="font-semibold text-white text-lg">{plugin.name}</span>
-                              <Badge variant="outline" className={`px-3 py-1 rounded-lg font-medium transition-all duration-300 ${lessonMode ? 'bg-neon-cyan/20 border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/30' : 'bg-neon-purple/20 border-neon-purple/40 text-neon-purple hover:bg-neon-purple/30'}`}>
-                                {plugin.type}
-                              </Badge>
-                            </div>
-                            <p className="text-slate-300 mb-2 leading-relaxed">{plugin.description}</p>
-                            {plugin.explanation && (
-                              <p className="text-slate-400 text-sm leading-relaxed">{plugin.explanation}</p>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-4 text-sm text-slate-400 flex items-center gap-2 p-3 bg-glass-bg rounded-lg border border-glass-border">
-                      💡 <span>Click on plugins to highlight them in your chain</span>
-                    </div>
-                  </div>
-                )}
+                {renderMessageList(mixMessages, mixScrollRef, 'mix', mixLoading)}
               </CardContent>
             </Card>
 
@@ -1036,14 +1279,7 @@ export default function StudioBrain() {
                       'Ask StudioBrain'
                     )}
                   </Button>
-                  {theoryAnswer && (
-                    <div className={`mt-6 p-6 rounded-xl border backdrop-blur-sm ${lessonMode ? 'bg-gradient-to-br from-neon-cyan/10 to-neon-blue/5 border-neon-cyan/30 shadow-lg shadow-neon-cyan/10' : 'bg-gradient-to-br from-neon-purple/10 to-neon-pink/5 border-neon-purple/30 shadow-lg shadow-neon-purple/10'}`}>
-                      <h4 className={`font-bold text-lg mb-4 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}>StudioBrain's Answer:</h4>
-                      <div className="text-slate-200 whitespace-pre-line leading-relaxed">
-                        {typeof theoryAnswer === 'string' ? theoryAnswer : JSON.stringify(theoryAnswer, null, 2)}
-                      </div>
-                    </div>
-                  )}
+                  {renderMessageList(theoryMessages, theoryScrollRef, 'theory', theoryLoading)}
                 </CardContent>
               </Card>
           </TabsContent>
@@ -1162,7 +1398,7 @@ export default function StudioBrain() {
                   
                   <GearChain 
                     lessonMode={lessonMode}
-                    studioBrainResponse={instrumentAnswer}
+                    studioBrainResponse={instrumentMessages.length > 0 ? instrumentMessages[instrumentMessages.length - 1]?.content || '' : ''}
                     onGearUpdate={handleGearUpdate}
                   />
                 </div>
@@ -1208,14 +1444,7 @@ export default function StudioBrain() {
                           'Ask StudioBrain'
                         )}
                       </Button>
-                      {instrumentAnswer && (
-                        <div className={`mt-6 p-6 rounded-xl border backdrop-blur-sm ${lessonMode ? 'bg-gradient-to-br from-neon-cyan/10 to-neon-blue/5 border-neon-cyan/30 shadow-lg shadow-neon-cyan/10' : 'bg-gradient-to-br from-neon-purple/10 to-neon-pink/5 border-neon-purple/30 shadow-lg shadow-neon-purple/10'}`}>
-                          <h4 className={`font-bold text-lg mb-4 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}>StudioBrain's Answer:</h4>
-                          <div className="text-slate-200 whitespace-pre-line leading-relaxed">
-                            {typeof instrumentAnswer === 'string' ? instrumentAnswer : JSON.stringify(instrumentAnswer, null, 2)}
-                          </div>
-                        </div>
-                      )}
+                      {renderMessageList(instrumentMessages, instrumentScrollRef, 'instrument', instrumentLoading)}
                     </CardContent>
                   </Card>
                 </div>

@@ -644,6 +644,29 @@ Do not recommend unavailable gear. Be specific with plugin names, amp models, an
   return reframedPrompt
 }
 
+function buildConversationMessages(messageHistory: any[], userSettings: UserSettings | undefined, context: string, lessonMode: boolean, currentMessage: string) {
+  const systemMessage = buildSystemMessage(userSettings, context, lessonMode)
+  
+  // Get last 5 messages for context (or all if fewer than 5)
+  const recentMessages = messageHistory.slice(-5)
+  
+  const messages = [{ role: 'system', content: systemMessage }]
+  
+  // Add conversation history
+  recentMessages.forEach(msg => {
+    messages.push({
+      role: msg.type === 'user' ? 'user' : 'assistant',
+      content: msg.content
+    })
+  })
+  
+  // Add the current message
+  const processedMessage = reframeUserPrompt(currentMessage, userSettings)
+  messages.push({ role: 'user', content: processedMessage })
+  
+  return messages
+}
+
 function buildSystemMessage(userSettings: UserSettings | undefined, context: string, lessonMode: boolean): string {
   const { gear, genreInfluence } = userSettings || {}
   
@@ -662,10 +685,24 @@ function buildSystemMessage(userSettings: UserSettings | undefined, context: str
   if (gear?.monitors) gearList.push(`Monitors: ${gear.monitors}`)
   const gearDescription = gearList.length ? gearList.join(', ') : 'basic setup'
   
-  // Lesson mode instructions
+  // Lesson mode instructions with follow-up question behavior
   const lessonModeInstructions = lessonMode 
-    ? `You are in Teaching Mode. Provide detailed explanations with reasoning, break down complex concepts into steps, include theory background when relevant, suggest practice exercises, and explain the "why" behind recommendations. Be patient, thorough, and encouraging.`
-    : `You are in Efficiency Mode. Provide direct, actionable solutions with concise but complete explanations. Focus on immediate practical results and workflow efficiency with specific settings and parameters.`
+    ? `You are in Teaching Mode. Provide detailed explanations with reasoning, break down complex concepts into steps, include theory background when relevant, suggest practice exercises, and explain the "why" behind recommendations. Be patient, thorough, and encouraging.
+
+FOLLOW-UP QUESTION BEHAVIOR (Teaching Mode):
+- ACTIVELY ask follow-up questions to deepen learning and exploration
+- Ask questions that help the user understand concepts better: "What style are you going for?", "Have you tried this technique before?", "What's your current skill level with this?"
+- Suggest related topics to explore: "Since you're learning about modes, would you like to explore how they're used in different genres?"
+- Ask about their setup to give more personalized advice: "What amp/plugin are you using?", "Are you playing live or recording?"
+- Encourage experimentation: "Try this and let me know how it sounds - we can adjust from there"
+- End responses with engaging questions that invite further discussion`
+    : `You are in Efficiency Mode. Provide direct, actionable solutions with concise but complete explanations. Focus on immediate practical results and workflow efficiency with specific settings and parameters.
+
+FOLLOW-UP QUESTION BEHAVIOR (Quick Mode):
+- Only ask clarifying questions when the request is genuinely ambiguous or missing critical information
+- Keep questions focused and specific: "Which pickup position?", "What genre?", "Recording or live?"
+- Provide the most likely solution first, then offer alternatives: "For rock, try this... For jazz, you'd want..."
+- Avoid open-ended exploratory questions - prioritize getting the user their answer quickly`
   
   // Section capitalization
   const sectionName = context.charAt(0).toUpperCase() + context.slice(1)
@@ -850,7 +887,7 @@ function parseScaleRequest(text: string): ScaleRequest | null {
 
 export async function POST(request: NextRequest) {
   try {
-    const { fullPrompt, originalMessage, context, lessonMode, userSettings } = await request.json()
+    const { fullPrompt, originalMessage, context, lessonMode, userSettings, messageHistory } = await request.json()
 
     if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json({
@@ -879,21 +916,22 @@ export async function POST(request: NextRequest) {
     console.log('USER SETTINGS:', userSettings)
     console.log("OPENAI PROMPT SENT:", fullPrompt)
 
-    // Build dynamic system message based on user settings
-    const systemMessage = buildSystemMessage(userSettings, context, lessonMode)
-    
-    // Reframe user prompt if it's a tone/artist/gear question
-    const processedMessage = reframeUserPrompt(originalMessage, userSettings)
+    // Build conversation messages with history context
+    const conversationMessages = buildConversationMessages(
+      messageHistory || [], 
+      userSettings, 
+      context, 
+      lessonMode, 
+      originalMessage
+    )
     
     console.log('🎸 Original message:', originalMessage)
-    console.log('🎛️ Processed message:', processedMessage)
+    console.log('💬 Conversation messages:', conversationMessages.length, 'messages')
+    console.log('📜 Message history length:', messageHistory?.length || 0)
     
     const completion = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
-      messages: [
-        { role: 'system', content: systemMessage },
-        { role: 'user', content: processedMessage },
-      ],
+      messages: conversationMessages,
       max_tokens: lessonMode ? 750 : 500,
       temperature: lessonMode ? 0.4 : 0.3,
       top_p: 1.0,
