@@ -1082,7 +1082,10 @@ export default function StudioBrain() {
                     value={generalQuestion}
                     onChange={(e) => setGeneralQuestion(e.target.value)}
                     onKeyDown={(e) => handleKeyDown(e, handleGeneralQuestion)}
-                    className={`min-h-[100px] bg-glass-bg backdrop-blur-sm border border-glass-border rounded-xl p-4 text-white placeholder:text-slate-400 transition-all duration-300 ${lessonMode ? 'focus:border-neon-cyan focus:shadow-lg focus:shadow-neon-cyan/20' : 'focus:border-neon-purple focus:shadow-lg focus:shadow-neon-purple/20'} hover:border-slate-400`}
+                    className={`glass-textarea min-h-[100px] bg-glass-bg border border-glass-border rounded-xl p-4 text-white transition-all duration-300 hover:border-slate-400 ${lessonMode 
+                      ? 'focus:border-neon-cyan focus:shadow-lg focus:shadow-neon-cyan/20' 
+                      : 'focus:border-neon-purple focus:shadow-lg focus:shadow-neon-purple/20'
+                    }`}
                   />
                 </div>
                 <Button 
@@ -1128,7 +1131,10 @@ export default function StudioBrain() {
                     value={mixQuestion}
                     onChange={(e) => setMixQuestion(e.target.value)}
                     onKeyDown={(e) => handleKeyDown(e, handleMixQuestion)}
-                    className={`min-h-[100px] bg-glass-bg backdrop-blur-sm border border-glass-border rounded-xl p-4 text-white placeholder:text-slate-400 transition-all duration-300 ${lessonMode ? 'focus:border-neon-cyan focus:shadow-lg focus:shadow-neon-cyan/20' : 'focus:border-neon-purple focus:shadow-lg focus:shadow-neon-purple/20'} hover:border-slate-400`}
+                    className={`glass-textarea min-h-[100px] bg-glass-bg border border-glass-border rounded-xl p-4 text-white transition-all duration-300 hover:border-slate-400 ${lessonMode 
+                      ? 'focus:border-neon-cyan focus:shadow-lg focus:shadow-neon-cyan/20' 
+                      : 'focus:border-neon-purple focus:shadow-lg focus:shadow-neon-purple/20'
+                    }`}
                   />
                 </div>
                 <Button 
@@ -1446,7 +1452,10 @@ export default function StudioBrain() {
                       value={theoryQuestion}
                       onChange={(e) => setTheoryQuestion(e.target.value)}
                       onKeyDown={(e) => handleKeyDown(e, handleTheoryQuestion)}
-                      className={`min-h-[100px] bg-glass-bg backdrop-blur-sm border border-glass-border rounded-xl p-4 text-white placeholder:text-slate-400 transition-all duration-300 ${lessonMode ? 'focus:border-neon-cyan focus:shadow-lg focus:shadow-neon-cyan/20' : 'focus:border-neon-purple focus:shadow-lg focus:shadow-neon-purple/20'} hover:border-slate-400`}
+                      className={`glass-textarea min-h-[100px] bg-glass-bg border border-glass-border rounded-xl p-4 text-white transition-all duration-300 hover:border-slate-400 ${lessonMode 
+                        ? 'focus:border-neon-cyan focus:shadow-lg focus:shadow-neon-cyan/20' 
+                        : 'focus:border-neon-purple focus:shadow-lg focus:shadow-neon-purple/20'
+                      }`}
                     />
                   </div>
                   <Button 
@@ -1611,7 +1620,10 @@ export default function StudioBrain() {
                           value={instrumentQuestion}
                           onChange={(e) => setInstrumentQuestion(e.target.value)}
                           onKeyDown={(e) => handleKeyDown(e, handleInstrumentQuestion)}
-                          className={`min-h-[100px] bg-glass-bg backdrop-blur-sm border border-glass-border rounded-xl p-4 text-white placeholder:text-slate-400 transition-all duration-300 ${lessonMode ? 'focus:border-neon-cyan focus:shadow-lg focus:shadow-neon-cyan/20' : 'focus:border-neon-purple focus:shadow-lg focus:shadow-neon-purple/20'} hover:border-slate-400`}
+                          className={`glass-textarea min-h-[100px] bg-glass-bg border border-glass-border rounded-xl p-4 text-white transition-all duration-300 hover:border-slate-400 ${lessonMode 
+                            ? 'focus:border-neon-cyan focus:shadow-lg focus:shadow-neon-cyan/20' 
+                            : 'focus:border-neon-purple focus:shadow-lg focus:shadow-neon-purple/20'
+                          }`}
                         />
                       </div>
                       <Button 
