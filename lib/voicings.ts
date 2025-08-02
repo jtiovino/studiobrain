@@ -61,8 +61,8 @@ export const guitarVoicings: { [key: string]: VoicingSet } = {
         name: "G Major",
         root: "G",
         quality: "major",
-        frets: [3, 2, 0, 0, 3, 3],
-        fingers: [3, 2, 0, 0, 4, 4],
+        frets: [3, 2, 0, 0, 0, 3],
+        fingers: [2, 1, 0, 0, 0, 3],
         difficulty: "beginner"
       },
       {
@@ -226,6 +226,182 @@ export const guitarVoicings: { [key: string]: VoicingSet } = {
         frets: [3, 5, 5, null, null, null],
         fingers: [1, 3, 4, null, null, null],
         difficulty: "beginner"
+      }
+    ]
+  },
+  "Suspended Chords": {
+    type: "Suspended Chords",
+    description: "Suspended 2nd and 4th chords - create tension and movement",
+    instrument: "guitar",
+    chords: [
+      {
+        name: "Asus2",
+        root: "A",
+        quality: "sus2",
+        frets: [null, 0, 2, 2, 0, 0],
+        fingers: [null, 0, 1, 2, 0, 0],
+        difficulty: "beginner"
+      },
+      {
+        name: "Asus4",
+        root: "A",
+        quality: "sus4",
+        frets: [null, 0, 2, 2, 3, 0],
+        fingers: [null, 0, 1, 2, 3, 0],
+        difficulty: "beginner"
+      },
+      {
+        name: "Dsus2",
+        root: "D",
+        quality: "sus2",
+        frets: [null, null, 0, 2, 3, 0],
+        fingers: [null, null, 0, 1, 2, 0],
+        difficulty: "beginner"
+      },
+      {
+        name: "Dsus4",
+        root: "D",
+        quality: "sus4",
+        frets: [null, null, 0, 2, 3, 3],
+        fingers: [null, null, 0, 1, 2, 3],
+        difficulty: "beginner"
+      },
+      {
+        name: "Esus4",
+        root: "E",
+        quality: "sus4",
+        frets: [0, 2, 2, 2, 0, 0],
+        fingers: [0, 1, 2, 3, 0, 0],
+        difficulty: "beginner"
+      }
+    ]
+  },
+  "Diminished Chords": {
+    type: "Diminished Chords",
+    description: "Diminished and half-diminished chords for tension and color",
+    instrument: "guitar",
+    chords: [
+      {
+        name: "A°",
+        root: "A",
+        quality: "diminished",
+        frets: [null, 0, 1, 2, 1, 2],
+        fingers: [null, 0, 1, 3, 2, 4],
+        difficulty: "intermediate"
+      },
+      {
+        name: "B°",
+        root: "B",
+        quality: "diminished",
+        frets: [null, 2, 3, 4, 3, 4],
+        fingers: [null, 1, 2, 4, 3, 4],
+        difficulty: "intermediate"
+      },
+      {
+        name: "C°",
+        root: "C",
+        quality: "diminished",
+        frets: [null, 3, 4, 5, 4, 5],
+        fingers: [null, 1, 2, 4, 3, 4],
+        difficulty: "intermediate"
+      },
+      {
+        name: "Gø7",
+        root: "G",
+        quality: "half-diminished7",
+        frets: [3, null, 3, 4, 3, null],
+        fingers: [1, null, 2, 4, 3, null],
+        difficulty: "advanced"
+      }
+    ]
+  },
+  "Extended Chords": {
+    type: "Extended Chords",
+    description: "9th, 11th, and 13th chords for sophisticated harmony",
+    instrument: "guitar",
+    chords: [
+      {
+        name: "Cadd9",
+        root: "C",
+        quality: "add9",
+        frets: [null, 3, 2, 0, 3, 0],
+        fingers: [null, 2, 1, 0, 3, 0],
+        difficulty: "intermediate"
+      },
+      {
+        name: "Gadd9",
+        root: "G",
+        quality: "add9",
+        frets: [3, 0, 0, 0, 0, 3],
+        fingers: [2, 0, 0, 0, 0, 3],
+        difficulty: "beginner"
+      },
+      {
+        name: "Dadd9",
+        root: "D",
+        quality: "add9",
+        frets: [null, null, 0, 2, 3, 2],
+        fingers: [null, null, 0, 1, 3, 2],
+        difficulty: "beginner"
+      },
+      {
+        name: "Em9",
+        root: "E",
+        quality: "minor9",
+        frets: [0, 2, 0, 0, 0, 0],
+        fingers: [0, 1, 0, 0, 0, 0],
+        difficulty: "beginner"
+      },
+      {
+        name: "Am9",
+        root: "A",
+        quality: "minor9",
+        frets: [null, 0, 5, 5, 5, 7],
+        fingers: [null, 0, 1, 2, 3, 4],
+        difficulty: "advanced"
+      }
+    ]
+  },
+  "Alternate Voicings": {
+    type: "Alternate Voicings",
+    description: "Alternative fingerings and positions for common chords",
+    instrument: "guitar",
+    chords: [
+      {
+        name: "C Major (Alt)",
+        root: "C",
+        quality: "major",
+        frets: [null, 3, 5, 5, 5, 3],
+        fingers: [null, 1, 2, 3, 4, 1],
+        barres: [{ fret: 3, fromString: 1, toString: 5 }],
+        difficulty: "intermediate"
+      },
+      {
+        name: "G Major (Alt)",
+        root: "G",
+        quality: "major", 
+        frets: [3, 5, 5, 4, 3, 3],
+        fingers: [1, 3, 4, 2, 1, 1],
+        barres: [{ fret: 3, fromString: 0, toString: 5 }],
+        difficulty: "intermediate"
+      },
+      {
+        name: "D Major (Alt)",
+        root: "D",
+        quality: "major",
+        frets: [null, 5, 7, 7, 7, 5],
+        fingers: [null, 1, 2, 3, 4, 1],
+        barres: [{ fret: 5, fromString: 1, toString: 5 }],
+        difficulty: "intermediate"
+      },
+      {
+        name: "A Minor (Alt)",
+        root: "A",
+        quality: "minor",
+        frets: [5, 7, 7, 5, 5, 5],
+        fingers: [1, 3, 4, 1, 1, 1],
+        barres: [{ fret: 5, fromString: 0, toString: 5 }],
+        difficulty: "intermediate"
       }
     ]
   }

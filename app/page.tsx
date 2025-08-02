@@ -4,6 +4,7 @@ import React from "react"
 import { useState, useEffect, useRef, useCallback, useLayoutEffect } from "react"
 import ErrorBoundary from "@/components/ErrorBoundary"
 import { HydrationBoundary } from "@/components/HydrationBoundary"
+import { getModeChords, getScaleNotes, normalizeModeNames, ChordInfo, NoteName, ModeName } from "@/lib/music-theory"
 
 interface PluginSuggestion {
   name: string
@@ -203,50 +204,44 @@ export default function StudioBrain() {
     }
   }, [chatHistory])
 
-  // Generate chords based on selected root and mode
-  const generateChords = () => {
-    const modes = {
-      major: [0, 2, 4, 5, 7, 9, 11], // Ionian
-      minor: [0, 2, 3, 5, 7, 8, 10], // Aeolian
-      dorian: [0, 2, 3, 5, 7, 9, 10],
-      phrygian: [0, 1, 3, 5, 7, 8, 10],
-      lydian: [0, 2, 4, 6, 7, 9, 11],
-      mixolydian: [0, 2, 4, 5, 7, 9, 10],
-      locrian: [0, 1, 3, 5, 6, 8, 10]
-    }
-
-    const notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
-    const rootIndex = notes.indexOf(selectedChord)
-    const intervals = modes[selectedMode as keyof typeof modes] || modes.major
+  // Generate chords based on selected root and mode using proper music theory
+  const generateChords = (): ChordInfo[] => {
+    const root = selectedChord as NoteName
+    const mode = normalizeModeNames(selectedMode)
+    const chords = getModeChords(root, mode)
     
-    return intervals.map((interval, index) => {
-      const noteIndex = (rootIndex + interval) % 12
-      const note = notes[noteIndex]
-      const chordType = [0, 2, 4].includes(index) ? '' : (index === 6 && selectedMode === 'major') ? '°' : 'm'
-      return `${note}${chordType}`
-    }).slice(0, 7) // Return 7 chords for the mode
+    // Debug: Check for C minor specifically
+    if (root === 'C' && mode === 'aeolian') {
+      console.log('🔍 C MINOR DEBUG:', chords.map(c => `${c.scaleDegree}:${c.name}(${c.root})`))
+    }
+    
+    return chords
   }
 
-  // Generate scale notes for visualization
-  const generateScaleNotes = () => {
-    const modes = {
-      major: [0, 2, 4, 5, 7, 9, 11],
-      minor: [0, 2, 3, 5, 7, 8, 10],
-      dorian: [0, 2, 3, 5, 7, 9, 10],
-      phrygian: [0, 1, 3, 5, 7, 8, 10],
-      lydian: [0, 2, 4, 6, 7, 9, 11],
-      mixolydian: [0, 2, 4, 5, 7, 9, 10],
-      locrian: [0, 1, 3, 5, 6, 8, 10]
-    }
+  // Legacy function for backward compatibility - returns just chord names
+  const generateChordNames = (): string[] => {
+    return generateChords().map(chord => chord.name)
+  }
 
-    const notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
-    const rootIndex = notes.indexOf(selectedChord)
-    const intervals = modes[selectedMode as keyof typeof modes] || modes.major
-    
-    return intervals.map(interval => {
-      const noteIndex = (rootIndex + interval) % 12
-      return notes[noteIndex]
-    })
+  // Generate scale notes for visualization using proper music theory
+  const generateScaleNotes = (): string[] => {
+    const root = selectedChord as NoteName
+    const mode = normalizeModeNames(selectedMode)
+    return getScaleNotes(root, mode)
+  }
+
+  // Helper function to describe chord functions
+  const getFunctionDescription = (func: string): string => {
+    const descriptions: Record<string, string> = {
+      'tonic': 'Home chord, provides stability and resolution',
+      'subdominant': 'Departure from home, creates forward motion',
+      'dominant': 'Strong pull back to tonic, creates tension',
+      'mediant': 'Bridge between tonic and dominant, gentle movement',
+      'submediant': 'Relative minor/major, provides contrast',
+      'leading-tone': 'Strong pull to tonic, creates tension',
+      'supertonic': 'Often leads to dominant, creates movement'
+    }
+    return descriptions[func] || 'Provides harmonic color and movement'
   }
 
 
@@ -1232,16 +1227,16 @@ export default function StudioBrain() {
 
           <TabsContent value="theory" className="mt-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Chord & Mode Explorer */}
+              {/* Chord & Scale Explorer */}
               <Card className={`bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl shadow-2xl transition-all duration-300 ${scaleChangeAnimation ? lessonMode ? 'ring-2 ring-neon-cyan/50 shadow-lg shadow-neon-cyan/20' : 'ring-2 ring-neon-purple/50 shadow-lg shadow-neon-purple/20' : ''}`}>
                 <CardHeader className="pb-6">
                   <CardTitle className={`flex items-center gap-3 text-xl font-bold ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}>
                     <div className={`p-2 rounded-lg ${lessonMode ? 'bg-neon-cyan/20' : 'bg-neon-purple/20'}`}>
                       <Music className={`w-6 h-6 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`} />
                     </div>
-                    Chord & Mode Explorer
+                    Chord & Scale Explorer
                   </CardTitle>
-                  <CardDescription className="text-slate-300 text-base">Explore scales, modes, and chord progressions interactively</CardDescription>
+                  <CardDescription className="text-slate-300 text-base">Explore scales and chord progressions interactively</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-8 pt-0">
                   <div className="grid grid-cols-2 gap-6">
@@ -1266,12 +1261,14 @@ export default function StudioBrain() {
                         </SelectTrigger>
                         <SelectContent className="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl">
                           <SelectItem value="major" className={`rounded-lg ${lessonMode ? 'focus:bg-neon-cyan/20 focus:text-neon-cyan data-[highlighted]:bg-neon-cyan/20 data-[highlighted]:text-neon-cyan' : 'focus:bg-neon-purple/20 focus:text-neon-purple data-[highlighted]:bg-neon-purple/20 data-[highlighted]:text-neon-purple'}`}>Major (Ionian)</SelectItem>
-                          <SelectItem value="minor" className={`rounded-lg ${lessonMode ? 'focus:bg-neon-cyan/20 focus:text-neon-cyan data-[highlighted]:bg-neon-cyan/20 data-[highlighted]:text-neon-cyan' : 'focus:bg-neon-purple/20 focus:text-neon-purple data-[highlighted]:bg-neon-purple/20 data-[highlighted]:text-neon-purple'}`}>Minor (Aeolian)</SelectItem>
+                          <SelectItem value="minor" className={`rounded-lg ${lessonMode ? 'focus:bg-neon-cyan/20 focus:text-neon-cyan data-[highlighted]:bg-neon-cyan/20 data-[highlighted]:text-neon-cyan' : 'focus:bg-neon-purple/20 focus:text-neon-purple data-[highlighted]:bg-neon-purple/20 data-[highlighted]:text-neon-purple'}`}>Natural Minor (Aeolian)</SelectItem>
                           <SelectItem value="dorian" className={`rounded-lg ${lessonMode ? 'focus:bg-neon-cyan/20 focus:text-neon-cyan data-[highlighted]:bg-neon-cyan/20 data-[highlighted]:text-neon-cyan' : 'focus:bg-neon-purple/20 focus:text-neon-purple data-[highlighted]:bg-neon-purple/20 data-[highlighted]:text-neon-purple'}`}>Dorian</SelectItem>
                           <SelectItem value="phrygian" className={`rounded-lg ${lessonMode ? 'focus:bg-neon-cyan/20 focus:text-neon-cyan data-[highlighted]:bg-neon-cyan/20 data-[highlighted]:text-neon-cyan' : 'focus:bg-neon-purple/20 focus:text-neon-purple data-[highlighted]:bg-neon-purple/20 data-[highlighted]:text-neon-purple'}`}>Phrygian</SelectItem>
                           <SelectItem value="lydian" className={`rounded-lg ${lessonMode ? 'focus:bg-neon-cyan/20 focus:text-neon-cyan data-[highlighted]:bg-neon-cyan/20 data-[highlighted]:text-neon-cyan' : 'focus:bg-neon-purple/20 focus:text-neon-purple data-[highlighted]:bg-neon-purple/20 data-[highlighted]:text-neon-purple'}`}>Lydian</SelectItem>
                           <SelectItem value="mixolydian" className={`rounded-lg ${lessonMode ? 'focus:bg-neon-cyan/20 focus:text-neon-cyan data-[highlighted]:bg-neon-cyan/20 data-[highlighted]:text-neon-cyan' : 'focus:bg-neon-purple/20 focus:text-neon-purple data-[highlighted]:bg-neon-purple/20 data-[highlighted]:text-neon-purple'}`}>Mixolydian</SelectItem>
                           <SelectItem value="locrian" className={`rounded-lg ${lessonMode ? 'focus:bg-neon-cyan/20 focus:text-neon-cyan data-[highlighted]:bg-neon-cyan/20 data-[highlighted]:text-neon-cyan' : 'focus:bg-neon-purple/20 focus:text-neon-purple data-[highlighted]:bg-neon-purple/20 data-[highlighted]:text-neon-purple'}`}>Locrian</SelectItem>
+                          <SelectItem value="harmonicMinor" className={`rounded-lg ${lessonMode ? 'focus:bg-neon-cyan/20 focus:text-neon-cyan data-[highlighted]:bg-neon-cyan/20 data-[highlighted]:text-neon-cyan' : 'focus:bg-neon-purple/20 focus:text-neon-purple data-[highlighted]:bg-neon-purple/20 data-[highlighted]:text-neon-purple'}`}>Harmonic Minor</SelectItem>
+                          <SelectItem value="melodicMinor" className={`rounded-lg ${lessonMode ? 'focus:bg-neon-cyan/20 focus:text-neon-cyan data-[highlighted]:bg-neon-cyan/20 data-[highlighted]:text-neon-cyan' : 'focus:bg-neon-purple/20 focus:text-neon-purple data-[highlighted]:bg-neon-purple/20 data-[highlighted]:text-neon-purple'}`}>Melodic Minor</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -1279,35 +1276,48 @@ export default function StudioBrain() {
 
                   {/* Generated Chords */}
                   <div>
-                    <h4 className={`font-bold text-lg mb-4 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}>{selectedChord} {selectedMode} - Modal Chords</h4>
+                    <h4 className={`font-bold text-lg mb-4 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}>{selectedChord} {selectedMode} - Scale Chords</h4>
                     <div className="flex flex-wrap gap-3">
-                      {generateChords().map((chord, chordIndex) => (
-                        <Badge
-                          key={chordIndex}
-                          variant="outline"
-                          className={`cursor-pointer transition-all duration-300 px-4 py-2 rounded-xl font-semibold hover:scale-105 ${
-                            lessonMode 
-                              ? `border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/20 hover:border-neon-cyan hover:shadow-lg hover:shadow-neon-cyan/30 ${activeChord === chord ? 'bg-neon-cyan/20 border-neon-cyan shadow-lg shadow-neon-cyan/30' : 'bg-glass-bg backdrop-blur-sm'}` 
-                              : `border-neon-purple/40 text-neon-purple hover:bg-neon-purple/20 hover:border-neon-purple hover:shadow-lg hover:shadow-neon-purple/30 ${activeChord === chord ? 'bg-neon-purple/20 border-neon-purple shadow-lg shadow-neon-purple/30' : 'bg-glass-bg backdrop-blur-sm'}`
-                          }`}
-                          onClick={() => setActiveChord(chord === activeChord ? null : chord)}
-                        >
-                          {chord}
-                        </Badge>
+                      {generateChords().map((chordInfo, chordIndex) => (
+                        <div key={chordIndex} className="flex flex-col items-center gap-1">
+                          <Badge
+                            variant="outline"
+                            className={`cursor-pointer transition-all duration-300 px-4 py-2 rounded-xl font-semibold hover:scale-105 ${
+                              lessonMode 
+                                ? `border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/20 hover:border-neon-cyan hover:shadow-lg hover:shadow-neon-cyan/30 ${activeChord === chordInfo.name ? 'bg-neon-cyan/20 border-neon-cyan shadow-lg shadow-neon-cyan/30' : 'bg-glass-bg backdrop-blur-sm'}` 
+                                : `border-neon-purple/40 text-neon-purple hover:bg-neon-purple/20 hover:border-neon-purple hover:shadow-lg hover:shadow-neon-purple/30 ${activeChord === chordInfo.name ? 'bg-neon-purple/20 border-neon-purple shadow-lg shadow-neon-purple/30' : 'bg-glass-bg backdrop-blur-sm'}`
+                            }`}
+                            onClick={() => setActiveChord(chordInfo.name === activeChord ? null : chordInfo.name)}
+                          >
+                            {chordInfo.name}
+                          </Badge>
+                          <span className={`text-xs font-mono ${lessonMode ? 'text-neon-cyan/70' : 'text-neon-purple/70'}`}>
+                            {chordInfo.romanNumeral}
+                          </span>
+                        </div>
                       ))}
                     </div>
-                    {activeChord && (
-                      <div className={`mt-6 p-4 rounded-xl border backdrop-blur-sm ${lessonMode ? 'bg-neon-cyan/10 border-neon-cyan/30' : 'bg-neon-purple/10 border-neon-purple/30'}`}>
-                        <h4 className={`font-bold mb-2 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}>Selected: {activeChord}</h4>
-                        <p className="text-slate-300 leading-relaxed">
-                          {activeChord.includes('m') && !activeChord.includes('dim') 
-                            ? 'Minor chord - melancholic, introspective sound'
-                            : activeChord.includes('dim')
-                            ? 'Diminished chord - tense, unstable sound that wants to resolve'
-                            : 'Major chord - bright, happy, stable sound'}
-                        </p>
-                      </div>
-                    )}
+                    {activeChord && (() => {
+                      const selectedChordInfo = generateChords().find(c => c.name === activeChord)
+                      return selectedChordInfo ? (
+                        <div className={`mt-6 p-4 rounded-xl border backdrop-blur-sm ${lessonMode ? 'bg-neon-cyan/10 border-neon-cyan/30' : 'bg-neon-purple/10 border-neon-purple/30'}`}>
+                          <div className="flex items-center gap-4 mb-3">
+                            <h4 className={`font-bold ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}>{selectedChordInfo.name}</h4>
+                            <Badge variant="outline" className="bg-gray-800 text-gray-300 font-mono">
+                              {selectedChordInfo.romanNumeral}
+                            </Badge>
+                            <Badge variant="outline" className="bg-gray-700 text-gray-200 capitalize">
+                              {selectedChordInfo.function}
+                            </Badge>
+                          </div>
+                          <div className="space-y-2 text-slate-300">
+                            <p><strong>Scale Degree:</strong> {selectedChordInfo.scaleDegree}</p>
+                            <p><strong>Quality:</strong> {selectedChordInfo.quality.replace('-', ' ')}</p>
+                            <p><strong>Function:</strong> {selectedChordInfo.function} - {getFunctionDescription(selectedChordInfo.function)}</p>
+                          </div>
+                        </div>
+                      ) : null
+                    })()}
                   </div>
                 </CardContent>
               </Card>
