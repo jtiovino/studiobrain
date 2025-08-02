@@ -95,6 +95,9 @@ export default function StudioBrain() {
   const mixScrollRef = useRef<HTMLDivElement>(null)
   const theoryScrollRef = useRef<HTMLDivElement>(null)
   const instrumentScrollRef = useRef<HTMLDivElement>(null)
+  
+  // Ref to track if refresh detection has already run (prevents infinite loops)
+  const hasRunRefreshDetection = useRef(false)
 
   // State to track if user has scrolled up
   const [isUserScrolled, setIsUserScrolled] = useState({
@@ -446,6 +449,11 @@ export default function StudioBrain() {
 
   // Restore current session on component mount, but clear on refresh
   useEffect(() => {
+    // Only run refresh detection once to prevent infinite loops
+    if (hasRunRefreshDetection.current) {
+      return
+    }
+
     // Detect if this is a page refresh vs navigation
     const isPageRefresh = () => {
       // Check Performance API for navigation type
@@ -479,7 +487,10 @@ export default function StudioBrain() {
         }
       }
     }
-  }, [chatHistory.currentSessionId, chatHistory.sessions, generalMessages.length, mixMessages.length, theoryMessages.length, instrumentMessages.length, handleSessionSelect, chatHistory])
+
+    // Mark that refresh detection has run
+    hasRunRefreshDetection.current = true
+  }, [chatHistory.currentSessionId, chatHistory.sessions, generalMessages.length, mixMessages.length, theoryMessages.length, instrumentMessages.length, handleSessionSelect])
 
   // Mobile detection effect
   useEffect(() => {
