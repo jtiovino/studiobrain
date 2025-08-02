@@ -129,7 +129,7 @@ export default function StudioBrain() {
   }
 
   // Session management handlers
-  const handleSessionSelect = (session: ChatSession) => {
+  const handleSessionSelect = useCallback((session: ChatSession) => {
     // Load session messages into the appropriate tab
     const chatMessages = session.messages.map(messageToChatMessage)
     
@@ -152,7 +152,7 @@ export default function StudioBrain() {
     chatHistory.setCurrentSession(session.id)
     setCurrentActiveTab(session.tabType)
     setShowChatHistory(false)
-  }
+  }, [messageToChatMessage, chatHistory])
 
   const handleNewSession = (tabType: ChatSession['tabType']) => {
     // Clear messages for the specific tab
@@ -443,6 +443,23 @@ export default function StudioBrain() {
       }
     }
   }, [lastInput, lastOutput, chatHistory, chatMessageToMessage])
+
+  // Restore current session on component mount (fixes chat disappearing on navigation)
+  useEffect(() => {
+    // Only restore if we have a current session and no messages are currently loaded
+    if (chatHistory.currentSessionId && 
+        generalMessages.length === 0 && 
+        mixMessages.length === 0 && 
+        theoryMessages.length === 0 && 
+        instrumentMessages.length === 0) {
+      
+      const currentSession = chatHistory.sessions.find(s => s.id === chatHistory.currentSessionId)
+      if (currentSession) {
+        console.log('🔄 Restoring session on mount:', currentSession.title)
+        handleSessionSelect(currentSession)
+      }
+    }
+  }, [chatHistory.currentSessionId, chatHistory.sessions, generalMessages.length, mixMessages.length, theoryMessages.length, instrumentMessages.length, handleSessionSelect])
 
   // Mobile detection effect
   useEffect(() => {
