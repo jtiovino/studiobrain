@@ -444,22 +444,42 @@ export default function StudioBrain() {
     }
   }, [lastInput, lastOutput, chatHistory, chatMessageToMessage])
 
-  // Restore current session on component mount (fixes chat disappearing on navigation)
+  // Restore current session on component mount, but clear on refresh
   useEffect(() => {
-    // Only restore if we have a current session and no messages are currently loaded
-    if (chatHistory.currentSessionId && 
-        generalMessages.length === 0 && 
-        mixMessages.length === 0 && 
-        theoryMessages.length === 0 && 
-        instrumentMessages.length === 0) {
-      
-      const currentSession = chatHistory.sessions.find(s => s.id === chatHistory.currentSessionId)
-      if (currentSession) {
-        console.log('🔄 Restoring session on mount:', currentSession.title)
-        handleSessionSelect(currentSession)
+    // Detect if this is a page refresh vs navigation
+    const isPageRefresh = () => {
+      // Check Performance API for navigation type
+      if (typeof window !== 'undefined' && window.performance) {
+        const navEntries = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[]
+        if (navEntries.length > 0) {
+          return navEntries[0].type === 'reload'
+        }
+        // Fallback for older browsers
+        return performance.navigation?.type === 1 // TYPE_RELOAD
+      }
+      return false
+    }
+
+    if (isPageRefresh()) {
+      // Page was refreshed - clear the current session
+      console.log('🔄 Page refresh detected - clearing current session')
+      chatHistory.setCurrentSession(null)
+    } else {
+      // Normal navigation - restore session if available
+      if (chatHistory.currentSessionId && 
+          generalMessages.length === 0 && 
+          mixMessages.length === 0 && 
+          theoryMessages.length === 0 && 
+          instrumentMessages.length === 0) {
+        
+        const currentSession = chatHistory.sessions.find(s => s.id === chatHistory.currentSessionId)
+        if (currentSession) {
+          console.log('🔄 Navigation return detected - restoring session:', currentSession.title)
+          handleSessionSelect(currentSession)
+        }
       }
     }
-  }, [chatHistory.currentSessionId, chatHistory.sessions, generalMessages.length, mixMessages.length, theoryMessages.length, instrumentMessages.length, handleSessionSelect])
+  }, [chatHistory.currentSessionId, chatHistory.sessions, generalMessages.length, mixMessages.length, theoryMessages.length, instrumentMessages.length, handleSessionSelect, chatHistory])
 
   // Mobile detection effect
   useEffect(() => {
