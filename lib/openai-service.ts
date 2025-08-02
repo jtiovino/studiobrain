@@ -130,13 +130,19 @@ export class OpenAIService {
     
     const userSettings = getUserSettingsForAPI()
     
+    // Convert message history to the format expected by the API
+    const formattedHistory = messageHistory?.map(msg => ({
+      type: msg.type || msg.role, // Handle both 'type' and 'role' properties
+      content: msg.content,
+    })) || []
+    
     return this.makeRequest({
       fullPrompt,
       originalMessage: message,
       context: 'general',
       lessonMode,
       userSettings,
-      messageHistory,
+      messageHistory: formattedHistory,
     })
   }
 
@@ -155,13 +161,19 @@ export class OpenAIService {
     
     const userSettings = getUserSettingsForAPI()
     
+    // Convert message history to the format expected by the API
+    const formattedHistory = messageHistory?.map(msg => ({
+      type: msg.type || msg.role, // Handle both 'type' and 'role' properties
+      content: msg.content,
+    })) || []
+    
     return this.makeRequest({
       fullPrompt,
       originalMessage: contextualMessage,
       context: 'mix',
       lessonMode,
       userSettings,
-      messageHistory,
+      messageHistory: formattedHistory,
     })
   }
 
@@ -176,13 +188,19 @@ export class OpenAIService {
     
     const userSettings = getUserSettingsForAPI()
     
+    // Convert message history to the format expected by the API
+    const formattedHistory = messageHistory?.map(msg => ({
+      type: msg.type || msg.role, // Handle both 'type' and 'role' properties
+      content: msg.content,
+    })) || []
+    
     return this.makeRequest({
       fullPrompt,
       originalMessage: message,
       context: 'theory',
       lessonMode,
       userSettings,
-      messageHistory,
+      messageHistory: formattedHistory,
     })
   }
 
@@ -209,6 +227,12 @@ export class OpenAIService {
     
     const userSettings = getUserSettingsForAPI()
     
+    // Convert message history to the format expected by the API
+    const formattedHistory = messageHistory?.map(msg => ({
+      type: msg.type || msg.role, // Handle both 'type' and 'role' properties
+      content: msg.content,
+    })) || []
+    
     return this.makeRequest({
       fullPrompt,
       originalMessage: contextualMessage,
@@ -216,7 +240,7 @@ export class OpenAIService {
       lessonMode,
       instrumentType,
       userSettings,
-      messageHistory,
+      messageHistory: formattedHistory,
     })
   }
 }

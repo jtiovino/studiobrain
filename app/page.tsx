@@ -113,17 +113,20 @@ export default function StudioBrain() {
   const chatMessageToMessage = (chatMsg: ChatMessage): Message => ({
     role: chatMsg.type as 'user' | 'assistant',
     content: chatMsg.content,
-    timestamp: new Date(chatMsg.timestamp),
+    timestamp: chatMsg.timestamp instanceof Date ? chatMsg.timestamp : new Date(chatMsg.timestamp),
     plugins: chatMsg.plugins
   })
 
-  const messageToChatMessage = (msg: Message): ChatMessage => ({
-    id: `${msg.role}-${msg.timestamp.getTime()}-${Math.random().toString(36).substr(2, 9)}`,
-    type: msg.role,
-    content: msg.content,
-    timestamp: msg.timestamp.getTime(),
-    plugins: msg.plugins
-  })
+  const messageToChatMessage = (msg: Message): ChatMessage => {
+    const timestampValue = msg.timestamp instanceof Date ? msg.timestamp.getTime() : msg.timestamp
+    return {
+      id: `${msg.role}-${timestampValue}-${Math.random().toString(36).substr(2, 9)}`,
+      type: msg.role,
+      content: msg.content,
+      timestamp: timestampValue,
+      plugins: msg.plugins
+    }
+  }
 
   // Session management handlers
   const handleSessionSelect = (session: ChatSession) => {
@@ -194,6 +197,7 @@ export default function StudioBrain() {
       // Create new session with first message
       const firstMessage = historyMessages[0]
       const sessionId = chatHistory.createSession(tabType, firstMessage)
+      chatHistory.setCurrentSession(sessionId)
       
       // Add remaining messages if any
       if (historyMessages.length > 1) {
@@ -750,7 +754,9 @@ export default function StudioBrain() {
     
     setGeneralLoading(true)
     try {
-      const response = await OpenAIService.askGeneral(sanitizedQuestion, lessonMode, generalMessages)
+      // Include current messages plus the new user message for context
+      const currentHistory = [...generalMessages, userMessage]
+      const response = await OpenAIService.askGeneral(sanitizedQuestion, lessonMode, currentHistory)
       if (isMounted.current) {
         const answer = response.response || response.error || 'No response'
         
@@ -826,7 +832,9 @@ export default function StudioBrain() {
     
     setMixLoading(true)
     try {
-      const response = await OpenAIService.askMix(sanitizedQuestion, lessonMode, currentGearChain, mixMessages)
+      // Include current messages plus the new user message for context
+      const currentHistory = [...mixMessages, userMessage]
+      const response = await OpenAIService.askMix(sanitizedQuestion, lessonMode, currentGearChain, currentHistory)
       if (isMounted.current) {
         const answer = response.response || response.error || 'No response'
         const plugins = response.pluginSuggestions || []
@@ -875,7 +883,9 @@ export default function StudioBrain() {
     
     setTheoryLoading(true)
     try {
-      const response = await OpenAIService.askTheory(sanitizedQuestion, lessonMode, theoryMessages)
+      // Include current messages plus the new user message for context
+      const currentHistory = [...theoryMessages, userMessage]
+      const response = await OpenAIService.askTheory(sanitizedQuestion, lessonMode, currentHistory)
       if (isMounted.current) {
         const answer = response.response || response.error || 'No response'
         
@@ -947,7 +957,9 @@ export default function StudioBrain() {
     
     setInstrumentLoading(true)
     try {
-      const response = await OpenAIService.askInstrument(sanitizedQuestion, lessonMode, selectedInstrument, currentGearChain, instrumentMessages)
+      // Include current messages plus the new user message for context
+      const currentHistory = [...instrumentMessages, userMessage]
+      const response = await OpenAIService.askInstrument(sanitizedQuestion, lessonMode, selectedInstrument, currentGearChain, currentHistory)
       if (isMounted.current) {
         const answer = response.response || response.error || 'No response'
         
@@ -1040,7 +1052,7 @@ export default function StudioBrain() {
             <History className={`w-5 h-5 transition-colors ${showChatHistory ? (lessonMode ? 'text-neon-cyan' : 'text-neon-purple') : 'text-slate-400'}`} />
           </Button>
           <SettingsButton />
-          <div className={`flex items-center gap-3 p-3 backdrop-blur-xl rounded-xl border shadow-2xl transition-all duration-300 hover:shadow-neon ${lessonMode ? 'bg-neon-cyan/10 border-neon-cyan/30 shadow-neon-cyan/20' : 'bg-glass-bg border-glass-border'}`}>
+          <div className={`flex items-center gap-3 p-3 backdrop-blur-xl rounded-xl border shadow-2xl transition-all duration-300 hover:shadow-neon ${lessonMode ? 'bg-neon-cyan/10 border-neon-cyan/30 shadow-neon-cyan/20' : 'bg-neon-purple/15 border-neon-purple/40 shadow-neon-purple/30'}`}>
             <Lightbulb className={`w-5 h-5 transition-colors ${lessonMode ? 'text-neon-cyan' : 'text-slate-400'}`} />
             <Switch
               id="lesson-mode"

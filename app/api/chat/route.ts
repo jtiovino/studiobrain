@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
-import { reviewResponse, shouldSkipCritic } from '@/lib/criticService'
 import { detectGuitarTab, parseGuitarTab, identifyChordFromTab, tabToChordShape, ParsedTab } from '@/lib/tabParser'
 
 // Rate limiting storage - in production, consider using Redis or a database
@@ -686,25 +685,6 @@ function buildSystemMessage(userSettings: UserSettings | undefined, context: str
   if (gear?.monitors) gearList.push(`Monitors: ${gear.monitors}`)
   const gearDescription = gearList.length ? gearList.join(', ') : 'basic setup'
   
-  // Lesson mode instructions with follow-up question behavior
-  const lessonModeInstructions = lessonMode 
-    ? `You are in Teaching Mode. Provide detailed explanations with reasoning, break down complex concepts into steps, include theory background when relevant, suggest practice exercises, and explain the "why" behind recommendations. Be patient, thorough, and encouraging.
-
-FOLLOW-UP QUESTION BEHAVIOR (Teaching Mode):
-- ACTIVELY ask follow-up questions to deepen learning and exploration
-- Ask questions that help the user understand concepts better: "What style are you going for?", "Have you tried this technique before?", "What's your current skill level with this?"
-- Suggest related topics to explore: "Since you're learning about modes, would you like to explore how they're used in different genres?"
-- Ask about their setup to give more personalized advice: "What amp/plugin are you using?", "Are you playing live or recording?"
-- Encourage experimentation: "Try this and let me know how it sounds - we can adjust from there"
-- End responses with engaging questions that invite further discussion`
-    : `You are in Efficiency Mode. Provide direct, actionable solutions with concise but complete explanations. Focus on immediate practical results and workflow efficiency with specific settings and parameters.
-
-FOLLOW-UP QUESTION BEHAVIOR (Quick Mode):
-- Only ask clarifying questions when the request is genuinely ambiguous or missing critical information
-- Keep questions focused and specific: "Which pickup position?", "What genre?", "Recording or live?"
-- Provide the most likely solution first, then offer alternatives: "For rock, try this... For jazz, you'd want..."
-- Avoid open-ended exploratory questions - prioritize getting the user their answer quickly`
-  
   // Section capitalization
   const sectionName = context.charAt(0).toUpperCase() + context.slice(1)
   
@@ -793,9 +773,8 @@ STEP 4 – USER-SPECIFIC TOOL ADAPTATION (if YES):
 - Suggest functional alternatives for missing tools
 - Provide menu paths and platform-specific notes (Mac vs Windows)
 
-STEP 5 – LESSON MODE AWARENESS:
-- Lesson Mode OFF → Keep answers concise and actionable
-- Lesson Mode ON → Provide in-depth, step-by-step breakdowns with reasoning, context, practical examples, and advanced applications including signal chain order, gain staging, and DAW navigation tips
+STEP 5 – RESPONSE DEPTH:
+- Follow the mode indicator at the top of this prompt for appropriate response depth and detail level
 
 DAW SHORTCUT DICTIONARY:
 
@@ -912,11 +891,10 @@ If user provides guitar tab (text/image) or asks about finger placement:
 - Show visual fretboard diagrams with correct finger positions
 - Explain most efficient positions or alternate fingerings
 - Highlight repeating shapes or patterns for recognition
-- In Lesson Mode: explain underlying theory (scale/mode/chord) used in tab
+- Explain underlying theory (scale/mode/chord) used in tab when appropriate
 
-STEP 5 – LESSON MODE AWARENESS:
-- Lesson Mode OFF → Keep answers concise and actionable
-- Lesson Mode ON → Provide in-depth, step-by-step breakdowns with reasoning, context, practical examples, and advanced applications including gear setup details and theory explanations
+STEP 5 – RESPONSE DEPTH:
+- Follow the mode indicator at the top of this prompt for appropriate response depth and detail level
 
 GEAR RECOMMENDATIONS PRIORITY:
 - Physical guitars: HH Strat, Tele, 7-string characteristics and pickup selection
@@ -969,9 +947,8 @@ STEP 3 – TAB-SPECIFIC QUESTION PROTOCOL:
 - Never force tab switches - always offer as an option
 - If unclear which tab fits, ask clarifying question first
 
-STEP 4 – LESSON MODE AWARENESS:
-- Lesson Mode OFF → Keep answers concise and actionable
-- Lesson Mode ON → Provide in-depth, step-by-step breakdowns with reasoning, context, practical examples, and advanced applications
+STEP 4 – RESPONSE DEPTH:
+- Follow the mode indicator at the top of this prompt for appropriate response depth and detail level
 
 TECHNICAL SUPPORT:
 - Use DAW-specific terminology and features when applicable
@@ -1001,9 +978,8 @@ STEP 3 – USER INSTRUMENT ADAPTATION (if YES):
 - Include fingerings, voicings, or scale shapes as needed
 - Adapt theoretical concepts to physical instrument capabilities
 
-STEP 4 – LESSON MODE AWARENESS:
-- Lesson Mode OFF → Keep answers concise and actionable
-- Lesson Mode ON → Provide in-depth, step-by-step breakdowns with reasoning, context, practical examples, and advanced applications including theoretical foundation, real-world usage examples, variations, and practice exercises
+STEP 4 – RESPONSE DEPTH:
+- Follow the mode indicator at the top of this prompt for appropriate response depth and detail level
 
 THEORY FOCUS AREAS:
 - Analyze chord progressions, scales, and harmonic content
@@ -1055,7 +1031,14 @@ When suggesting effects for your HX One:
     ? ` IMPORTANT: Do not recommend these mixing plugins in Instrument tab: ${pluginCategories.invalid.join(', ')}.`
     : ''
 
-  const systemMessage = `**StudioBrain Universal Sourcing & Accuracy Standards**
+  const systemMessage = `🚨 **CURRENT MODE: ${lessonMode ? 'LESSON MODE' : 'QUICK MODE'}** 🚨
+
+${lessonMode 
+  ? '⚡ LESSON MODE ACTIVE: Provide detailed, educational responses with step-by-step explanations, examples, reasoning, and practice suggestions. Use multiple paragraphs and thorough breakdowns.'
+  : '⚡ QUICK MODE ACTIVE: Keep responses concise and actionable. Maximum 1-2 sentences per point. Focus on essential information only.'
+}
+
+**StudioBrain Universal Sourcing & Accuracy Standards**
 
 When answering any question in StudioBrain, follow these rules to ensure accuracy, clarity, and reliability.
 
@@ -1083,9 +1066,8 @@ Always source information from the most reliable origin available, in this order
 • Then ask: "Do you want me to show how to adapt this to your setup?"
 • Only adapt if the user says YES (or if they have adaptation auto-enabled in settings).
 
-**5. Lesson Mode Handling**
-• Lesson Mode OFF → Keep answers concise and actionable.
-• Lesson Mode ON → Provide in-depth, step-by-step breakdowns with reasoning, context, practical examples, and advanced applications.
+**5. Response Depth**
+• Follow the current mode indicator at the top of this prompt for response depth and detail level.
 
 **6. Clarity & Formatting**
 • Use clear headings, bullet points, and visual aids (diagrams, charts, fretboards, etc.) where possible.
@@ -1130,9 +1112,7 @@ When a user asks for help with tone and mentions the Line 6 HX One:
   - 'Chamber' (reverb)
   - 'Ubiquitous Vibe' (modulation)
 - Never suggest stacking effects
-- Explain how the selected model fits the user's goal${technicalModifier}${ampModelAddendum}${hxOneGuidance}
-
-${lessonModeInstructions}`
+- Explain how the selected model fits the user's goal${technicalModifier}${ampModelAddendum}${hxOneGuidance}`
 
   return systemMessage
 }
@@ -1232,7 +1212,7 @@ TAB ANALYSIS DETECTED:
 ${identifiedChord ? `- Identified chord/shape: ${identifiedChord}` : '- No clear chord pattern identified'}
 ${parsedTab.isChord ? '- Appears to be a chord (simultaneous notes)' : '- Appears to be a melodic sequence'}
 
-Please analyze this tab and provide insights about the notes, fingering, and technique. ${lessonMode ? 'Include detailed music theory explanation since Lesson Mode is enabled.' : ''}`
+Please analyze this tab and provide insights about the notes, fingering, and technique.`
 
         enhancedMessage = originalMessage + tabAnalysis
       }
@@ -1283,32 +1263,13 @@ Please analyze this tab and provide insights about the notes, fingering, and tec
       enhancedResponse += `\n• **All notes used:** ${modalAnalysis.allNotesUsed.join(', ')}`
     }
 
-    // Internal critic review - always-on pipeline
+    // Internal critic review - DISABLED 
+    // The critic was interfering with the new Universal Standards and lesson mode improvements
+    // Accuracy and sourcing are now handled directly by the main prompt system
     let finalResponse = enhancedResponse
-    const skipCritic = await shouldSkipCritic(originalMessage, enhancedResponse)
+    console.log('✅ Using direct response (critic disabled for improved accuracy)')
     
-    if (!skipCritic) {
-      console.log('🔍 Running internal critic review...')
-      const criticResult = await reviewResponse({
-        originalPrompt: originalMessage,
-        assistantResponse: enhancedResponse,
-        userSettings,
-        context,
-        lessonMode
-      })
-      
-      finalResponse = criticResult.finalResponse
-      
-      if (criticResult.wasCriticAdjusted) {
-        console.log('✏️ Response was adjusted by critic for accuracy/safety')
-      } else {
-        console.log('✅ Response passed critic review unchanged')
-      }
-    } else {
-      console.log('⏭️ Skipping critic review (response type doesn\'t require it)')
-    }
-    
-    // Parse plugin suggestions from the final response (after critic review)
+    // Parse plugin suggestions from the final response
     const pluginSuggestions = context === 'mix' ? parsePluginSuggestions(finalResponse) : []
     const scaleRequest = parseScaleRequest(originalMessage) // Parse from original user message
 
