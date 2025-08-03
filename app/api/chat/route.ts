@@ -1239,7 +1239,7 @@ Please analyze this tab and provide insights about the notes, fingering, and tec
     console.log('📜 Message history length:', messageHistory?.length || 0)
     
     const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4o',
       messages: conversationMessages,
       max_tokens: lessonMode ? 750 : 500,
       temperature: lessonMode ? 0.4 : 0.3,

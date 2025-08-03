@@ -30,6 +30,7 @@ import { Badge } from "@/components/ui/badge"
 import { Music, Guitar, Piano, Volume2, Lightbulb, Loader2, RotateCcw, History, X } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { OpenAIService } from "@/lib/openai-service"
+import { stripMarkdown } from "@/lib/utils"
 import { VoicingView } from "@/components/VoicingView"
 import { ChordShape } from "@/lib/voicings"
 import SettingsButton from "@/components/SettingsButton"
@@ -735,7 +736,7 @@ export default function StudioBrain() {
               }}
             >
               <div className="whitespace-pre-line leading-relaxed">
-                {message.content}
+                {stripMarkdown(message.content)}
               </div>
               {message.plugins && message.plugins.length > 0 && (
                 <div className="mt-4 space-y-3">
