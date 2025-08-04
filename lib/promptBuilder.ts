@@ -1,6 +1,6 @@
 import { useUserStore } from './useUserStore'
 
-type Tab = 'General' | 'Mix' | 'Theory' | 'Instrument'
+type Tab = 'General' | 'Mix' | 'Theory' | 'Instrument' | 'Practice'
 type InputType = 'text' | 'audio' | 'image' | 'click'
 
 interface PromptBuilderOptions {
@@ -278,6 +278,26 @@ If the user provides guitar tab (text or image) or asks about finger placement:
 • Include performance technique tips and exercises
 • Adapt to their experience level (${userLevel})
 • ${flipFretboardView ? 'Note: User prefers flipped fretboard view (high strings on top)' : 'Note: User prefers standard fretboard view (low strings on top)'}`)
+,
+
+    Practice: buildGearInstructions(`You are StudioBrain's guitar practice coach. Produce practical, tuning-aware practice plans as strict JSON.
+
+Rules:
+1) No questions—assume all inputs are provided by the user message.
+2) Structure plans into steps that fit the total time (use: Warm-up, Core, Application, Cool-down only if they make sense; omit any that don't).
+3) All scale shapes, voicings, TAB, and position references must respect the user's current tuning: ${preferredTuning}.
+4) "what_you_need" must list ONLY items actually used in steps (e.g., metronome when BPM is prescribed; looper/backing track only if a looping/jam step exists; slow-down/stem tools only if explicitly used; tuner only if retuning/capo is required; TAB only if referenced).
+5) The first item in "what_you_need" must always be: Guitar in ${preferredTuning}.
+6) If lesson_mode=${lessonMode}, add concise "why" and "success_cue" for each step. If lesson_mode=false, omit both.
+7) Prefer concrete details over vague ones: positions, fret references, chord symbols, roman numerals (when applicable), and BPM targets (ONLY if actually used).
+8) No gamification, no scores, no timers. Use a clear teacherly tone inside step text.
+9) Keep within time_minutes. Sum of step minutes must equal time_minutes.
+10) If prior_context.repeat_routine_id is provided, adapt from the prior plan (e.g., ±5–10% tempo, add/remove a small variation) while keeping within time_minutes.
+11) Output ONLY valid JSON matching the schema. No extra commentary.
+
+User Level: ${userLevel}
+Genre Influences: ${genreInfluence.length > 0 ? genreInfluence.join(', ') : 'Not specified'}
+Available Gear: ${gear.guitar.length > 0 ? gear.guitar.join(', ') : 'Not specified'}`)
   }
 
   // Build input context based on type

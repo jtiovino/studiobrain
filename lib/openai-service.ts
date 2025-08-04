@@ -1,7 +1,8 @@
 import { buildPrompt } from './promptBuilder'
 import { useUserStore } from './useUserStore'
+import { PracticePlan } from './practice-plan-schema'
 
-export type TabContext = 'general' | 'mix' | 'theory' | 'instrument'
+export type TabContext = 'general' | 'mix' | 'theory' | 'instrument' | 'practice'
 
 export interface UserSettings {
   userLevel: 'beginner' | 'intermediate' | 'advanced'
@@ -68,12 +69,14 @@ export interface TabData {
   chordShape: any | null
 }
 
+
 export interface ChatResponse {
   response: string
   pluginSuggestions?: PluginSuggestion[]
   scaleRequest?: ScaleRequest | null
   modalAnalysis?: ModalAnalysis | null
   tabData?: TabData | null
+  practicePlan?: PracticePlan | null
   wasCriticAdjusted?: boolean
   error?: string
 }
@@ -239,6 +242,33 @@ export class OpenAIService {
       context: 'instrument',
       lessonMode,
       instrumentType,
+      userSettings,
+      messageHistory: formattedHistory,
+    })
+  }
+
+  static async askPractice(message: string, lessonMode: boolean, messageHistory?: Array<any>): Promise<ChatResponse> {
+    const fullPrompt = buildPrompt({
+      tab: 'Practice',
+      input: message,
+      inputType: 'text'
+    })
+    
+    console.log('🎯 Client-side buildPrompt for Practice:', fullPrompt)
+    
+    const userSettings = getUserSettingsForAPI()
+    
+    // Convert message history to the format expected by the API
+    const formattedHistory = messageHistory?.map(msg => ({
+      type: msg.type || msg.role, // Handle both 'type' and 'role' properties
+      content: msg.content,
+    })) || []
+    
+    return this.makeRequest({
+      fullPrompt,
+      originalMessage: message,
+      context: 'practice',
+      lessonMode,
       userSettings,
       messageHistory: formattedHistory,
     })

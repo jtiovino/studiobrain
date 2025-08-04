@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useUserStore } from '@/lib/useUserStore'
 import { useHydration } from '@/lib/useHydration'
+import { useChatHistoryStore } from '@/lib/useChatHistoryStore'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -14,6 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 export default function UserSettingsForm() {
   const router = useRouter()
   const hasHydrated = useHydration()
+  const { restoreFromSettings } = useChatHistoryStore()
   const {
     userLevel,
     roles,
@@ -112,7 +114,10 @@ export default function UserSettingsForm() {
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
       <button
-        onClick={() => router.push('/')}
+        onClick={() => {
+          restoreFromSettings()
+          router.push('/')
+        }}
         className="text-sm text-indigo-500 hover:underline mb-4"
       >
         ← Exit Settings

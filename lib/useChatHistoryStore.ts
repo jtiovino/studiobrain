@@ -16,7 +16,7 @@ export interface Message {
 export interface ChatSession {
   id: string
   title: string
-  tabType: 'general' | 'mix' | 'theory' | 'instrument'
+  tabType: 'general' | 'mix' | 'theory' | 'instrument' | 'practice'
   messages: Message[]
   createdAt: Date
   lastModified: Date
@@ -30,6 +30,7 @@ interface ChatHistorySettings {
 interface ChatHistoryState {
   sessions: ChatSession[]
   currentSessionId: string | null
+  settingsSessionId: string | null // Temporarily store session ID when navigating to settings
   settings: ChatHistorySettings
   
   // Actions
@@ -40,6 +41,8 @@ interface ChatHistoryState {
   renameSession: (sessionId: string, newTitle: string) => void
   duplicateSession: (sessionId: string) => string
   setCurrentSession: (sessionId: string | null) => void
+  setSettingsSession: (sessionId: string | null) => void
+  restoreFromSettings: () => void
   clearAllSessions: () => void
   getSessionsByTab: (tabType: ChatSession['tabType']) => ChatSession[]
   searchSessions: (query: string) => ChatSession[]
@@ -70,6 +73,7 @@ export const useChatHistoryStore = create<ChatHistoryState>()(
     (set, get) => ({
       sessions: [],
       currentSessionId: null,
+      settingsSessionId: null,
       settings: {
         maxSessions: 50,
         autoSave: true
@@ -172,6 +176,18 @@ export const useChatHistoryStore = create<ChatHistoryState>()(
 
       setCurrentSession: (sessionId) => {
         set({ currentSessionId: sessionId })
+      },
+
+      setSettingsSession: (sessionId) => {
+        set({ settingsSessionId: sessionId })
+      },
+
+      restoreFromSettings: () => {
+        const { settingsSessionId } = get()
+        set({ 
+          currentSessionId: settingsSessionId,
+          settingsSessionId: null 
+        })
       },
 
       clearAllSessions: () => {
