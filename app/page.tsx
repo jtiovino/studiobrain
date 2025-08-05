@@ -56,7 +56,7 @@ interface PianoKey {
 export default function StudioBrain() {
   const { lastInput, lastOutput, setSession } = useSessionStore()
   const chatHistory = useChatHistoryStore()
-  const { userLevel, preferredTuning, lessonMode: storeLessonMode } = useUserStore()
+  const { userLevel, preferredTuning, lessonMode: storeLessonMode, set } = useUserStore()
   const router = useRouter()
   const [selectedInstrument, setSelectedInstrument] = useState("guitar")
   const [selectedChord, setSelectedChord] = useState("C")
@@ -101,9 +101,6 @@ export default function StudioBrain() {
     focus_tags: [] as string[],
     goal: "",
     time_minutes: 30,
-    preferences: {
-      allow_tab_snippets: true
-    },
     prior_context: {
       repeat_routine_id: null as string | null,
       known_weak_spots: [] as string[],
@@ -454,6 +451,11 @@ export default function StudioBrain() {
       console.log('Audio playback not available:', error)
     }
   }
+
+  // Sync main screen lesson mode with user's Settings preference on mount
+  useEffect(() => {
+    setLessonMode(storeLessonMode)
+  }, [storeLessonMode])
 
   // Rehydration effect - restore last session and migrate old data
   useEffect(() => {
@@ -1116,7 +1118,6 @@ export default function StudioBrain() {
       skill_level: userLevel,
       tuning: preferredTuning,
       lesson_mode: lessonMode,
-      preferences: practiceForm.preferences,
       prior_context: practiceForm.prior_context
     }
     
@@ -1130,21 +1131,6 @@ export default function StudioBrain() {
       timestamp: Date.now()
     }
     setPracticeMessages(prev => [...prev, userMessage])
-    
-    // Reset form
-    setPracticeForm({
-      focus_tags: [],
-      goal: "",
-      time_minutes: 30,
-      preferences: {
-        allow_tab_snippets: true
-      },
-      prior_context: {
-        repeat_routine_id: null,
-        known_weak_spots: [],
-        known_assets: []
-      }
-    })
     
     setPracticeLoading(true)
     try {
@@ -1231,7 +1217,10 @@ export default function StudioBrain() {
             <Switch
               id="lesson-mode"
               checked={lessonMode}
-              onCheckedChange={setLessonMode}
+              onCheckedChange={(checked) => {
+                setLessonMode(checked)
+                set({ lessonMode: checked })
+              }}
               className={lessonMode ? 'data-[state=checked]:bg-neon-cyan' : ''}
             />
             <span className={`text-sm font-medium min-w-[50px] text-center transition-colors ${lessonMode ? 'text-neon-cyan' : 'text-slate-400'}`}>
@@ -1993,6 +1982,7 @@ export default function StudioBrain() {
                     placeholder="e.g., Learn sweep picking technique, Work on jazz chord progressions"
                     value={practiceForm.goal}
                     onChange={(e) => setPracticeForm(prev => ({ ...prev, goal: e.target.value }))}
+                    onKeyDown={(e) => handleKeyDown(e, handlePracticeQuestion)}
                     className={`bg-glass-bg border border-glass-border rounded-xl text-white transition-all duration-300 hover:border-slate-400 ${lessonMode 
                       ? 'focus:border-neon-cyan focus:shadow-lg focus:shadow-neon-cyan/20' 
                       : 'focus:border-neon-purple focus:shadow-lg focus:shadow-neon-purple/20'
@@ -2041,28 +2031,6 @@ export default function StudioBrain() {
                   </div>
                 </div>
 
-                {/* Preferences */}
-                <div className="space-y-3">
-                  <Label className={`text-base font-medium ${lessonMode ? 'text-slate-200' : 'text-slate-200'}`}>Preferences</Label>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="allow-tab-snippets"
-                        checked={practiceForm.preferences.allow_tab_snippets}
-                        onCheckedChange={(checked) => 
-                          setPracticeForm(prev => ({
-                            ...prev,
-                            preferences: { ...prev.preferences, allow_tab_snippets: checked as boolean }
-                          }))
-                        }
-                        className="border-glass-border"
-                      />
-                      <Label htmlFor="allow-tab-snippets" className={`text-sm ${lessonMode ? 'text-slate-300' : 'text-slate-300'} cursor-pointer`}>
-                        Allow TAB snippets in exercises
-                      </Label>
-                    </div>
-                  </div>
-                </div>
 
                 <Button 
                   onClick={handlePracticeQuestion} 
