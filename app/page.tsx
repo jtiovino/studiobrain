@@ -2,6 +2,7 @@
 
 import React from "react"
 import { useState, useEffect, useRef, useCallback, useLayoutEffect } from "react"
+import { useRouter } from "next/navigation"
 import ErrorBoundary from "@/components/ErrorBoundary"
 import { HydrationBoundary } from "@/components/HydrationBoundary"
 import { getModeChords, getScaleNotes, normalizeModeNames, ChordInfo, NoteName, ModeName } from "@/lib/music-theory"
@@ -19,7 +20,6 @@ interface ChatMessage {
   content: string
   timestamp: number
   plugins?: PluginSuggestion[]
-  practicePlan?: PracticePlan
 }
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -33,7 +33,6 @@ import { Badge } from "@/components/ui/badge"
 import { Music, Guitar, Piano, Volume2, Lightbulb, Loader2, RotateCcw, History, X, BookOpen } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { OpenAIService } from "@/lib/openai-service"
-import { PracticePlan, parsePlan } from "@/lib/practice-plan-schema"
 import { stripMarkdown } from "@/lib/utils"
 import { VoicingView } from "@/components/VoicingView"
 import { ChordShape } from "@/lib/voicings"
@@ -44,7 +43,6 @@ import ChatHistoryPanel from "@/components/ChatHistoryPanel"
 import GearChain from "@/components/GearChain"
 import { GearItem } from "@/lib/gearService"
 import { useUserStore } from "@/lib/useUserStore"
-import { PracticePlanView } from "@/components/PracticePlanView"
 
 interface PianoKey {
   note: string
@@ -59,6 +57,7 @@ export default function StudioBrain() {
   const { lastInput, lastOutput, setSession } = useSessionStore()
   const chatHistory = useChatHistoryStore()
   const { userLevel, preferredTuning, lessonMode: storeLessonMode } = useUserStore()
+  const router = useRouter()
   const [selectedInstrument, setSelectedInstrument] = useState("guitar")
   const [selectedChord, setSelectedChord] = useState("C")
   const [selectedMode, setSelectedMode] = useState("major")
@@ -103,8 +102,7 @@ export default function StudioBrain() {
     goal: "",
     time_minutes: 30,
     preferences: {
-      allow_tab_snippets: true,
-      avoid_unlicensed_songs: true
+      allow_tab_snippets: true
     },
     prior_context: {
       repeat_routine_id: null as string | null,
@@ -358,6 +356,14 @@ export default function StudioBrain() {
   const clearTabNotes = () => {
     setActiveTabNotes([])
     setShowTabNotes(false)
+  }
+
+  // Function to navigate to settings page
+  const handleSettingsClick = (e: React.MouseEvent) => {
+    console.log('Settings clicked!') // Debug log
+    e.preventDefault()
+    e.stopPropagation()
+    router.push('/settings')
   }
 
   // Function to handle chord playback using Web Audio API
@@ -755,60 +761,52 @@ export default function StudioBrain() {
             key={message.id} 
             className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
           >
-            {message.practicePlan && tabName === 'practice' ? (
-              // Practice plan gets full width
-              <div className="w-full">
-                <PracticePlanView plan={message.practicePlan} lessonMode={lessonMode} />
+            <div 
+              className={`max-w-[85%] sm:max-w-[80%] rounded-xl p-3 sm:p-4 ${
+                message.type === 'user'
+                  ? lessonMode
+                    ? 'text-black'
+                    : 'text-white'
+                  : 'border border-slate-600/50 text-slate-200'
+              }`}
+              style={{
+                backgroundColor: message.type === 'user'
+                  ? lessonMode
+                    ? '#06b6d4'
+                    : '#a855f7'
+                  : '#1e293b'
+              }}
+            >
+              <div className="whitespace-pre-line leading-relaxed">
+                {stripMarkdown(message.content)}
               </div>
-            ) : (
-              // Regular message bubble
-              <div 
-                className={`max-w-[85%] sm:max-w-[80%] rounded-xl p-3 sm:p-4 ${
-                  message.type === 'user'
-                    ? lessonMode
-                      ? 'text-black'
-                      : 'text-white'
-                    : 'border border-slate-600/50 text-slate-200'
-                }`}
-                style={{
-                  backgroundColor: message.type === 'user'
-                    ? lessonMode
-                      ? '#06b6d4'
-                      : '#a855f7'
-                    : '#1e293b'
-                }}
-              >
-                <div className="whitespace-pre-line leading-relaxed">
-                  {stripMarkdown(message.content)}
-                </div>
-                {message.plugins && message.plugins.length > 0 && (
-                  <div className="mt-4 space-y-3">
-                    <h5 className={`font-bold text-sm ${lessonMode ? 'text-neon-blue' : 'text-neon-blue'}`}>
-                      Suggested Plugin Chain:
-                    </h5>
-                    {message.plugins.map((plugin, index) => (
-                      <div key={index} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg border border-slate-600/50" style={{ backgroundColor: '#334155' }}>
-                        <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm ${lessonMode ? 'bg-neon-cyan' : 'bg-neon-purple'}`}>
-                          {index + 1}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1 sm:gap-2 mb-1 flex-wrap">
-                            <span className="font-semibold text-white text-xs sm:text-sm">{plugin.name}</span>
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${lessonMode ? 'bg-neon-cyan/20 text-neon-cyan' : 'bg-neon-purple/20 text-neon-purple'}`}>
-                              {plugin.type}
-                            </span>
-                          </div>
-                          <p className="text-slate-300 text-xs sm:text-sm mb-1">{plugin.description}</p>
-                          {plugin.explanation && (
-                            <p className="text-slate-400 text-xs">{plugin.explanation}</p>
-                          )}
-                        </div>
+              {message.plugins && message.plugins.length > 0 && (
+                <div className="mt-4 space-y-3">
+                  <h5 className={`font-bold text-sm ${lessonMode ? 'text-neon-blue' : 'text-neon-blue'}`}>
+                    Suggested Plugin Chain:
+                  </h5>
+                  {message.plugins.map((plugin, index) => (
+                    <div key={index} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg border border-slate-600/50" style={{ backgroundColor: '#334155' }}>
+                      <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm ${lessonMode ? 'bg-neon-cyan' : 'bg-neon-purple'}`}>
+                        {index + 1}
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1 sm:gap-2 mb-1 flex-wrap">
+                          <span className="font-semibold text-white text-xs sm:text-sm">{plugin.name}</span>
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${lessonMode ? 'bg-neon-cyan/20 text-neon-cyan' : 'bg-neon-purple/20 text-neon-purple'}`}>
+                            {plugin.type}
+                          </span>
+                        </div>
+                        <p className="text-slate-300 text-xs sm:text-sm mb-1">{plugin.description}</p>
+                        {plugin.explanation && (
+                          <p className="text-slate-400 text-xs">{plugin.explanation}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         ))}
         {loading && (
@@ -1126,6 +1124,7 @@ export default function StudioBrain() {
     
     // Add user message to chat (show the goal, not the full JSON)
     const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
       type: 'user',
       content: `Practice Goal: ${practiceForm.goal} (${practiceForm.time_minutes} minutes)`,
       timestamp: Date.now()
@@ -1138,8 +1137,7 @@ export default function StudioBrain() {
       goal: "",
       time_minutes: 30,
       preferences: {
-        allow_tab_snippets: true,
-        avoid_unlicensed_songs: true
+        allow_tab_snippets: true
       },
       prior_context: {
         repeat_routine_id: null,
@@ -1154,57 +1152,13 @@ export default function StudioBrain() {
       const currentHistory = [...practiceMessages, userMessage]
       const response = await OpenAIService.askPractice(jsonString, lessonMode, currentHistory)
       if (isMounted.current) {
-        let parsedPracticePlan: PracticePlan | undefined = undefined
-        let displayContent = response.response || response.error || 'No response'
-        
-        // Try to parse and validate the practice plan
-        if (response.response && !response.error) {
-          try {
-            const validationInput = {
-              time_minutes: practiceForm.time_minutes,
-              tuning: preferredTuning,
-              lesson_mode: lessonMode
-            }
-            
-            parsedPracticePlan = parsePlan(response.response, validationInput)
-            displayContent = `Practice Plan: ${parsedPracticePlan.goal}`
-          } catch (error) {
-            console.warn('Practice plan parsing failed:', error)
-            const errorMsg = error instanceof Error ? error.message : 'Unknown parsing error'
-            
-            // Categorize error types for better UX
-            let errorCategory = "Parsing Error"
-            let errorContext = "The response could not be processed."
-            
-            if (errorMsg.includes("Unexpected token") || errorMsg.includes("JSON")) {
-              errorCategory = "Malformed JSON"
-              errorContext = "The AI response was not valid JSON."
-            } else if (errorMsg.includes("Minutes sum")) {
-              errorCategory = "Time Constraint Violation"
-              errorContext = "The AI generated a valid structure but didn't follow time requirements."
-            } else if (errorMsg.includes("what_you_need")) {
-              errorCategory = "Equipment Requirement Violation"
-              errorContext = "The AI didn't properly specify required equipment."
-            } else if (errorMsg.includes("Metronome")) {
-              errorCategory = "Resource Consistency Violation"
-              errorContext = "The AI listed equipment that wasn't used in the steps."
-            } else if (errorMsg.includes("lesson_mode")) {
-              errorCategory = "Lesson Mode Compliance Violation"
-              errorContext = "The AI didn't match lesson mode field requirements."
-            } else if (errorMsg.includes("Required") || errorMsg.includes("Expected")) {
-              errorCategory = "Schema Validation Error"
-              errorContext = "The AI response was missing required fields or had incorrect data types."
-            }
-            
-            displayContent = `⚠️ ${errorCategory}:\n${errorMsg}\n\n💡 ${errorContext}\n\n📝 Raw response:\n${response.response}`
-          }
-        }
+        const displayContent = response.response || response.error || 'No response'
         
         const assistantMessage: ChatMessage = {
+          id: `assistant-${Date.now()}`,
           type: 'assistant',
           content: displayContent,
-          timestamp: Date.now(),
-          practicePlan: parsedPracticePlan
+          timestamp: Date.now()
         }
         setPracticeMessages(prev => [...prev, assistantMessage])
         
@@ -1219,6 +1173,7 @@ export default function StudioBrain() {
       if (isMounted.current) {
         const errorMessage = 'Error: Unable to get response from StudioBrain.'
         const errorAssistantMessage: ChatMessage = {
+          id: `assistant-error-${Date.now()}`,
           type: 'assistant',
           content: errorMessage,
           timestamp: Date.now()
@@ -2064,11 +2019,25 @@ export default function StudioBrain() {
                   </div>
                   <div className="space-y-3">
                     <Label className={`text-base font-medium ${lessonMode ? 'text-slate-200' : 'text-slate-200'}`}>Current Settings</Label>
-                    <div className={`text-sm ${lessonMode ? 'text-slate-300' : 'text-slate-300'} bg-glass-bg/50 rounded-xl p-3 border border-glass-border`}>
-                      <div>Level: {userLevel}</div>
-                      <div>Tuning: {preferredTuning}</div>
-                      <div>Lesson Mode: {lessonMode ? 'On' : 'Off'}</div>
-                    </div>
+                    <Card 
+                      onClick={handleSettingsClick}
+                      className={`bg-glass-bg backdrop-blur-sm border border-glass-border cursor-pointer transition-all duration-300 hover:border-slate-400 ${
+                        lessonMode 
+                          ? 'hover:bg-neon-cyan/10 hover:border-neon-cyan/30 hover:shadow-lg hover:shadow-neon-cyan/20' 
+                          : 'hover:bg-neon-purple/10 hover:border-neon-purple/30 hover:shadow-lg hover:shadow-neon-purple/20'
+                      }`}
+                    >
+                      <CardContent className="p-4">
+                        <div className="space-y-2 text-sm text-slate-300">
+                          <div>Level: {userLevel}</div>
+                          <div>Tuning: {preferredTuning}</div>
+                          <div>Lesson Mode: {lessonMode ? 'On' : 'Off'}</div>
+                          <div className="text-xs text-slate-400 mt-3 opacity-60 border-t border-glass-border/50 pt-2">
+                            Click to edit settings
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
                 </div>
 
@@ -2090,22 +2059,6 @@ export default function StudioBrain() {
                       />
                       <Label htmlFor="allow-tab-snippets" className={`text-sm ${lessonMode ? 'text-slate-300' : 'text-slate-300'} cursor-pointer`}>
                         Allow TAB snippets in exercises
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="avoid-unlicensed"
-                        checked={practiceForm.preferences.avoid_unlicensed_songs}
-                        onCheckedChange={(checked) => 
-                          setPracticeForm(prev => ({
-                            ...prev,
-                            preferences: { ...prev.preferences, avoid_unlicensed_songs: checked as boolean }
-                          }))
-                        }
-                        className="border-glass-border"
-                      />
-                      <Label htmlFor="avoid-unlicensed" className={`text-sm ${lessonMode ? 'text-slate-300' : 'text-slate-300'} cursor-pointer`}>
-                        Avoid unlicensed song references
                       </Label>
                     </div>
                   </div>
