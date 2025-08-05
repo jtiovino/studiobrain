@@ -1,21 +1,27 @@
-'use client'
+'use client';
 
-import React, { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useUserStore } from '@/lib/useUserStore'
-import { useHydration } from '@/lib/useHydration'
-import { useChatHistoryStore } from '@/lib/useChatHistoryStore'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
-import { Checkbox } from '@/components/ui/checkbox'
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useUserStore } from '@/lib/useUserStore';
+import { useHydration } from '@/lib/useHydration';
+import { useChatHistoryStore } from '@/lib/useChatHistoryStore';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export default function UserSettingsForm() {
-  const router = useRouter()
-  const hasHydrated = useHydration()
-  const { restoreFromSettings } = useChatHistoryStore()
+  const router = useRouter();
+  const hasHydrated = useHydration();
+  const { restoreFromSettings } = useChatHistoryStore();
   const {
     userLevel,
     roles,
@@ -26,79 +32,104 @@ export default function UserSettingsForm() {
     flipFretboardView,
     defaultTab,
     gear,
-    set
-  } = useUserStore()
+    set,
+  } = useUserStore();
 
-  const [newGuitar, setNewGuitar] = useState('')
-  const [newPedal, setNewPedal] = useState('')
-  const [newPlugin, setNewPlugin] = useState('')
-  const [genreInput, setGenreInput] = useState('')
+  const [newGuitar, setNewGuitar] = useState('');
+  const [newPedal, setNewPedal] = useState('');
+  const [newPlugin, setNewPlugin] = useState('');
+  const [genreInput, setGenreInput] = useState('');
 
   // Update genre input when store hydrates
   useEffect(() => {
     if (hasHydrated) {
-      setGenreInput(genreInfluence.join(', '))
-      console.log('🎯 Settings form hydrated - current gear:', gear)
+      setGenreInput(genreInfluence.join(', '));
+      console.log('🎯 Settings form hydrated - current gear:', gear);
     }
-  }, [hasHydrated, genreInfluence, gear])
+  }, [hasHydrated, genreInfluence, gear]);
 
   const addGuitar = () => {
     if (newGuitar.trim()) {
-      const updatedGear = { ...gear, guitar: [...gear.guitar, newGuitar.trim()] }
-      console.log('🎸 Adding guitar:', newGuitar.trim())
-      console.log('🎸 Updated guitars array:', updatedGear.guitar)
-      set({ gear: updatedGear })
-      setNewGuitar('')
+      const updatedGear = {
+        ...gear,
+        guitar: [...gear.guitar, newGuitar.trim()],
+      };
+      console.log('🎸 Adding guitar:', newGuitar.trim());
+      console.log('🎸 Updated guitars array:', updatedGear.guitar);
+      set({ gear: updatedGear });
+      setNewGuitar('');
     }
-  }
+  };
 
   const addPedal = () => {
     if (newPedal.trim()) {
-      const updatedGear = { ...gear, pedals: [...gear.pedals, newPedal.trim()] }
-      console.log('🎵 Adding pedal:', newPedal.trim())
-      console.log('🎵 Updated pedals array:', updatedGear.pedals)
-      set({ gear: updatedGear })
-      setNewPedal('')
+      const updatedGear = {
+        ...gear,
+        pedals: [...gear.pedals, newPedal.trim()],
+      };
+      console.log('🎵 Adding pedal:', newPedal.trim());
+      console.log('🎵 Updated pedals array:', updatedGear.pedals);
+      set({ gear: updatedGear });
+      setNewPedal('');
     }
-  }
+  };
 
   const addPlugin = () => {
     if (newPlugin.trim()) {
-      const updatedGear = { ...gear, plugins: [...gear.plugins, newPlugin.trim()] }
-      console.log('🎛️ Adding plugin:', newPlugin.trim())
-      console.log('🎛️ Updated plugins array:', updatedGear.plugins)
-      set({ gear: updatedGear })
-      setNewPlugin('')
+      const updatedGear = {
+        ...gear,
+        plugins: [...gear.plugins, newPlugin.trim()],
+      };
+      console.log('🎛️ Adding plugin:', newPlugin.trim());
+      console.log('🎛️ Updated plugins array:', updatedGear.plugins);
+      set({ gear: updatedGear });
+      setNewPlugin('');
     }
-  }
+  };
 
   const removeGuitar = (index: number) => {
-    set({ gear: { ...gear, guitar: gear.guitar.filter((_, i) => i !== index) } })
-  }
+    set({
+      gear: { ...gear, guitar: gear.guitar.filter((_, i) => i !== index) },
+    });
+  };
 
   const removePedal = (index: number) => {
-    set({ gear: { ...gear, pedals: gear.pedals.filter((_, i) => i !== index) } })
-  }
+    set({
+      gear: { ...gear, pedals: gear.pedals.filter((_, i) => i !== index) },
+    });
+  };
 
   const removePlugin = (index: number) => {
-    set({ gear: { ...gear, plugins: gear.plugins.filter((_, i) => i !== index) } })
-  }
+    set({
+      gear: { ...gear, plugins: gear.plugins.filter((_, i) => i !== index) },
+    });
+  };
 
   const updateGenres = (value: string) => {
-    setGenreInput(value)
-    const genres = value.split(',').map(g => g.trim()).filter(g => g)
-    set({ genreInfluence: genres })
-  }
+    setGenreInput(value);
+    const genres = value
+      .split(',')
+      .map(g => g.trim())
+      .filter(g => g);
+    set({ genreInfluence: genres });
+  };
 
-  const availableRoles = ['student', 'teacher', 'producer', 'guitarist', 'songwriter', 'engineer']
+  const availableRoles = [
+    'student',
+    'teacher',
+    'producer',
+    'guitarist',
+    'songwriter',
+    'engineer',
+  ];
 
   const toggleRole = (role: string) => {
     if (roles.includes(role)) {
-      set({ roles: roles.filter(r => r !== role) })
+      set({ roles: roles.filter(r => r !== role) });
     } else {
-      set({ roles: [...roles, role] })
+      set({ roles: [...roles, role] });
     }
-  }
+  };
 
   // Show loading state while hydrating
   if (!hasHydrated) {
@@ -108,27 +139,34 @@ export default function UserSettingsForm() {
           <p className="text-slate-600">Loading settings...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
       <button
         onClick={() => {
-          restoreFromSettings()
-          router.push('/')
+          restoreFromSettings();
+          router.push('/');
         }}
         className="text-sm text-indigo-500 hover:underline mb-4"
       >
         ← Exit Settings
       </button>
       <h2 className="text-2xl font-bold mb-6 text-slate-900">User Settings</h2>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* User Level */}
         <div className="space-y-2">
-          <Label htmlFor="userLevel" className="text-slate-800 font-medium">User Level</Label>
-          <Select value={userLevel} onValueChange={(value: 'beginner' | 'intermediate' | 'advanced') => set({ userLevel: value })}>
+          <Label htmlFor="userLevel" className="text-slate-800 font-medium">
+            User Level
+          </Label>
+          <Select
+            value={userLevel}
+            onValueChange={(value: 'beginner' | 'intermediate' | 'advanced') =>
+              set({ userLevel: value })
+            }
+          >
             <SelectTrigger>
               <SelectValue placeholder="Select level" />
             </SelectTrigger>
@@ -142,9 +180,11 @@ export default function UserSettingsForm() {
 
         {/* Roles */}
         <div className="space-y-2">
-          <Label className="text-slate-800 font-medium">Roles (select all that apply)</Label>
+          <Label className="text-slate-800 font-medium">
+            Roles (select all that apply)
+          </Label>
           <div className="grid grid-cols-2 gap-3">
-            {availableRoles.map((role) => (
+            {availableRoles.map(role => (
               <div key={role} className="flex items-center space-x-2">
                 <Checkbox
                   id={role}
@@ -152,7 +192,10 @@ export default function UserSettingsForm() {
                   onCheckedChange={() => toggleRole(role)}
                   className="border-slate-300 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
                 />
-                <Label htmlFor={role} className="text-slate-700 font-normal capitalize cursor-pointer">
+                <Label
+                  htmlFor={role}
+                  className="text-slate-700 font-normal capitalize cursor-pointer"
+                >
                   {role}
                 </Label>
               </div>
@@ -162,8 +205,18 @@ export default function UserSettingsForm() {
 
         {/* Main Instrument */}
         <div className="space-y-2">
-          <Label htmlFor="mainInstrument" className="text-slate-800 font-medium">Main Instrument</Label>
-          <Select value={mainInstrument} onValueChange={(value: 'guitar' | 'keyboard' | 'bass') => set({ mainInstrument: value })}>
+          <Label
+            htmlFor="mainInstrument"
+            className="text-slate-800 font-medium"
+          >
+            Main Instrument
+          </Label>
+          <Select
+            value={mainInstrument}
+            onValueChange={(value: 'guitar' | 'keyboard' | 'bass') =>
+              set({ mainInstrument: value })
+            }
+          >
             <SelectTrigger>
               <SelectValue placeholder="Select instrument" />
             </SelectTrigger>
@@ -177,8 +230,15 @@ export default function UserSettingsForm() {
 
         {/* Default Tab */}
         <div className="space-y-2">
-          <Label htmlFor="defaultTab" className="text-slate-800 font-medium">Default Tab</Label>
-          <Select value={defaultTab} onValueChange={(value: 'General' | 'Mix' | 'Theory' | 'Instrument') => set({ defaultTab: value })}>
+          <Label htmlFor="defaultTab" className="text-slate-800 font-medium">
+            Default Tab
+          </Label>
+          <Select
+            value={defaultTab}
+            onValueChange={(
+              value: 'General' | 'Mix' | 'Theory' | 'Instrument'
+            ) => set({ defaultTab: value })}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Select default tab" />
             </SelectTrigger>
@@ -194,11 +254,13 @@ export default function UserSettingsForm() {
 
       {/* Preferred Tuning */}
       <div className="space-y-2">
-        <Label htmlFor="preferredTuning" className="text-slate-800 font-medium">Preferred Tuning</Label>
+        <Label htmlFor="preferredTuning" className="text-slate-800 font-medium">
+          Preferred Tuning
+        </Label>
         <Input
           id="preferredTuning"
           value={preferredTuning}
-          onChange={(e) => set({ preferredTuning: e.target.value })}
+          onChange={e => set({ preferredTuning: e.target.value })}
           placeholder="e.g., Standard (E-A-D-G-B-E)"
           className="text-slate-800 border-slate-300 placeholder:text-slate-400 focus:border-indigo-500"
         />
@@ -206,11 +268,13 @@ export default function UserSettingsForm() {
 
       {/* Genre Influence */}
       <div className="space-y-2">
-        <Label htmlFor="genreInfluence" className="text-slate-800 font-medium">Genre Influences (comma-separated)</Label>
+        <Label htmlFor="genreInfluence" className="text-slate-800 font-medium">
+          Genre Influences (comma-separated)
+        </Label>
         <Input
           id="genreInfluence"
           value={genreInput}
-          onChange={(e) => updateGenres(e.target.value)}
+          onChange={e => updateGenres(e.target.value)}
           placeholder="e.g., prog rock, jazz fusion, metal"
           className="text-slate-800 border-slate-300 placeholder:text-slate-400 focus:border-indigo-500"
         />
@@ -222,37 +286,49 @@ export default function UserSettingsForm() {
           <Switch
             id="lessonMode"
             checked={lessonMode}
-            onCheckedChange={(checked) => set({ lessonMode: checked })}
+            onCheckedChange={checked => set({ lessonMode: checked })}
           />
-          <Label htmlFor="lessonMode" className="text-slate-800 font-medium">Lesson Mode</Label>
+          <Label htmlFor="lessonMode" className="text-slate-800 font-medium">
+            Lesson Mode
+          </Label>
         </div>
 
         <div className="flex items-center space-x-2">
           <Switch
             id="flipFretboardView"
             checked={flipFretboardView}
-            onCheckedChange={(checked) => set({ flipFretboardView: checked })}
+            onCheckedChange={checked => set({ flipFretboardView: checked })}
           />
-          <Label htmlFor="flipFretboardView" className="text-slate-800 font-medium">Flip Fretboard View</Label>
+          <Label
+            htmlFor="flipFretboardView"
+            className="text-slate-800 font-medium"
+          >
+            Flip Fretboard View
+          </Label>
         </div>
       </div>
 
       {/* Gear Section */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-slate-900">Gear</h3>
-        
+
         {/* Guitars */}
         <div className="space-y-2">
           <Label className="text-slate-800 font-medium">Guitars</Label>
           <div className="flex space-x-2">
             <Input
               value={newGuitar}
-              onChange={(e) => setNewGuitar(e.target.value)}
+              onChange={e => setNewGuitar(e.target.value)}
               placeholder="Add guitar"
-              onKeyPress={(e) => e.key === 'Enter' && addGuitar()}
+              onKeyPress={e => e.key === 'Enter' && addGuitar()}
               className="text-slate-800 border-slate-300 placeholder:text-slate-400 focus:border-indigo-500"
             />
-            <Button onClick={addGuitar} className="bg-indigo-600 hover:bg-indigo-700 text-white">Add</Button>
+            <Button
+              onClick={addGuitar}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white"
+            >
+              Add
+            </Button>
           </div>
           <div className="flex flex-wrap gap-2">
             {gear.guitar.map((guitar, index) => (
@@ -273,12 +349,17 @@ export default function UserSettingsForm() {
           <div className="flex space-x-2">
             <Input
               value={newPedal}
-              onChange={(e) => setNewPedal(e.target.value)}
+              onChange={e => setNewPedal(e.target.value)}
               placeholder="Add pedal"
-              onKeyPress={(e) => e.key === 'Enter' && addPedal()}
+              onKeyPress={e => e.key === 'Enter' && addPedal()}
               className="text-slate-800 border-slate-300 placeholder:text-slate-400 focus:border-indigo-500"
             />
-            <Button onClick={addPedal} className="bg-indigo-600 hover:bg-indigo-700 text-white">Add</Button>
+            <Button
+              onClick={addPedal}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white"
+            >
+              Add
+            </Button>
           </div>
           <div className="flex flex-wrap gap-2">
             {gear.pedals.map((pedal, index) => (
@@ -295,11 +376,15 @@ export default function UserSettingsForm() {
 
         {/* Interface */}
         <div className="space-y-2">
-          <Label htmlFor="interface" className="text-slate-800 font-medium">Audio Interface</Label>
+          <Label htmlFor="interface" className="text-slate-800 font-medium">
+            Audio Interface
+          </Label>
           <Input
             id="interface"
             value={gear.interface}
-            onChange={(e) => set({ gear: { ...gear, interface: e.target.value } })}
+            onChange={e =>
+              set({ gear: { ...gear, interface: e.target.value } })
+            }
             placeholder="e.g., Focusrite Scarlett 2i2"
             className="text-slate-800 border-slate-300 placeholder:text-slate-400 focus:border-indigo-500"
           />
@@ -307,11 +392,13 @@ export default function UserSettingsForm() {
 
         {/* Monitors */}
         <div className="space-y-2">
-          <Label htmlFor="monitors" className="text-slate-800 font-medium">Studio Monitors</Label>
+          <Label htmlFor="monitors" className="text-slate-800 font-medium">
+            Studio Monitors
+          </Label>
           <Input
             id="monitors"
             value={gear.monitors}
-            onChange={(e) => set({ gear: { ...gear, monitors: e.target.value } })}
+            onChange={e => set({ gear: { ...gear, monitors: e.target.value } })}
             placeholder="e.g., KRK Rokit 5"
             className="text-slate-800 border-slate-300 placeholder:text-slate-400 focus:border-indigo-500"
           />
@@ -319,8 +406,13 @@ export default function UserSettingsForm() {
 
         {/* DAW */}
         <div className="space-y-2">
-          <Label htmlFor="daw" className="text-slate-800 font-medium">DAW (Digital Audio Workstation)</Label>
-          <Select value={gear.daw} onValueChange={(value) => set({ gear: { ...gear, daw: value } })}>
+          <Label htmlFor="daw" className="text-slate-800 font-medium">
+            DAW (Digital Audio Workstation)
+          </Label>
+          <Select
+            value={gear.daw}
+            onValueChange={value => set({ gear: { ...gear, daw: value } })}
+          >
             <SelectTrigger className="text-slate-800 border-slate-300 focus:border-indigo-500">
               <SelectValue placeholder="Select your DAW" />
             </SelectTrigger>
@@ -345,12 +437,17 @@ export default function UserSettingsForm() {
           <div className="flex space-x-2">
             <Input
               value={newPlugin}
-              onChange={(e) => setNewPlugin(e.target.value)}
+              onChange={e => setNewPlugin(e.target.value)}
               placeholder="Add plugin"
-              onKeyPress={(e) => e.key === 'Enter' && addPlugin()}
+              onKeyPress={e => e.key === 'Enter' && addPlugin()}
               className="text-slate-800 border-slate-300 placeholder:text-slate-400 focus:border-indigo-500"
             />
-            <Button onClick={addPlugin} className="bg-indigo-600 hover:bg-indigo-700 text-white">Add</Button>
+            <Button
+              onClick={addPlugin}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white"
+            >
+              Add
+            </Button>
           </div>
           <div className="flex flex-wrap gap-2">
             {gear.plugins.map((plugin, index) => (
@@ -366,5 +463,5 @@ export default function UserSettingsForm() {
         </div>
       </div>
     </div>
-  )
+  );
 }

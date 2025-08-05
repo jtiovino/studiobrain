@@ -1,16 +1,20 @@
-import { useUserStore } from './useUserStore'
+import { useUserStore } from './useUserStore';
 
-type Tab = 'General' | 'Mix' | 'Theory' | 'Instrument' | 'Practice'
-type InputType = 'text' | 'audio' | 'image' | 'click'
+type Tab = 'General' | 'Mix' | 'Theory' | 'Instrument' | 'Practice';
+type InputType = 'text' | 'audio' | 'image' | 'click';
 
 interface PromptBuilderOptions {
-  tab: Tab
-  input: string
-  inputType: InputType
+  tab: Tab;
+  input: string;
+  inputType: InputType;
 }
 
-export function buildPrompt({ tab, input, inputType }: PromptBuilderOptions): string {
-  const store = useUserStore.getState()
+export function buildPrompt({
+  tab,
+  input,
+  inputType,
+}: PromptBuilderOptions): string {
+  const store = useUserStore.getState();
   const {
     roles,
     gear,
@@ -20,17 +24,19 @@ export function buildPrompt({ tab, input, inputType }: PromptBuilderOptions): st
     userLevel,
     mainInstrument,
     flipFretboardView,
-    hasHydrated
-  } = store
+    hasHydrated,
+  } = store;
 
   // Debug logging to see what's in the store
-  console.log('🔍 buildPrompt() - Has hydrated:', hasHydrated)
-  console.log('🔍 buildPrompt() - Current gear from store:', gear)
-  console.log('🔍 buildPrompt() - Plugins specifically:', gear.plugins)
-  
+  console.log('🔍 buildPrompt() - Has hydrated:', hasHydrated);
+  console.log('🔍 buildPrompt() - Current gear from store:', gear);
+  console.log('🔍 buildPrompt() - Plugins specifically:', gear.plugins);
+
   // Warn if we're building prompt before hydration
   if (!hasHydrated) {
-    console.warn('⚠️ buildPrompt() called before Zustand hydration complete - gear may be empty!')
+    console.warn(
+      '⚠️ buildPrompt() called before Zustand hydration complete - gear may be empty!'
+    );
   }
 
   // Build user context section with DAW-aware guidance
@@ -39,25 +45,25 @@ export function buildPrompt({ tab, input, inputType }: PromptBuilderOptions): st
 - Experience Level: ${userLevel}
 - Main Instrument: ${mainInstrument}
 - Preferred Tuning: ${preferredTuning}
-- Genre Influences: ${genreInfluence.length > 0 ? genreInfluence.join(', ') : 'Not specified'}`
+- Genre Influences: ${genreInfluence.length > 0 ? genreInfluence.join(', ') : 'Not specified'}`;
 
   // Add DAW-specific context if DAW is set
   if (gear.daw && gear.daw !== 'none') {
-    userContext += `\n\nYou are assisting a musician who uses ${gear.daw}. When suggesting effects or processing chains, prefer stock plugins from ${gear.daw} when appropriate.`
+    userContext += `\n\nYou are assisting a musician who uses ${gear.daw}. When suggesting effects or processing chains, prefer stock plugins from ${gear.daw} when appropriate.`;
   }
 
   const studioContext = `## Studio Setup:
 Guitars: ${gear.guitar?.length ? gear.guitar.join(', ') : 'None'}
 Pedals: ${gear.pedals?.length ? gear.pedals.join(', ') : 'None'}
 Plugins: ${gear.plugins?.length ? gear.plugins.join(', ') : 'None'}
-DAW: ${gear.daw || 'Not specified'}`
+DAW: ${gear.daw || 'Not specified'}`;
 
   // Build behavior instructions based on lesson mode
   const behaviorInstructions = lessonMode
     ? `## Lesson Mode - Educational Assistant:
 - Provide **specific plugin or pedal recommendations** when possible
 - Include **knob settings** for amp and pedals (e.g. Gain at 10 o'clock, Treble around 6)
-- Reference user's gear first, fallback to DAW stock plugins if needed
+- Naturally incorporate user's gear when it's relevant to the question
 - Use **teaching tone**: explain why a setting works, not just what to set
 - Suggest pickup position, playing technique, or signal chain if relevant
 - Never guess gear names — if uncertain about model names, leave them out rather than guessing
@@ -67,62 +73,62 @@ DAW: ${gear.daw || 'Not specified'}`
 - Focus on practical solutions and immediate results
 - Keep explanations concise but complete
 - Prioritize workflow efficiency
-- Give specific recommendations without extensive theory`
+- Give specific recommendations without extensive theory`;
 
   // Build gear-specific instructions for each tab
   const buildGearInstructions = (baseInstructions: string): string => {
-    let gearContext = baseInstructions
-    
+    let gearContext = baseInstructions;
+
     // Add DAW-specific guidance
     if (gear.daw && gear.daw !== 'none') {
-      gearContext += `\n- DAW is ${gear.daw}. Tailor all advice to this environment and its specific workflow.`
+      gearContext += `\n- DAW is ${gear.daw}. Tailor all advice to this environment and its specific workflow.`;
     }
-    
+
     // Add DAW-specific stock plugin instructions for Mix tab
     if (tab === 'Mix' && gear.daw && gear.daw !== 'none') {
-      const dawLower = gear.daw.toLowerCase()
+      const dawLower = gear.daw.toLowerCase();
       if (dawLower.includes('logic')) {
-        gearContext += `\n\nUse stock Logic Pro plugins when recommending plugin chains. Include specific plugin names such as 'Channel EQ', 'Compressor (Platinum Digital)', 'Enveloper', 'Space Designer', 'ChromaVerb', 'Tape', 'Vintage EQ', 'DeEsser', 'Multipressor', etc.`
+        gearContext += `\n\nUse stock Logic Pro plugins when recommending plugin chains. Include specific plugin names such as 'Channel EQ', 'Compressor (Platinum Digital)', 'Enveloper', 'Space Designer', 'ChromaVerb', 'Tape', 'Vintage EQ', 'DeEsser', 'Multipressor', etc.`;
       } else if (dawLower.includes('ableton')) {
-        gearContext += `\n\nUse stock Ableton Live plugins when recommending plugin chains. Include specific plugin names such as 'EQ Eight', 'Compressor', 'Auto Filter', 'Reverb', 'Echo', 'Saturator', 'Multiband Dynamics', 'Utility', etc.`
+        gearContext += `\n\nUse stock Ableton Live plugins when recommending plugin chains. Include specific plugin names such as 'EQ Eight', 'Compressor', 'Auto Filter', 'Reverb', 'Echo', 'Saturator', 'Multiband Dynamics', 'Utility', etc.`;
       } else if (dawLower.includes('pro tools')) {
-        gearContext += `\n\nUse stock Pro Tools plugins when recommending plugin chains. Include specific plugin names such as 'EQ III', 'Dyn 3 Compressor/Limiter', 'D-Verb', 'Mod Delay III', 'BF-76', 'AIR Vintage Filter', etc.`
+        gearContext += `\n\nUse stock Pro Tools plugins when recommending plugin chains. Include specific plugin names such as 'EQ III', 'Dyn 3 Compressor/Limiter', 'D-Verb', 'Mod Delay III', 'BF-76', 'AIR Vintage Filter', etc.`;
       } else if (dawLower.includes('cubase')) {
-        gearContext += `\n\nUse stock Cubase plugins when recommending plugin chains. Include specific plugin names such as 'Channel Strip', 'Frequency EQ', 'Compressor', 'REVerence', 'ModMachine', 'DeEsser', 'Vintage Compressor', etc.`
+        gearContext += `\n\nUse stock Cubase plugins when recommending plugin chains. Include specific plugin names such as 'Channel Strip', 'Frequency EQ', 'Compressor', 'REVerence', 'ModMachine', 'DeEsser', 'Vintage Compressor', etc.`;
       } else if (dawLower.includes('reaper')) {
-        gearContext += `\n\nUse stock REAPER plugins when recommending plugin chains. Include specific plugin names such as 'ReaEQ', 'ReaComp', 'ReaVerb', 'ReaDelay', 'ReaGate', 'ReaFir', 'ReaXcomp', etc.`
+        gearContext += `\n\nUse stock REAPER plugins when recommending plugin chains. Include specific plugin names such as 'ReaEQ', 'ReaComp', 'ReaVerb', 'ReaDelay', 'ReaGate', 'ReaFir', 'ReaXcomp', etc.`;
       } else if (dawLower.includes('fl studio')) {
-        gearContext += `\n\nUse stock FL Studio plugins when recommending plugin chains. Include specific plugin names such as 'Parametric EQ 2', 'Fruity Compressor', 'Fruity Reverb 2', 'Fruity Delay 3', 'Maximus', 'Soundgoodizer', etc.`
+        gearContext += `\n\nUse stock FL Studio plugins when recommending plugin chains. Include specific plugin names such as 'Parametric EQ 2', 'Fruity Compressor', 'Fruity Reverb 2', 'Fruity Delay 3', 'Maximus', 'Soundgoodizer', etc.`;
       }
     }
-    
-    // Add plugin constraints
+
+    // Add plugin awareness
     if (gear.plugins.length > 0) {
-      gearContext += `\nIMPORTANT: The user only has access to the following plugins: ${gear.plugins.join(', ')}. Do NOT suggest any plugins outside of this list.`
+      gearContext += `\nUser's plugins: ${gear.plugins.join(', ')}. Use these when relevant to the question.`;
     }
-    
+
     // Add monitoring context only for Mix tab
     if (tab === 'Mix' && gear.monitors) {
-      gearContext += `\n- Monitors: ${gear.monitors}. Be mindful of their frequency response and low-end perception.`
+      gearContext += `\n- Monitors: ${gear.monitors}. Be mindful of their frequency response and low-end perception.`;
     }
-    
+
     // Add interface context only for Mix tab
     if (tab === 'Mix' && gear.interface) {
-      gearContext += `\n- Audio Interface: ${gear.interface}. Consider its capabilities and limitations.`
+      gearContext += `\n- Audio Interface: ${gear.interface}. Consider its capabilities and limitations.`;
     }
-    
+
     // Add pedal context for relevant tabs
     if (gear.pedals.length > 0) {
-      gearContext += `\n- Available pedals: ${gear.pedals.join(', ')}. Reference these when discussing effects.`
+      gearContext += `\n- Available pedals: ${gear.pedals.join(', ')}. Reference these when discussing effects.`;
     }
-    
+
     // Add guitar context for relevant tabs
     if (gear.guitar.length > 0) {
-      gearContext += `\n- User's guitars: ${gear.guitar.join(', ')}. Consider pickup types and guitar characteristics.`
+      gearContext += `\n- User's guitars: ${gear.guitar.join(', ')}. Consider pickup types and guitar characteristics.`;
     }
-    
-    return gearContext
-  }
+
+    return gearContext;
+  };
 
   // Build tab-specific instructions
   const tabInstructions = {
@@ -176,9 +182,9 @@ B) DAW Workflow/Shortcut/Navigation – e.g., "What's the shortcut to repeat a s
 • Do not mention the user's plugins or DAW in this step.
 • Focus on the mixing chain and processing, not performance gear.
 
-**Step 3 – Invite Adaptation (if A)**
-After listing the authentic chain, ask:
-"Do you want me to show how to adapt this to your setup?"
+**Step 3 – Natural Follow-up (if A)**
+After explaining the authentic approach, naturally offer more specific help when relevant, like:
+"Want me to show you how to do this with your gear?" or similar conversational follow-ups.
 
 **Step 4 – Adapting to User's Tools (If YES)**
 • Use only the plugins and DAW in the user's profile/settings.
@@ -213,9 +219,9 @@ After listing the authentic chain, ask:
 • Use diagrams, note names, intervals, and notation when helpful.
 • Provide examples relevant to common genres or playing contexts.
 
-**Step 2 – Invite Adaptation**
-After the explanation, ask:
-"Do you want me to show how to adapt this to your setup?"
+**Step 2 – Natural Follow-up**
+After explaining the theory, naturally offer practical application when helpful:
+"Want to see this on your instrument?" or similar conversational offers.
 
 **Step 3 – Adapting to User's Instrument (If YES)**
 • Use the instrument type and tuning in the user's profile/settings.
@@ -244,9 +250,9 @@ After the explanation, ask:
 • Include amps, pedals, guitars, and other essential hardware.
 • Do not mention the user's gear in this step.
 
-**Step 2 – Invite Adaptation**
-After listing authentic gear, ask:
-"Do you want me to show how to adapt this to your setup?"
+**Step 2 – Natural Follow-up**
+After covering authentic gear, naturally offer specific adaptation when helpful:
+"Need help setting this up with your gear?" or similar conversational offers.
 
 **Step 3 – Adapting to User's Gear (If YES)**
 • Use only the gear in the user's profile/settings.
@@ -277,10 +283,9 @@ If the user provides guitar tab (text or image) or asks about finger placement:
 • Suggest chord voicings and positions based on physical instrument capabilities
 • Include performance technique tips and exercises
 • Adapt to their experience level (${userLevel})
-• ${flipFretboardView ? 'Note: User prefers flipped fretboard view (high strings on top)' : 'Note: User prefers standard fretboard view (low strings on top)'}`)
-,
-
-    Practice: buildGearInstructions(`You are StudioBrain's guitar practice coach. Create practical, structured practice routines.
+• ${flipFretboardView ? 'Note: User prefers flipped fretboard view (high strings on top)' : 'Note: User prefers standard fretboard view (low strings on top)'}`),
+    Practice:
+      buildGearInstructions(`You are StudioBrain's guitar practice coach. Create practical, structured practice routines.
 
 Guidelines:
 1) Structure practice into clear time-based sections (e.g., Warm-up, Core Practice, Application)
@@ -296,16 +301,16 @@ Format your response with clear markdown structure using headers, bullet points,
 
 User Level: ${userLevel}
 Genre Influences: ${genreInfluence.length > 0 ? genreInfluence.join(', ') : 'Not specified'}
-Available Gear: ${gear.guitar.length > 0 ? gear.guitar.join(', ') : 'Not specified'}`)
-  }
+Available Gear: ${gear.guitar.length > 0 ? gear.guitar.join(', ') : 'Not specified'}`),
+  };
 
   // Build input context based on type
   const inputContext = {
     text: 'User Question/Request:',
     audio: 'Audio Analysis Request:',
     image: 'Image Analysis Request:',
-    click: 'Interface Interaction:'
-  }
+    click: 'Interface Interaction:',
+  };
 
   const finalPrompt = `${userContext}
 
@@ -319,20 +324,20 @@ ${tabInstructions[tab]}
 When referencing copyrighted songs, always suggest legal sources where users can find them. For example: "This song requires licensing. You can find it on Spotify, Apple Music, YouTube Music, or your preferred streaming platform." Never provide unlicensed content or encourage copyright infringement.
 
 ## ${inputContext[inputType]}
-${input}`
+${input}`;
 
-  console.log('Final prompt string:', finalPrompt)
-  
-  return finalPrompt
+  console.log('Final prompt string:', finalPrompt);
+
+  return finalPrompt;
 }
 
 // Helper function to get a simplified prompt for lightweight requests
 export function buildSimplePrompt(input: string, lessonMode: boolean): string {
-  const behaviorNote = lessonMode 
+  const behaviorNote = lessonMode
     ? 'Provide a detailed, educational response as a music teacher.'
-    : 'Provide a concise, practical response focused on results.'
-  
+    : 'Provide a concise, practical response focused on results.';
+
   return `${behaviorNote}
 
-User request: ${input}`
+User request: ${input}`;
 }

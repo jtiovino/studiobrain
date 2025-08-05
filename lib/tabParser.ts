@@ -15,13 +15,13 @@ export interface ParsedTab {
   originalText: string;
 }
 
-export type TabTechnique = 
-  | 'hammer-on' 
-  | 'pull-off' 
-  | 'bend' 
-  | 'release' 
-  | 'vibrato' 
-  | 'slide-up' 
+export type TabTechnique =
+  | 'hammer-on'
+  | 'pull-off'
+  | 'bend'
+  | 'release'
+  | 'vibrato'
+  | 'slide-up'
   | 'slide-down'
   | 'palm-mute'
   | 'harmonic';
@@ -47,7 +47,7 @@ export function detectGuitarTab(text: string): boolean {
     // Fret numbers with dashes
     /[-\d]{3,}.*[-\d]{3,}/,
     // Tab with techniques
-    /\d+[hpb~r\/\\]\d+/
+    /\d+[hpb~r\/\\]\d+/,
   ];
 
   return tabPatterns.some(pattern => pattern.test(text));
@@ -61,19 +61,22 @@ export function parseGuitarTab(text: string): ParsedTab | null {
     return null;
   }
 
-  const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+  const lines = text
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line.length > 0);
   const parsedNotes: ParsedNote[] = [];
   const measures: ParsedNote[][] = [];
-  
+
   // Find tab lines (lines that start with string indicators)
   const tabLines: { string: number; content: string }[] = [];
-  
+
   for (const line of lines) {
     const stringMatch = line.match(/^([eEbBgGdDaA])\s*[|\-:]\s*(.+)/);
     if (stringMatch) {
       const stringName = stringMatch[1].toUpperCase();
       const content = stringMatch[2];
-      
+
       // Map string names to indices (0 = low E, 5 = high e)
       const stringIndex = getStringIndex(stringName, tabLines.length);
       if (stringIndex !== -1) {
@@ -88,43 +91,46 @@ export function parseGuitarTab(text: string): ParsedTab | null {
 
   for (let pos = 0; pos < maxLength; pos++) {
     const notesAtPosition: ParsedNote[] = [];
-    
+
     for (const { string, content } of tabLines) {
       if (pos >= content.length) continue;
-      
+
       const char = content[pos];
       const nextChar = pos + 1 < content.length ? content[pos + 1] : '';
-      
+
       // Parse fret number
       if (/\d/.test(char)) {
         let fretStr = char;
         let nextPos = pos + 1;
-        
+
         // Handle multi-digit frets
         while (nextPos < content.length && /\d/.test(content[nextPos])) {
           fretStr += content[nextPos];
           nextPos++;
         }
-        
+
         const fret = parseInt(fretStr);
-        
+
         // Check for techniques
         const technique = parseTechnique(content, nextPos);
-        
+
         const note: ParsedNote = {
           string,
           fret,
           timing: currentTiming,
-          ...(technique && { technique })
+          ...(technique && { technique }),
         };
-        
+
         notesAtPosition.push(note);
         parsedNotes.push(note);
       }
     }
-    
+
     // Advance timing for significant positions
-    if (notesAtPosition.length > 0 || /[-|]/.test(tabLines[0]?.content[pos] || '')) {
+    if (
+      notesAtPosition.length > 0 ||
+      /[-|]/.test(tabLines[0]?.content[pos] || '')
+    ) {
       if (pos > 0 && tabLines.some(line => /[-|]/.test(line.content[pos]))) {
         currentTiming++;
       }
@@ -132,12 +138,15 @@ export function parseGuitarTab(text: string): ParsedTab | null {
   }
 
   // Group notes by timing for measures
-  const notesByTiming = parsedNotes.reduce((acc, note) => {
-    const timing = note.timing || 0;
-    if (!acc[timing]) acc[timing] = [];
-    acc[timing].push(note);
-    return acc;
-  }, {} as Record<number, ParsedNote[]>);
+  const notesByTiming = parsedNotes.reduce(
+    (acc, note) => {
+      const timing = note.timing || 0;
+      if (!acc[timing]) acc[timing] = [];
+      acc[timing].push(note);
+      return acc;
+    },
+    {} as Record<number, ParsedNote[]>
+  );
 
   Object.values(notesByTiming).forEach(notes => measures.push(notes));
 
@@ -148,7 +157,7 @@ export function parseGuitarTab(text: string): ParsedTab | null {
     notes: parsedNotes,
     isChord,
     measures,
-    originalText: text
+    originalText: text,
   };
 }
 
@@ -157,43 +166,46 @@ export function parseGuitarTab(text: string): ParsedTab | null {
  */
 function getStringIndex(stringName: string, currentLineIndex: number): number {
   const stringMap: Record<string, number[]> = {
-    'E': [0, 5], // Low E and high E
-    'A': [1],
-    'D': [2], 
-    'G': [3],
-    'B': [4]
+    E: [0, 5], // Low E and high E
+    A: [1],
+    D: [2],
+    G: [3],
+    B: [4],
   };
-  
+
   const possibleIndices = stringMap[stringName];
   if (!possibleIndices) return -1;
-  
+
   // For E strings, use context to determine which one
   if (stringName === 'E') {
     // If this is one of the first lines, it's likely high E
     // If it's one of the last lines, it's likely low E
     return currentLineIndex < 3 ? 5 : 0;
   }
-  
+
   return possibleIndices[0];
 }
 
 /**
  * Parses tab techniques from the notation
  */
-function parseTechnique(content: string, position: number): TabTechnique | undefined {
+function parseTechnique(
+  content: string,
+  position: number
+): TabTechnique | undefined {
   if (position >= content.length) return undefined;
-  
+
   const char = content[position];
   const techniques: Record<string, TabTechnique> = {
-    'h': 'hammer-on',
-    'p': 'pull-off', 
-    'b': 'bend',
-    'r': 'release',
+    h: 'hammer-on',
+    p: 'pull-off',
+    b: 'bend',
+    r: 'release',
     '~': 'vibrato',
     '/': 'slide-up',
-    '\\': 'slide-down'
+    '\\': 'slide-down',
   };
-  
+
   return techniques[char];
 }
 
@@ -211,7 +223,7 @@ export function identifyChordFromTab(parsedTab: ParsedTab): string | null {
 
   // Convert to fret array format (matching ChordShape interface)
   const frets: (number | null)[] = [null, null, null, null, null, null];
-  
+
   chordNotes.forEach(note => {
     if (note.string >= 0 && note.string <= 5) {
       frets[note.string] = note.fret;
@@ -244,13 +256,16 @@ export function identifyChordFromTab(parsedTab: ParsedTab): string | null {
 /**
  * Helper function to compare fret arrays
  */
-function arraysMatch(arr1: (number | null)[], arr2: (number | null)[]): boolean {
+function arraysMatch(
+  arr1: (number | null)[],
+  arr2: (number | null)[]
+): boolean {
   if (arr1.length !== arr2.length) return false;
-  
+
   for (let i = 0; i < arr1.length; i++) {
     if (arr1[i] !== arr2[i]) return false;
   }
-  
+
   return true;
 }
 
@@ -261,14 +276,16 @@ function identifyChordByIntervals(notes: ParsedNote[]): string | null {
   if (notes.length < 3) return null;
 
   // Convert fret positions to actual note values
-  const pitches = notes.map(note => {
-    const stringPitch = STANDARD_TUNING[note.string];
-    return (stringPitch + note.fret) % 12;
-  }).sort((a, b) => a - b);
+  const pitches = notes
+    .map(note => {
+      const stringPitch = STANDARD_TUNING[note.string];
+      return (stringPitch + note.fret) % 12;
+    })
+    .sort((a, b) => a - b);
 
   // Remove duplicates
   const uniquePitches = [...new Set(pitches)];
-  
+
   if (uniquePitches.length < 3) return null;
 
   // Calculate intervals from root
@@ -277,21 +294,34 @@ function identifyChordByIntervals(notes: ParsedNote[]): string | null {
 
   // Common chord interval patterns
   const chordTypes: Record<string, number[]> = {
-    'Major': [0, 4, 7],
-    'Minor': [0, 3, 7], 
+    Major: [0, 4, 7],
+    Minor: [0, 3, 7],
     'Dominant 7': [0, 4, 7, 10],
     'Major 7': [0, 4, 7, 11],
     'Minor 7': [0, 3, 7, 10],
-    'Diminished': [0, 3, 6],
-    'Augmented': [0, 4, 8],
-    'Sus2': [0, 2, 7],
-    'Sus4': [0, 5, 7]
+    Diminished: [0, 3, 6],
+    Augmented: [0, 4, 8],
+    Sus2: [0, 2, 7],
+    Sus4: [0, 5, 7],
   };
 
   // Find best matching chord type
   for (const [chordType, pattern] of Object.entries(chordTypes)) {
     if (pattern.every(interval => intervals.includes(interval))) {
-      const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+      const noteNames = [
+        'C',
+        'C#',
+        'D',
+        'D#',
+        'E',
+        'F',
+        'F#',
+        'G',
+        'G#',
+        'A',
+        'A#',
+        'B',
+      ];
       const rootNote = noteNames[root];
       return `${rootNote} ${chordType}`;
     }
@@ -303,7 +333,10 @@ function identifyChordByIntervals(notes: ParsedNote[]): string | null {
 /**
  * Converts parsed tab to ChordShape format for display
  */
-export function tabToChordShape(parsedTab: ParsedTab, chordName?: string): ChordShape | null {
+export function tabToChordShape(
+  parsedTab: ParsedTab,
+  chordName?: string
+): ChordShape | null {
   if (!parsedTab.isChord || parsedTab.measures.length === 0) {
     return null;
   }
@@ -311,7 +344,7 @@ export function tabToChordShape(parsedTab: ParsedTab, chordName?: string): Chord
   const chordNotes = parsedTab.measures[0];
   const frets: (number | null)[] = [null, null, null, null, null, null];
   const fingers: (number | null)[] = [null, null, null, null, null, null];
-  
+
   chordNotes.forEach(note => {
     if (note.string >= 0 && note.string <= 5) {
       frets[note.string] = note.fret;
@@ -320,7 +353,8 @@ export function tabToChordShape(parsedTab: ParsedTab, chordName?: string): Chord
     }
   });
 
-  const detectedChord = chordName || identifyChordFromTab(parsedTab) || 'Unknown Chord';
+  const detectedChord =
+    chordName || identifyChordFromTab(parsedTab) || 'Unknown Chord';
   const [root, quality] = detectedChord.split(' ');
 
   return {
@@ -329,28 +363,30 @@ export function tabToChordShape(parsedTab: ParsedTab, chordName?: string): Chord
     quality: quality?.toLowerCase() || 'unknown',
     frets,
     fingers,
-    difficulty: determineDifficulty(frets)
+    difficulty: determineDifficulty(frets),
   };
 }
 
 /**
  * Determines chord difficulty based on fret positions and patterns
  */
-function determineDifficulty(frets: (number | null)[]): 'beginner' | 'intermediate' | 'advanced' {
+function determineDifficulty(
+  frets: (number | null)[]
+): 'beginner' | 'intermediate' | 'advanced' {
   const usedFrets = frets.filter(f => f !== null && f > 0) as number[];
-  
+
   if (usedFrets.length === 0) return 'beginner';
-  
+
   const maxFret = Math.max(...usedFrets);
   const minFret = Math.min(...usedFrets);
   const fretSpread = maxFret - minFret;
-  
+
   // Beginner: open chords or simple patterns
   if (maxFret <= 3 && fretSpread <= 2) return 'beginner';
-  
+
   // Advanced: high frets, wide spread, or complex patterns
   if (maxFret > 7 || fretSpread > 4) return 'advanced';
-  
+
   // Intermediate: everything else
   return 'intermediate';
 }

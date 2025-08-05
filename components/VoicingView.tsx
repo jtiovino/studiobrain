@@ -1,10 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { ChordShape, VoicingSet, getVoicingsForInstrument, getChordShapesForRoot } from '@/lib/voicings';
+import {
+  ChordShape,
+  VoicingSet,
+  getVoicingsForInstrument,
+  getChordShapesForRoot,
+} from '@/lib/voicings';
 import { ChordDiagram } from './ChordDiagram';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { ArrowLeft, Music, Volume2 } from 'lucide-react';
 
 interface VoicingViewProps {
@@ -16,13 +33,13 @@ interface VoicingViewProps {
   onPlayChord?: (chord: ChordShape) => void;
 }
 
-export function VoicingView({ 
-  selectedVoicing, 
-  instrument, 
+export function VoicingView({
+  selectedVoicing,
+  instrument,
   tuning,
   currentKey,
   onBack,
-  onPlayChord 
+  onPlayChord,
 }: VoicingViewProps) {
   const [selectedRoot, setSelectedRoot] = useState<string>(currentKey || 'C');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -52,7 +69,20 @@ export function VoicingView({
   const chordShapes = getChordShapesForRoot(voicingSet, selectedRoot);
 
   // Available root notes
-  const rootNotes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  const rootNotes = [
+    'C',
+    'C#',
+    'D',
+    'D#',
+    'E',
+    'F',
+    'F#',
+    'G',
+    'G#',
+    'A',
+    'A#',
+    'B',
+  ];
 
   const handlePlayChord = (chord: ChordShape) => {
     if (onPlayChord) {
@@ -78,12 +108,7 @@ export function VoicingView({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={onBack}
-            className="h-8"
-          >
+          <Button variant="outline" size="sm" onClick={onBack} className="h-8">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
           </Button>
@@ -95,7 +120,7 @@ export function VoicingView({
             <p className="text-gray-400 text-sm">{voicingSet.description}</p>
           </div>
         </div>
-        
+
         {/* Controls */}
         <div className="flex items-center gap-3">
           {/* Root Note Selector */}
@@ -147,17 +172,26 @@ export function VoicingView({
               </span>
               <div className="flex gap-2">
                 {difficultyStats.beginner > 0 && (
-                  <Badge variant="outline" className="bg-green-600 text-white text-xs">
+                  <Badge
+                    variant="outline"
+                    className="bg-green-600 text-white text-xs"
+                  >
                     {difficultyStats.beginner} Beginner
                   </Badge>
                 )}
                 {difficultyStats.intermediate > 0 && (
-                  <Badge variant="outline" className="bg-yellow-600 text-white text-xs">
-                    {difficultyStats.intermediate} Intermediate  
+                  <Badge
+                    variant="outline"
+                    className="bg-yellow-600 text-white text-xs"
+                  >
+                    {difficultyStats.intermediate} Intermediate
                   </Badge>
                 )}
                 {difficultyStats.advanced > 0 && (
-                  <Badge variant="outline" className="bg-red-600 text-white text-xs">
+                  <Badge
+                    variant="outline"
+                    className="bg-red-600 text-white text-xs"
+                  >
                     {difficultyStats.advanced} Advanced
                   </Badge>
                 )}
@@ -189,7 +223,10 @@ export function VoicingView({
       ) : (
         <div className="space-y-4">
           {chordShapes.map((chord, index) => (
-            <Card key={`${chord.name}-${index}`} className="bg-gray-900 border-gray-800">
+            <Card
+              key={`${chord.name}-${index}`}
+              className="bg-gray-900 border-gray-800"
+            >
               <CardContent className="p-4">
                 <div className="flex items-start gap-4">
                   <ChordDiagram
@@ -201,7 +238,9 @@ export function VoicingView({
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-lg font-semibold text-white">{chord.name}</h3>
+                      <h3 className="text-lg font-semibold text-white">
+                        {chord.name}
+                      </h3>
                       <Button
                         variant="outline"
                         size="sm"
@@ -214,21 +253,26 @@ export function VoicingView({
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="bg-gray-700 text-gray-300">
+                        <Badge
+                          variant="outline"
+                          className="bg-gray-700 text-gray-300"
+                        >
                           {chord.quality}
                         </Badge>
-                        <Badge 
+                        <Badge
                           variant="outline"
                           className={`text-white ${
-                            chord.difficulty === 'beginner' ? 'bg-green-600' :
-                            chord.difficulty === 'intermediate' ? 'bg-yellow-600' :
-                            'bg-red-600'
+                            chord.difficulty === 'beginner'
+                              ? 'bg-green-600'
+                              : chord.difficulty === 'intermediate'
+                                ? 'bg-yellow-600'
+                                : 'bg-red-600'
                           }`}
                         >
                           {chord.difficulty}
                         </Badge>
                       </div>
-                      
+
                       {/* Fret positions */}
                       <div className="text-sm text-gray-400">
                         <span className="font-medium">Frets: </span>
@@ -238,13 +282,17 @@ export function VoicingView({
                           </span>
                         ))}
                       </div>
-                      
+
                       {/* Finger positions */}
                       <div className="text-sm text-gray-400">
                         <span className="font-medium">Fingers: </span>
                         {chord.fingers.map((finger, i) => (
                           <span key={i} className="mr-1">
-                            {finger === null ? '-' : finger === 0 ? 'O' : finger}
+                            {finger === null
+                              ? '-'
+                              : finger === 0
+                                ? 'O'
+                                : finger}
                           </span>
                         ))}
                       </div>
@@ -255,7 +303,8 @@ export function VoicingView({
                           <span className="font-medium">Barre: </span>
                           {chord.barres.map((barre, i) => (
                             <span key={i}>
-                              Fret {barre.fret} (strings {barre.fromString + 1}-{barre.toString + 1})
+                              Fret {barre.fret} (strings {barre.fromString + 1}-
+                              {barre.toString + 1})
                             </span>
                           ))}
                         </div>
@@ -273,10 +322,12 @@ export function VoicingView({
         <Card className="bg-gray-900 border-gray-800">
           <CardContent className="p-8 text-center">
             <Music className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-400 mb-2">No Chords Available</h3>
+            <h3 className="text-lg font-semibold text-gray-400 mb-2">
+              No Chords Available
+            </h3>
             <p className="text-gray-500">
-              No chord shapes found for {selectedVoicing} in {selectedRoot}. 
-              Try a different root note or voicing type.
+              No chord shapes found for {selectedVoicing} in {selectedRoot}. Try
+              a different root note or voicing type.
             </p>
           </CardContent>
         </Card>

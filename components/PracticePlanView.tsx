@@ -1,25 +1,36 @@
-"use client"
+'use client';
 
-import React from 'react'
-import { PracticePlan } from '@/lib/practice-plan-schema'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Clock, Guitar, Target, CheckCircle, AlertCircle } from 'lucide-react'
+import React from 'react';
+import { PracticePlan } from '@/lib/practice-plan-schema';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Clock, Guitar, Target, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface PracticePlanViewProps {
-  plan: PracticePlan
-  lessonMode: boolean
+  plan: PracticePlan;
+  lessonMode: boolean;
 }
 
-export const PracticePlanView: React.FC<PracticePlanViewProps> = ({ plan, lessonMode }) => {
-  const totalMinutes = plan.steps.reduce((sum, step) => sum + step.minutes, 0)
+export const PracticePlanView: React.FC<PracticePlanViewProps> = ({
+  plan,
+  lessonMode,
+}) => {
+  const totalMinutes = plan.steps.reduce((sum, step) => sum + step.minutes, 0);
 
   return (
     <div className="space-y-4">
       {/* Header */}
       <Card className="bg-glass-bg/50 backdrop-blur-xl border border-glass-border">
         <CardHeader className="pb-4">
-          <CardTitle className={`flex items-center gap-3 text-xl ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}>
+          <CardTitle
+            className={`flex items-center gap-3 text-xl ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}
+          >
             <Target className="w-5 h-5" />
             {plan.goal}
           </CardTitle>
@@ -34,19 +45,25 @@ export const PracticePlanView: React.FC<PracticePlanViewProps> = ({ plan, lesson
             </div>
           </div>
         </CardHeader>
-        
+
         {/* Equipment Needed */}
         <CardContent className="pt-0">
           <div className="space-y-2">
-            <h4 className={`font-medium ${lessonMode ? 'text-slate-200' : 'text-slate-200'}`}>What You Need:</h4>
+            <h4
+              className={`font-medium ${lessonMode ? 'text-slate-200' : 'text-slate-200'}`}
+            >
+              What You Need:
+            </h4>
             <div className="flex flex-wrap gap-2">
               {plan.what_you_need.map((item, index) => (
-                <Badge 
-                  key={index} 
-                  variant="outline" 
+                <Badge
+                  key={index}
+                  variant="outline"
                   className={`border-glass-border ${
-                    index === 0 
-                      ? lessonMode ? 'text-neon-cyan border-neon-cyan/50' : 'text-neon-purple border-neon-purple/50'
+                    index === 0
+                      ? lessonMode
+                        ? 'text-neon-cyan border-neon-cyan/50'
+                        : 'text-neon-purple border-neon-purple/50'
                       : 'text-slate-300'
                   }`}
                 >
@@ -61,18 +78,26 @@ export const PracticePlanView: React.FC<PracticePlanViewProps> = ({ plan, lesson
       {/* Steps */}
       <div className="space-y-3">
         {plan.steps.map((step, index) => (
-          <Card key={index} className="bg-glass-bg/30 backdrop-blur-xl border border-glass-border">
+          <Card
+            key={index}
+            className="bg-glass-bg/30 backdrop-blur-xl border border-glass-border"
+          >
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className={`text-lg ${lessonMode ? 'text-slate-200' : 'text-slate-200'}`}>
+                <CardTitle
+                  className={`text-lg ${lessonMode ? 'text-slate-200' : 'text-slate-200'}`}
+                >
                   {index + 1}. {step.name}
                 </CardTitle>
-                <Badge variant="secondary" className="bg-glass-bg border-glass-border">
+                <Badge
+                  variant="secondary"
+                  className="bg-glass-bg border-glass-border"
+                >
                   {step.minutes} min
                 </Badge>
               </div>
             </CardHeader>
-            
+
             <CardContent className="space-y-3">
               {/* Instructions */}
               <div className="text-slate-300 text-sm leading-relaxed">
@@ -97,14 +122,14 @@ export const PracticePlanView: React.FC<PracticePlanViewProps> = ({ plan, lesson
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {step.diagrams.map((diagram, diagramIndex) => (
-                      <Badge 
-                        key={diagramIndex} 
-                        variant="outline" 
+                      <Badge
+                        key={diagramIndex}
+                        variant="outline"
                         className="border-slate-600 text-slate-300"
                       >
-                        {diagram.type === 'scale' && '🎵'} 
-                        {diagram.type === 'arp' && '🎶'} 
-                        {diagram.type === 'voicing' && '🎸'} 
+                        {diagram.type === 'scale' && '🎵'}
+                        {diagram.type === 'arp' && '🎶'}
+                        {diagram.type === 'voicing' && '🎸'}
                         {diagram.name} ({diagram.position_label})
                       </Badge>
                     ))}
@@ -126,7 +151,7 @@ export const PracticePlanView: React.FC<PracticePlanViewProps> = ({ plan, lesson
                       </div>
                     </div>
                   )}
-                  
+
                   {step.success_cue && (
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 text-xs font-medium text-neon-cyan uppercase tracking-wide">
@@ -149,7 +174,9 @@ export const PracticePlanView: React.FC<PracticePlanViewProps> = ({ plan, lesson
       {plan.notes_for_today && (
         <Card className="bg-glass-bg/40 backdrop-blur-xl border border-glass-border">
           <CardHeader className="pb-3">
-            <CardTitle className={`text-sm font-medium ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}>
+            <CardTitle
+              className={`text-sm font-medium ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}
+            >
               📝 Notes for Today
             </CardTitle>
           </CardHeader>
@@ -161,5 +188,5 @@ export const PracticePlanView: React.FC<PracticePlanViewProps> = ({ plan, lesson
         </Card>
       )}
     </div>
-  )
-}
+  );
+};

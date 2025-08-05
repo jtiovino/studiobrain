@@ -1,6 +1,6 @@
-"use client"
+'use client';
 
-import React from "react"
+import React from 'react';
 
 export default function StudioBrain() {
   return (
@@ -9,5 +9,5 @@ export default function StudioBrain() {
         <h1>Test</h1>
       </div>
     </div>
-  )
+  );
 }

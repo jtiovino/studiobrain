@@ -1,19 +1,19 @@
-'use client'
+'use client';
 
-import React from 'react'
-import { useRouter } from 'next/navigation'
-import { Settings } from 'lucide-react'
-import { useChatHistoryStore } from '@/lib/useChatHistoryStore'
+import React from 'react';
+import { useRouter } from 'next/navigation';
+import { Settings } from 'lucide-react';
+import { useChatHistoryStore } from '@/lib/useChatHistoryStore';
 
 export default function SettingsButton() {
-  const router = useRouter()
-  const { currentSessionId, setSettingsSession } = useChatHistoryStore()
+  const router = useRouter();
+  const { currentSessionId, setSettingsSession } = useChatHistoryStore();
 
   const handleClick = () => {
     // Store current session before navigating to settings
-    setSettingsSession(currentSessionId)
-    router.push('/settings')
-  }
+    setSettingsSession(currentSessionId);
+    router.push('/settings');
+  };
 
   return (
     <button
@@ -22,5 +22,5 @@ export default function SettingsButton() {
     >
       <Settings className="w-6 h-6 text-white hover:text-indigo-400" />
     </button>
-  )
+  );
 }

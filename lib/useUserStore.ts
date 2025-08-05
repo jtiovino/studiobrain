@@ -1,33 +1,37 @@
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-import { GearItem, GearChain } from './gearService'
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { GearItem, GearChain } from './gearService';
 
 interface UserState {
-  userLevel: 'beginner' | 'intermediate' | 'advanced'
-  roles: string[]
-  mainInstrument: 'guitar' | 'keyboard' | 'bass'
-  preferredTuning: string
-  genreInfluence: string[]
-  lessonMode: boolean
-  flipFretboardView: boolean
-  defaultTab: 'General' | 'Mix' | 'Theory' | 'Instrument'
+  userLevel: 'beginner' | 'intermediate' | 'advanced';
+  roles: string[];
+  mainInstrument: 'guitar' | 'keyboard' | 'bass';
+  preferredTuning: string;
+  genreInfluence: string[];
+  lessonMode: boolean;
+  flipFretboardView: boolean;
+  defaultTab: 'General' | 'Mix' | 'Theory' | 'Instrument';
   gear: {
-    guitar: string[]
-    pedals: string[]
-    interface: string
-    monitors: string
-    plugins: string[]
-    daw: string
-  }
+    guitar: string[];
+    pedals: string[];
+    interface: string;
+    monitors: string;
+    plugins: string[];
+    daw: string;
+  };
   gearChains: {
-    selectedMode: 'studiobrainSuggestion' | 'customChain'
-    studioBrainChain: GearItem[]
-    customChain: GearItem[]
-    savedChains: GearChain[]
-  }
-  hasHydrated: boolean
-  set: (partial: Partial<Omit<UserState, 'set' | 'hasHydrated'>> | ((state: UserState) => UserState)) => void
-  setHasHydrated: (state: boolean) => void
+    selectedMode: 'studiobrainSuggestion' | 'customChain';
+    studioBrainChain: GearItem[];
+    customChain: GearItem[];
+    savedChains: GearChain[];
+  };
+  hasHydrated: boolean;
+  set: (
+    partial:
+      | Partial<Omit<UserState, 'set' | 'hasHydrated'>>
+      | ((state: UserState) => UserState)
+  ) => void;
+  setHasHydrated: (state: boolean) => void;
 }
 
 export const useUserStore = create<UserState>()(
@@ -47,84 +51,94 @@ export const useUserStore = create<UserState>()(
         interface: '',
         monitors: '',
         plugins: [],
-        daw: 'none'
+        daw: 'none',
       },
       gearChains: {
         selectedMode: 'studiobrainSuggestion',
         studioBrainChain: [],
         customChain: [],
-        savedChains: []
+        savedChains: [],
       },
       hasHydrated: false,
-      set: (partial) => {
-        console.log('🔧 Zustand Store Update:', partial)
-        console.log('🔧 Current state before update:', get())
-        
+      set: partial => {
+        console.log('🔧 Zustand Store Update:', partial);
+        console.log('🔧 Current state before update:', get());
+
         if (typeof partial === 'function') {
           // Functional update pattern
-          set((state) => {
-            const newState = partial(state)
-            console.log('📦 Complete new state after functional update:', newState)
-            return newState
-          })
+          set(state => {
+            const newState = partial(state);
+            console.log(
+              '📦 Complete new state after functional update:',
+              newState
+            );
+            return newState;
+          });
         } else {
           // Object update pattern
-          set((state) => {
-            const newState = { ...state, ...partial }
-            
+          set(state => {
+            const newState = { ...state, ...partial };
+
             // Check if the update actually changes anything to prevent unnecessary renders
             const hasChanged = Object.keys(partial).some(key => {
-              const currentVal = state[key as keyof typeof state]
-              const newVal = partial[key as keyof typeof partial]
-              
+              const currentVal = state[key as keyof typeof state];
+              const newVal = partial[key as keyof typeof partial];
+
               // Deep comparison for objects
-              if (typeof currentVal === 'object' && typeof newVal === 'object' && currentVal !== null && newVal !== null) {
-                return JSON.stringify(currentVal) !== JSON.stringify(newVal)
+              if (
+                typeof currentVal === 'object' &&
+                typeof newVal === 'object' &&
+                currentVal !== null &&
+                newVal !== null
+              ) {
+                return JSON.stringify(currentVal) !== JSON.stringify(newVal);
               }
-              
-              return currentVal !== newVal
-            })
-            
+
+              return currentVal !== newVal;
+            });
+
             if (!hasChanged) {
-              console.log('🔧 No actual change detected, skipping update')
-              return state // Return current state if no change
+              console.log('🔧 No actual change detected, skipping update');
+              return state; // Return current state if no change
             }
-            
-            console.log('📦 Full gear state after update:', newState.gear)
-            console.log('📦 Complete new state:', newState)
-            return newState
-          })
+
+            console.log('📦 Full gear state after update:', newState.gear);
+            console.log('📦 Complete new state:', newState);
+            return newState;
+          });
         }
       },
-      setHasHydrated: (state) => {
-        set({ hasHydrated: state })
-      }
+      setHasHydrated: state => {
+        set({ hasHydrated: state });
+      },
     }),
     {
       name: 'studio-brain-user',
       version: 1,
       onRehydrateStorage: () => {
-        console.log('💾 Zustand: Starting rehydration from localStorage')
+        console.log('💾 Zustand: Starting rehydration from localStorage');
         return (state: UserState | undefined, error: any) => {
           if (error) {
-            console.error('💾 Zustand: Rehydration failed:', error)
+            console.error('💾 Zustand: Rehydration failed:', error);
           } else {
-            console.log('💾 Zustand: Rehydration complete')
+            console.log('💾 Zustand: Rehydration complete');
             if (state) {
-              console.log('💾 Zustand: Rehydrated gear:', state.gear)
-              console.log('💾 Zustand: Full rehydrated state:', state)
-              state.setHasHydrated(true)
+              console.log('💾 Zustand: Rehydrated gear:', state.gear);
+              console.log('💾 Zustand: Full rehydrated state:', state);
+              state.setHasHydrated(true);
             } else {
-              console.log('💾 Zustand: No state to rehydrate, setting hasHydrated to true')
+              console.log(
+                '💾 Zustand: No state to rehydrate, setting hasHydrated to true'
+              );
               // If no state to rehydrate, still mark as hydrated
               setTimeout(() => {
-                useUserStore.getState().setHasHydrated(true)
-              }, 0)
+                useUserStore.getState().setHasHydrated(true);
+              }, 0);
             }
           }
-        }
+        };
       },
-      partialize: (state) => ({
+      partialize: state => ({
         userLevel: state.userLevel,
         roles: state.roles,
         mainInstrument: state.mainInstrument,
@@ -134,8 +148,8 @@ export const useUserStore = create<UserState>()(
         flipFretboardView: state.flipFretboardView,
         defaultTab: state.defaultTab,
         gear: state.gear,
-        gearChains: state.gearChains
-      })
+        gearChains: state.gearChains,
+      }),
     }
   )
-)
+);
