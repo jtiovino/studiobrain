@@ -65,6 +65,8 @@ import {
   History,
   X,
   BookOpen,
+  MessageCircle,
+  Send,
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { OpenAIService } from '@/lib/openai-service';
@@ -146,6 +148,14 @@ export default function StudioBrain() {
   const [practiceMessages, setPracticeMessages] = useState<ChatMessage[]>([]);
   const [practiceLoading, setPracticeLoading] = useState(false);
   const [practiceFollowUp, setPracticeFollowUp] = useState('');
+
+  
+  // Pre-planning chat state
+  const [practiceChatMessages, setPracticeChatMessages] = useState<
+    ChatMessage[]
+  >([]);
+  const [practiceChatInput, setPracticeChatInput] = useState('');
+  const [practiceChatLoading, setPracticeChatLoading] = useState(false);
 
   // Practice form state
   const [practiceForm, setPracticeForm] = useState({
@@ -1486,6 +1496,85 @@ export default function StudioBrain() {
     }
     if (isMounted.current) {
       setPracticeLoading(false);
+    }
+  };
+
+  const handlePracticeChatMessage = async () => {
+    if (!practiceChatInput.trim()) return;
+
+    // Add user message to chat
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      type: 'user',
+      content: practiceChatInput.trim(),
+      timestamp: Date.now(),
+    };
+    setPracticeChatMessages(prev => [...prev, userMessage]);
+    setPracticeChatInput(''); // Clear input field
+
+    setPracticeChatLoading(true);
+    try {
+      // Include current messages plus the new user message for context
+      const currentHistory = [...practiceChatMessages, userMessage];
+      const response = await OpenAIService.askPractice(
+        practiceChatInput.trim(),
+        lessonMode,
+        currentHistory
+      );
+
+      if (isMounted.current) {
+        const assistantMessage: ChatMessage = {
+          id: `assistant-${Date.now()}`,
+          type: 'assistant',
+          content: response.response,
+          timestamp: Date.now(),
+          plugins: response.pluginSuggestions || [],
+        };
+        setPracticeChatMessages(prev => [...prev, assistantMessage]);
+
+        // Store the response in session for persistence
+        const displayContent = stripMarkdown(response.response);
+        setSession({ lastOutput: displayContent });
+
+        // Check if the response suggests practice settings and try to auto-populate
+        const responseText = response.response.toLowerCase();
+        if (
+          responseText.includes('goal:') ||
+          responseText.includes('practice goal') ||
+          responseText.includes('focus on')
+        ) {
+          // Extract potential practice settings from response
+          // This is a simple implementation - could be enhanced with better parsing
+          const goalMatch = response.response.match(/goal:?\s*([^\n]+)/i);
+          if (goalMatch && goalMatch[1]) {
+            setPracticeGoal(goalMatch[1].trim());
+          }
+        }
+
+        // Save to history if enabled
+        saveMessagesToHistory('practice', [
+          ...practiceChatMessages,
+          userMessage,
+          assistantMessage,
+        ]);
+      }
+    } catch (error) {
+      console.error('Practice chat error:', error);
+      if (isMounted.current) {
+        const errorMessage = 'Error: Unable to get response from StudioBrain.';
+        const errorAssistantMessage: ChatMessage = {
+          id: `assistant-error-${Date.now()}`,
+          type: 'assistant',
+          content: errorMessage,
+          timestamp: Date.now(),
+        };
+        setPracticeChatMessages(prev => [...prev, errorAssistantMessage]);
+        // Store the error in session
+        setSession({ lastOutput: errorMessage });
+      }
+    }
+    if (isMounted.current) {
+      setPracticeChatLoading(false);
     }
   };
 
@@ -2859,6 +2948,126 @@ export default function StudioBrain() {
                               </div>
                             </CardContent>
                           </Card>
+                        </div>
+                      </div>
+
+                      {/* Pre-planning Chat Interface */}
+                      <div className={`space-y-4 p-4 border-2 rounded-xl ${lessonMode ? 'border-neon-cyan/40' : 'border-neon-purple/40'}`}>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={`p-2 rounded-lg ${lessonMode ? 'bg-neon-cyan/20' : 'bg-neon-purple/20'}`}
+                          >
+                            <MessageCircle
+                              className={`w-4 h-4 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}
+                            />
+                          </div>
+                          <h3 className="font-medium text-slate-200">
+                            Chat with StudioBrain
+                          </h3>
+                        </div>
+                        {practiceChatMessages.length === 0 ? (
+                          <div className="text-center py-4">
+                            <p className="text-sm text-slate-400">
+                              Need help with your practice goals? Ask me anything!
+                            </p>
+                            <div className="flex flex-wrap gap-2 mt-3 justify-center">
+                              {[
+                                'What should I practice to improve?',
+                                'Help me set a practice goal',
+                                "I'm a beginner, where do I start?",
+                                'Suggest techniques for my level',
+                              ].map((suggestion, index) => (
+                                <button
+                                  key={index}
+                                  onClick={() =>
+                                    setPracticeChatInput(suggestion)
+                                  }
+                                  className={`text-xs px-3 py-1 rounded-full border transition-colors duration-200 ${
+                                    lessonMode
+                                      ? 'border-neon-cyan/30 text-neon-cyan hover:bg-neon-cyan/10'
+                                      : 'border-neon-purple/30 text-neon-purple hover:bg-neon-purple/10'
+                                  }`}
+                                >
+                                  {suggestion}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-3 max-h-48 overflow-y-auto">
+                            {practiceChatMessages.map(message => (
+                              <div
+                                key={message.id}
+                                className={`flex ${
+                                  message.type === 'user'
+                                    ? 'justify-end'
+                                    : 'justify-start'
+                                }`}
+                              >
+                                <div
+                                  className={`max-w-[85%] sm:max-w-[80%] rounded-xl p-3 ${
+                                    message.type === 'user'
+                                      ? lessonMode
+                                        ? 'bg-neon-cyan text-black'
+                                        : 'bg-neon-purple text-white'
+                                      : 'bg-slate-800 border border-slate-600/50 text-slate-200'
+                                  }`}
+                                >
+                                  <div className="whitespace-pre-line leading-relaxed">
+                                    {stripMarkdown(message.content)}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                            {practiceChatLoading && (
+                              <div className="flex justify-start">
+                                <div
+                                  className="max-w-[85%] sm:max-w-[80%] rounded-xl p-3 bg-slate-800 border border-slate-600/50 text-slate-200 flex items-center gap-2"
+                                >
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                  <span>Thinking...</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        <div className="flex gap-2">
+                          <Textarea
+                            value={practiceChatInput}
+                            onChange={e => setPracticeChatInput(e.target.value)}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                handlePracticeChatMessage();
+                              }
+                            }}
+                            placeholder="Ask about practice goals, get suggestions, or request help..."
+                            className="bg-glass-bg border-glass-border text-slate-200 placeholder:text-slate-400 resize-none"
+                            rows={2}
+                            disabled={practiceChatLoading}
+                          />
+                          <Button
+                            onClick={handlePracticeChatMessage}
+                            disabled={
+                              !practiceChatInput.trim() || practiceChatLoading
+                            }
+                            className={`px-4 transition-all duration-200 ${
+                              lessonMode
+                                ? 'bg-neon-cyan/20 text-neon-cyan hover:bg-neon-cyan/30 border border-neon-cyan/30'
+                                : 'bg-neon-purple/20 text-neon-purple hover:bg-neon-purple/30 border border-neon-purple/30'
+                            }`}
+                          >
+                            {practiceChatLoading ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Send className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </div>
+                        <div className="text-xs text-slate-500 text-center">
+                          Get personalized suggestions, then click
+                          &quot;Generate Practice Plan&quot; below
                         </div>
                       </div>
 
