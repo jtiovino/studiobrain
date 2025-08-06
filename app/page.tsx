@@ -95,12 +95,21 @@ interface PianoKey {
 
 export default function StudioBrain() {
   const { lastInput, lastOutput, setSession } = useSessionStore();
-  const chatHistory = useChatHistoryStore();
+  const { 
+    currentSessionId, 
+    setSettingsSession, 
+    restoreFromSettings,
+    loadSession,
+    createSession,
+    addMessageToSession,
+    setCurrentSession 
+  } = useChatHistoryStore();
   const {
     userLevel,
     preferredTuning,
     lessonMode: storeLessonMode,
     flipFretboardView,
+    currentTab: storeCurrentTab,
     set,
   } = useUserStore();
   const router = useRouter();
@@ -121,9 +130,15 @@ export default function StudioBrain() {
   const [voicingView, setVoicingView] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [showChatHistory, setShowChatHistory] = useState(false);
-  const [currentActiveTab, setCurrentActiveTab] = useState<
+  const [currentActiveTab, setCurrentActiveTabState] = useState<
     'general' | 'mix' | 'theory' | 'instrument' | 'practice'
   >('general');
+
+  // Wrapper function to persist tab changes
+  const setCurrentActiveTab = (tab: 'general' | 'mix' | 'theory' | 'instrument' | 'practice') => {
+    setCurrentActiveTabState(tab);
+    set({ currentTab: tab });
+  };
 
   // Chat states for different tabs - now using message arrays
   const [generalMessages, setGeneralMessages] = useState<ChatMessage[]>([]);
@@ -239,11 +254,11 @@ export default function StudioBrain() {
       }
 
       // Set current session and close history panel
-      chatHistory.setCurrentSession(session.id);
+      setCurrentSession(session.id);
       setCurrentActiveTab(session.tabType);
       setShowChatHistory(false);
     },
-    [messageToChatMessage, chatHistory]
+    [messageToChatMessage, setCurrentSession]
   );
 
   const handleNewSession = (tabType: ChatSession['tabType']) => {
@@ -268,7 +283,7 @@ export default function StudioBrain() {
 
     // Set current tab and clear current session
     setCurrentActiveTab(tabType);
-    chatHistory.setCurrentSession(null);
+    setCurrentSession(null);
     setShowChatHistory(false);
   };
 
@@ -279,11 +294,9 @@ export default function StudioBrain() {
 
       const historyMessages = messages.map(chatMessageToMessage);
 
-      if (chatHistory.currentSessionId) {
+      if (currentSessionId) {
         // Update existing session with new messages
-        const currentSession = chatHistory.sessions.find(
-          s => s.id === chatHistory.currentSessionId
-        );
+        const currentSession = loadSession(currentSessionId);
         if (
           currentSession &&
           messages.length > currentSession.messages.length
@@ -293,24 +306,24 @@ export default function StudioBrain() {
             currentSession.messages.length
           );
           newMessages.forEach(msg => {
-            chatHistory.addMessageToSession(chatHistory.currentSessionId!, msg);
+            addMessageToSession(currentSessionId, msg);
           });
         }
       } else if (messages.length > 0) {
         // Create new session with first message
         const firstMessage = historyMessages[0];
-        const sessionId = chatHistory.createSession(tabType, firstMessage);
-        chatHistory.setCurrentSession(sessionId);
+        const sessionId = createSession(tabType, firstMessage);
+        setCurrentSession(sessionId);
 
         // Add remaining messages if any
         if (historyMessages.length > 1) {
           historyMessages.slice(1).forEach(msg => {
-            chatHistory.addMessageToSession(sessionId, msg);
+            addMessageToSession(sessionId, msg);
           });
         }
       }
     },
-    [chatHistory]
+    [currentSessionId, loadSession, createSession, setCurrentSession, addMessageToSession]
   );
 
   // Generate chords based on selected root and mode using proper music theory
@@ -431,6 +444,53 @@ export default function StudioBrain() {
 
   // Function to navigate to settings for tuning change
   const handleChangeTuning = () => {
+    console.log('🔧 Navigating to settings from tab:', currentActiveTab);
+    console.log('🔧 Current session ID before navigation:', currentSessionId);
+    
+    // Force save current tab messages before navigation
+    const getCurrentTabMessages = () => {
+      switch (currentActiveTab) {
+        case 'general': return generalMessages;
+        case 'mix': return mixMessages;
+        case 'theory': return theoryMessages;
+        case 'instrument': return instrumentMessages;
+        case 'practice': return practiceMessages;
+        default: return [];
+      }
+    };
+    
+    const currentMessages = getCurrentTabMessages();
+    console.log('💾 Saving', currentMessages.length, 'messages for tab:', currentActiveTab);
+    
+    if (currentMessages.length > 0) {
+      saveMessagesToHistory(currentActiveTab, currentMessages);
+    }
+    
+    // Verify session creation if no current session exists
+    if (!currentSessionId && currentMessages.length > 0) {
+      console.log('⚠️ No session ID but messages exist - creating session');
+      const firstMessage = currentMessages[0];
+      const newSessionId = createSession(currentActiveTab, firstMessage);
+      setCurrentSessionId(newSessionId);
+      console.log('✅ Created new session:', newSessionId);
+    }
+    
+    // Store current session and tab before navigating to settings
+    console.log('🏪 Storing session ID:', currentSessionId);
+    console.log('🏪 Storing current tab:', currentActiveTab);
+    
+    // Double-verify the session gets stored
+    const sessionToStore = currentSessionId;
+    setSettingsSession(sessionToStore);
+    set({ currentTab: currentActiveTab });
+    
+    // Verify storage worked
+    setTimeout(() => {
+      const stored = useChatHistoryStore.getState().settingsSessionId;
+      console.log('✅ Verified stored session ID:', stored);
+      console.log('✅ Verified stored tab:', useUserStore.getState().currentTab);
+    }, 100);
+    
     router.push('/settings');
   };
 
@@ -438,6 +498,50 @@ export default function StudioBrain() {
   const clearTabNotes = () => {
     setActiveTabNotes([]);
     setShowTabNotes(false);
+  };
+
+  // Helper functions to sync chat state with persistent storage
+  const syncTabMessages = (tabType: 'general' | 'mix' | 'theory' | 'instrument' | 'practice', messages: ChatMessage[]) => {
+    if (messages.length === 0) return;
+    
+    // Convert to Message format and sync
+    const persistentMessages = messages.map(msg => ({
+      role: msg.type as 'user' | 'assistant',
+      content: msg.content,
+      timestamp: new Date(msg.timestamp),
+      plugins: msg.plugins
+    }));
+    
+    if (!currentSessionId || !loadSession(currentSessionId)) {
+      // Create new session if none exists
+      if (persistentMessages.length > 0) {
+        const sessionId = createSession(tabType, persistentMessages[0]);
+        // Add remaining messages
+        persistentMessages.slice(1).forEach(msg => addMessageToSession(sessionId, msg));
+      }
+    } else {
+      // Add new messages to existing session
+      const session = loadSession(currentSessionId);
+      if (session && session.messages.length < messages.length) {
+        const newMessages = persistentMessages.slice(session.messages.length);
+        newMessages.forEach(msg => addMessageToSession(currentSessionId, msg));
+      }
+    }
+  };
+
+  const loadTabMessages = (tabType: 'general' | 'mix' | 'theory' | 'instrument' | 'practice'): ChatMessage[] => {
+    if (!currentSessionId) return [];
+    
+    const session = loadSession(currentSessionId);
+    if (!session || session.tabType !== tabType) return [];
+    
+    return session.messages.map(msg => ({
+      id: `${msg.role}-${msg.timestamp.getTime()}`,
+      type: msg.role,
+      content: msg.content,
+      timestamp: msg.timestamp.getTime(),
+      plugins: msg.plugins
+    }));
   };
 
   // Function to navigate to settings page
@@ -559,9 +663,73 @@ export default function StudioBrain() {
     setFretboardFlipped(flipFretboardView);
   }, [preferredTuning, flipFretboardView]);
 
+  // Restoration logic for returning from settings
+  useEffect(() => {
+    console.log('🔄 Restoration logic running...');
+    const chatHistory = useChatHistoryStore.getState();
+    console.log('📊 Settings session ID:', chatHistory.settingsSessionId);
+    console.log('📊 Current tab in store:', storeCurrentTab);
+    console.log('📊 Current active tab:', currentActiveTab);
+    
+    // Check if we're returning from settings  
+    if (chatHistory.settingsSessionId) {
+      console.log('✅ Returning from settings - restoring session');
+      
+      // Restore previous tab (don't re-save to store)
+      setCurrentActiveTabState(storeCurrentTab);
+      console.log('🎯 Restored tab to:', storeCurrentTab);
+      
+      // Restore chat session
+      restoreFromSettings();
+      console.log('🔄 Called restoreFromSettings()');
+      
+      // Load messages for the current tab
+      const session = loadSession(chatHistory.settingsSessionId);
+      console.log('📝 Loaded session:', session?.title, session?.tabType);
+      
+      if (session) {
+          const messages = loadTabMessages(session.tabType);
+          console.log('💬 Loaded messages count:', messages.length, 'for tab:', session.tabType);
+          
+          // Restore messages to appropriate tab state
+          switch (session.tabType) {
+            case 'general':
+              setGeneralMessages(messages);
+              console.log('📋 Restored general messages');
+              break;
+            case 'mix':
+              setMixMessages(messages);
+              console.log('🎛️ Restored mix messages');
+              break;
+            case 'theory':
+              setTheoryMessages(messages);
+              console.log('🎼 Restored theory messages');
+              break;
+            case 'instrument':
+              setInstrumentMessages(messages);
+              console.log('🎸 Restored instrument messages');
+              break;
+            case 'practice':
+              setPracticeMessages(messages);
+              console.log('🏃 Restored practice messages');
+              break;
+          }
+        }
+      } else {
+        console.log('❌ No settings session found');
+      }
+    
+    // Initialize tab from user preferences on first load
+    if (storeCurrentTab !== currentActiveTab) {
+      console.log('🆕 First load - setting tab to:', storeCurrentTab);
+      setCurrentActiveTabState(storeCurrentTab);
+    }
+  }, [storeCurrentTab, restoreFromSettings, loadSession, setCurrentActiveTabState, currentActiveTab]); // Proper dependencies
+
   // Rehydration effect - restore last session and migrate old data
   useEffect(() => {
-    if (lastInput && lastOutput && chatHistory.sessions.length === 0) {
+    const chatHistoryState = useChatHistoryStore.getState();
+    if (lastInput && lastOutput && chatHistoryState.sessions.length === 0) {
       // Migrate old session data to new chat history system
       const restoredMessages: ChatMessage[] = [
         {
@@ -582,18 +750,18 @@ export default function StudioBrain() {
       // Create a session for the migrated data
       const historyMessages = restoredMessages.map(chatMessageToMessage);
       if (historyMessages.length > 0) {
-        const sessionId = chatHistory.createSession(
+        const sessionId = createSession(
           'general',
           historyMessages[0]
         );
         if (historyMessages.length > 1) {
           historyMessages.slice(1).forEach(msg => {
-            chatHistory.addMessageToSession(sessionId, msg);
+            addMessageToSession(sessionId, msg);
           });
         }
       }
     }
-  }, [lastInput, lastOutput, chatHistory, chatMessageToMessage]);
+  }, [lastInput, lastOutput, chatMessageToMessage, createSession, addMessageToSession]);
 
   // Restore current session on component mount, but clear on refresh
   useEffect(() => {
@@ -621,19 +789,17 @@ export default function StudioBrain() {
     if (isPageRefresh()) {
       // Page was refreshed - clear the current session
       console.log('🔄 Page refresh detected - clearing current session');
-      chatHistory.setCurrentSession(null);
+      setCurrentSession(null);
     } else {
       // Normal navigation - restore session if available (including return from settings)
       if (
-        chatHistory.currentSessionId &&
+        currentSessionId &&
         generalMessages.length === 0 &&
         mixMessages.length === 0 &&
         theoryMessages.length === 0 &&
         instrumentMessages.length === 0
       ) {
-        const currentSession = chatHistory.sessions.find(
-          s => s.id === chatHistory.currentSessionId
-        );
+        const currentSession = loadSession(currentSessionId);
         if (currentSession) {
           console.log(
             '🔄 Navigation return detected - restoring session:',
@@ -647,8 +813,7 @@ export default function StudioBrain() {
     // Mark that refresh detection has run
     hasRunRefreshDetection.current = true;
   }, [
-    chatHistory.currentSessionId,
-    chatHistory.sessions,
+    currentSessionId,
     generalMessages.length,
     mixMessages.length,
     theoryMessages.length,
@@ -776,8 +941,9 @@ export default function StudioBrain() {
     };
   }, []);
 
-  // Guitar tuning mappings
+  // Guitar tuning mappings (high to low string order)
   const tuningMap: { [key: string]: { name: string; strings: string[] } } = {
+    // 6-String Standard Tunings
     standard: {
       name: 'Standard (E-A-D-G-B-E)',
       strings: ['E', 'B', 'G', 'D', 'A', 'E'],
@@ -795,27 +961,136 @@ export default function StudioBrain() {
       name: 'Whole Step Down',
       strings: ['D', 'A', 'F', 'C', 'G', 'D'],
     },
+    
+    // Additional 6-String Tunings
+    dropb: { name: 'Drop B', strings: ['D#', 'A#', 'F#', 'B', 'F#', 'B'] },
+    openA: { name: 'Open A', strings: ['E', 'C#', 'A', 'E', 'A', 'E'] },
+    openD: { name: 'Open D', strings: ['D', 'A', 'F#', 'D', 'A', 'D'] },
+    openc: { name: 'Open C', strings: ['E', 'C', 'G', 'C', 'G', 'C'] },
+    celtic: { name: 'Celtic (DADGAD)', strings: ['D', 'A', 'G', 'D', 'A', 'D'] },
+    
+    // 7-String Tunings
+    standard7: {
+      name: '7-String Standard (B-E-A-D-G-B-E)',
+      strings: ['E', 'B', 'G', 'D', 'A', 'E', 'B'],
+    },
+    dropa7: { 
+      name: '7-String Drop A (A-E-A-D-G-B-E)',
+      strings: ['E', 'B', 'G', 'D', 'A', 'E', 'A'] 
+    },
+    
+    // 8-String Tunings  
+    standard8: {
+      name: '8-String Standard (F#-B-E-A-D-G-B-E)',
+      strings: ['E', 'B', 'G', 'D', 'A', 'E', 'B', 'F#'],
+    },
+    drope8: {
+      name: '8-String Drop E (E-B-E-A-D-G-B-E)',
+      strings: ['E', 'B', 'G', 'D', 'A', 'E', 'B', 'E'],
+    },
+    
+    // Baritone Tunings
+    baritone: {
+      name: 'Baritone Standard (B-E-A-D-F#-B)',
+      strings: ['B', 'F#', 'D', 'A', 'E', 'B'],
+    },
+    baritoneA: {
+      name: 'Baritone A (A-D-G-C-E-A)',
+      strings: ['A', 'E', 'C', 'G', 'D', 'A'],
+    },
   };
 
-  // Parse user's preferred tuning text to tuning map key
+  // Parse user's preferred tuning text to tuning map key or custom strings
   const parseTuningToKey = (preferredTuning: string): string => {
     const tuning = preferredTuning.toLowerCase().trim();
     
-    // Direct matches
-    if (tuning.includes('standard')) return 'standard';
+    // Direct matches for preset tunings
+    if (tuning.includes('standard') && !tuning.includes('7') && !tuning.includes('8')) return 'standard';
     if (tuning.includes('drop d')) return 'dropd';
     if (tuning.includes('open g')) return 'openg';
-    if (tuning.includes('dadgad')) return 'dadgad';
+    if (tuning.includes('dadgad') || tuning.includes('celtic')) return 'dadgad';
     if (tuning.includes('drop c')) return 'dropc';
+    if (tuning.includes('drop b')) return 'dropb';
     if (tuning.includes('open e')) return 'opene';
+    if (tuning.includes('open a')) return 'openA';
+    if (tuning.includes('open d')) return 'openD';
+    if (tuning.includes('open c')) return 'openc';
     if (tuning.includes('half step')) return 'halfstep';
     if (tuning.includes('whole step')) return 'wholestep';
+    
+    // 7-String matches
+    if (tuning.includes('7') && tuning.includes('standard')) return 'standard7';
+    if (tuning.includes('7') && tuning.includes('drop a')) return 'dropa7';
+    
+    // 8-String matches
+    if (tuning.includes('8') && tuning.includes('standard')) return 'standard8';
+    if (tuning.includes('8') && tuning.includes('drop e')) return 'drope8';
+    
+    // Baritone matches
+    if (tuning.includes('baritone') && tuning.includes('a')) return 'baritoneA';
+    if (tuning.includes('baritone')) return 'baritone';
+    
+    // Try to parse custom note sequences
+    const customTuning = parseCustomTuning(preferredTuning);
+    if (customTuning) {
+      // Add custom tuning to map temporarily
+      const customKey = 'custom_' + Date.now();
+      tuningMap[customKey] = customTuning;
+      return customKey;
+    }
     
     // Default fallback
     return 'standard';
   };
+  
+  // Parse custom tuning strings like "EADGBE", "E-A-D-G-B-E", "E A D G B E"
+  const parseCustomTuning = (tuningString: string): { name: string; strings: string[] } | null => {
+    // Remove common separators and clean up
+    const cleaned = tuningString
+      .replace(/[-()\s]/g, '')
+      .toUpperCase()
+      .replace(/[^A-G#]/g, '');
+    
+    // Match note pattern (A-G with optional # or b)
+    const notePattern = /[A-G][#b]?/g;
+    const matches = cleaned.match(notePattern);
+    
+    if (!matches || matches.length < 4 || matches.length > 12) {
+      return null; // Invalid tuning
+    }
+    
+    // Reverse to get high-to-low order for display
+    const strings = matches.reverse();
+    
+    return {
+      name: `Custom (${matches.reverse().join('-')})`,
+      strings: strings,
+    };
+  };
 
   const currentTuning = tuningMap[selectedTuning] || tuningMap.standard;
+  
+  // Dynamic fretboard configuration
+  const fretCount = 13; // Could be made configurable later
+  const stringCount = currentTuning.strings.length;
+  
+  // Generate CSS classes for fretboard layout
+  const getFretboardGridClass = (frets: number): string => {
+    const gridClasses: { [key: number]: string } = {
+      12: 'grid-cols-12',
+      13: 'grid-cols-13',
+      15: 'grid-cols-15',
+      17: 'grid-cols-17',
+      24: 'grid-cols-24'
+    };
+    return gridClasses[frets] || 'grid-cols-13';
+  };
+  
+  const getFretboardMaxWidth = (strings: number): string => {
+    if (strings <= 6) return 'max-w-[600px]';
+    if (strings <= 8) return 'max-w-[700px]';
+    return 'max-w-[800px]';
+  };
 
   // Generate fretboard notes based on tuning
   const generateFretboardNotes = () => {
@@ -2276,7 +2551,7 @@ export default function StudioBrain() {
                           <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 sm:p-6 shadow-lg w-full">
                             <div className="bg-black/20 backdrop-blur-sm rounded-lg p-3 sm:p-4">
                               <div
-                                className={`w-full max-w-[600px] mx-auto transition-transform duration-400 ${flipAnimation ? 'scale-y-95' : ''}`}
+                                className={`w-full ${getFretboardMaxWidth(stringCount)} mx-auto transition-transform duration-400 ${flipAnimation ? 'scale-y-95' : ''}`}
                               >
                                 <div className="space-y-1 sm:space-y-2">
                                   {displayFretboard.map(
@@ -2288,9 +2563,9 @@ export default function StudioBrain() {
                                         <div className="w-6 text-xs font-mono text-slate-300 text-right font-medium">
                                           {displayTuningStrings[stringIndex]}
                                         </div>
-                                        <div className="grid grid-cols-13 gap-0.5 sm:gap-1">
+                                        <div className={`grid ${getFretboardGridClass(fretCount)} gap-0.5 sm:gap-1`}>
                                           {string
-                                            .slice(0, 13)
+                                            .slice(0, fretCount)
                                             .map((note, fretIndex) => {
                                               const isRoot =
                                                 note === selectedChord;
@@ -2343,8 +2618,8 @@ export default function StudioBrain() {
                                 <div className="mt-3 sm:mt-4">
                                   <div className="grid grid-cols-[auto_1fr] items-center gap-2">
                                     <div className="w-6"></div>
-                                    <div className="grid grid-cols-13 gap-0.5 sm:gap-1">
-                                      {Array.from({ length: 13 }, (_, i) => (
+                                    <div className={`grid ${getFretboardGridClass(fretCount)} gap-0.5 sm:gap-1`}>
+                                      {Array.from({ length: fretCount }, (_, i) => (
                                         <span
                                           key={i}
                                           className={`text-center text-[9px] sm:text-xs font-mono ${[3, 5, 7, 9, 12].includes(i) ? 'font-bold text-slate-300' : 'font-medium text-slate-400'}`}

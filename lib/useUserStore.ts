@@ -11,6 +11,7 @@ interface UserState {
   lessonMode: boolean;
   flipFretboardView: boolean;
   defaultTab: 'General' | 'Mix' | 'Theory' | 'Instrument';
+  currentTab: 'general' | 'mix' | 'theory' | 'instrument' | 'practice';
   gear: {
     guitar: string[];
     pedals: string[];
@@ -45,6 +46,7 @@ export const useUserStore = create<UserState>()(
       lessonMode: false,
       flipFretboardView: false,
       defaultTab: 'General',
+      currentTab: 'general',
       gear: {
         guitar: [],
         pedals: [],
@@ -147,6 +149,7 @@ export const useUserStore = create<UserState>()(
         lessonMode: state.lessonMode,
         flipFretboardView: state.flipFretboardView,
         defaultTab: state.defaultTab,
+        currentTab: state.currentTab,
         gear: state.gear,
         gearChains: state.gearChains,
       }),
