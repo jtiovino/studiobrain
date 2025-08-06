@@ -17,6 +17,7 @@ import {
   Music,
   Guitar,
   Volume2,
+  BookOpen,
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -31,7 +32,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 interface ChatHistoryPanelProps {
-  currentTab: 'general' | 'mix' | 'theory' | 'instrument';
+  currentTab: ChatSession['tabType'];
   lessonMode: boolean;
   onSessionSelect: (session: ChatSession) => void;
   onNewSession: (tabType: ChatSession['tabType']) => void;
@@ -43,6 +44,7 @@ const tabIcons = {
   mix: <Volume2 className="w-4 h-4" />,
   theory: <Music className="w-4 h-4" />,
   instrument: <Guitar className="w-4 h-4" />,
+  practice: <BookOpen className="w-4 h-4" />,
 };
 
 const tabLabels = {
@@ -50,6 +52,7 @@ const tabLabels = {
   mix: 'Mix',
   theory: 'Theory',
   instrument: 'Instrument',
+  practice: 'Practice',
 };
 
 export default function ChatHistoryPanel({

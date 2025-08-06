@@ -146,6 +146,7 @@ export default function StudioBrain() {
 
   const [practiceMessages, setPracticeMessages] = useState<ChatMessage[]>([]);
   const [practiceLoading, setPracticeLoading] = useState(false);
+  const [practiceFollowUp, setPracticeFollowUp] = useState('');
 
   // Practice form state
   const [practiceForm, setPracticeForm] = useState({
@@ -1410,6 +1411,70 @@ export default function StudioBrain() {
       }
     } catch (error) {
       console.error('Practice question error:', error);
+      if (isMounted.current) {
+        const errorMessage = 'Error: Unable to get response from StudioBrain.';
+        const errorAssistantMessage: ChatMessage = {
+          id: `assistant-error-${Date.now()}`,
+          type: 'assistant',
+          content: errorMessage,
+          timestamp: Date.now(),
+        };
+        setPracticeMessages(prev => [...prev, errorAssistantMessage]);
+        // Store the error in session
+        setSession({ lastOutput: errorMessage });
+      }
+    }
+    if (isMounted.current) {
+      setPracticeLoading(false);
+    }
+  };
+
+  const handlePracticeFollowUp = async () => {
+    if (!practiceFollowUp.trim()) return;
+
+    // Add user message to chat
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      type: 'user',
+      content: practiceFollowUp.trim(),
+      timestamp: Date.now(),
+    };
+    setPracticeMessages(prev => [...prev, userMessage]);
+    setPracticeFollowUp(''); // Clear input field
+
+    setPracticeLoading(true);
+    try {
+      // Include current messages plus the new user message for context
+      const currentHistory = [...practiceMessages, userMessage];
+      const response = await OpenAIService.askPractice(
+        practiceFollowUp.trim(),
+        lessonMode,
+        currentHistory
+      );
+      if (isMounted.current) {
+        const displayContent =
+          response.response || response.error || 'No response';
+
+        const assistantMessage: ChatMessage = {
+          id: `assistant-${Date.now()}`,
+          type: 'assistant',
+          content: displayContent,
+          timestamp: Date.now(),
+        };
+        setPracticeMessages(prev => [...prev, assistantMessage]);
+
+        // Store the output in session
+        setSession({ lastOutput: displayContent });
+
+        // Save to history if enabled
+        saveMessagesToHistory('practice', [
+          ...practiceMessages,
+          userMessage,
+          assistantMessage,
+        ]);
+      }
+    } catch (error) {
+      console.error('Practice follow-up error:', error);
       if (isMounted.current) {
         const errorMessage = 'Error: Unable to get response from StudioBrain.';
         const errorAssistantMessage: ChatMessage = {
@@ -2824,6 +2889,51 @@ export default function StudioBrain() {
                         practiceScrollRef,
                         'practice',
                         practiceLoading
+                      )}
+
+                      {practiceMessages.length > 0 && (
+                        <div className="space-y-3 mt-6 pt-4 border-t border-glass-border">
+                          <Label
+                            htmlFor="practice-followup"
+                            className={`text-base font-medium ${lessonMode ? 'text-slate-200' : 'text-slate-200'}`}
+                          >
+                            Follow-up Question or Suggestion
+                          </Label>
+                          <Textarea
+                            id="practice-followup"
+                            placeholder="Ask questions, suggest changes, or request adjustments..."
+                            value={practiceFollowUp}
+                            onChange={e => setPracticeFollowUp(e.target.value)}
+                            onKeyDown={e =>
+                              handleKeyDown(e, handlePracticeFollowUp)
+                            }
+                            className={`glass-textarea min-h-[80px] bg-glass-bg border border-glass-border rounded-xl p-4 text-white transition-all duration-300 hover:border-slate-400 ${
+                              lessonMode
+                                ? 'focus:border-neon-cyan focus:shadow-lg focus:shadow-neon-cyan/20'
+                                : 'focus:border-neon-purple focus:shadow-lg focus:shadow-neon-purple/20'
+                            }`}
+                          />
+                          <Button
+                            onClick={handlePracticeFollowUp}
+                            disabled={
+                              practiceLoading || !practiceFollowUp.trim()
+                            }
+                            className={`w-full h-12 font-semibold text-lg rounded-xl transition-all duration-300 disabled:opacity-50 ${
+                              lessonMode
+                                ? 'bg-gradient-to-r from-[#22d3ee] to-[#3b82f6] hover:from-[#22d3ee]/90 hover:to-[#3b82f6]/90 text-black shadow-lg shadow-[#22d3ee]/30 hover:shadow-[#22d3ee]/50'
+                                : 'bg-gradient-to-r from-[#a855f7] to-[#ec4899] hover:from-[#a855f7]/90 hover:to-[#ec4899]/90 text-white shadow-lg shadow-[#a855f7]/30 hover:shadow-[#a855f7]/50'
+                            }`}
+                          >
+                            {practiceLoading ? (
+                              <>
+                                <Loader2 className="mr-3 h-5 w-5 animate-spin" />
+                                Thinking...
+                              </>
+                            ) : (
+                              'Send'
+                            )}
+                          </Button>
+                        </div>
                       )}
                     </CardContent>
                   </Card>

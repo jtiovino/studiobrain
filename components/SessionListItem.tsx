@@ -63,6 +63,9 @@ const getTabColor = (tabType: ChatSession['tabType'], lessonMode: boolean) => {
     instrument: lessonMode
       ? 'text-neon-cyan bg-neon-cyan/10'
       : 'text-neon-purple bg-neon-purple/10',
+    practice: lessonMode
+      ? 'text-neon-cyan bg-neon-cyan/10'
+      : 'text-neon-purple bg-neon-purple/10',
   }[tabType];
 };
 

@@ -29,6 +29,27 @@ export type PracticePlan = z.infer<typeof PracticePlanSchema>;
 export type Diagram = z.infer<typeof DiagramSchema>;
 export type Step = z.infer<typeof StepSchema>;
 
+// Practice Session State Types (for interactive practice sessions)
+export interface PracticeStepState {
+  isCompleted: boolean;
+  isActive: boolean;
+  timeSpent: number;
+  startTime?: Date;
+  notes?: string;
+}
+
+export interface PracticeSessionState {
+  id: string;
+  planId: string;
+  currentStepIndex: number;
+  isPaused: boolean;
+  isCompleted: boolean;
+  totalTimeSpent: number;
+  stepStates: PracticeStepState[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 // Post-validation function for business logic rules
 export function postValidatePlan(
   plan: PracticePlan,

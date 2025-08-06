@@ -300,4 +300,47 @@ export class OpenAIService {
       messageHistory: formattedHistory,
     });
   }
+
+  static async askPracticeWithContext(
+    message: string,
+    lessonMode: boolean,
+    practiceSession: any,
+    currentStep: any,
+    messageHistory?: Array<any>
+  ): Promise<ChatResponse> {
+    // Build a context-aware prompt that includes current practice session info
+    const contextInfo = `
+Current Practice Session Context:
+- Current Step: ${currentStep?.name || 'Unknown'}
+- Step ${practiceSession?.currentStepIndex + 1 || '?'} of ${practiceSession?.stepStates?.length || '?'}
+- Session Status: ${practiceSession?.isPaused ? 'Paused' : 'Active'}
+
+User question: ${message}`;
+
+    const fullPrompt = buildPrompt({
+      tab: 'Practice',
+      input: contextInfo,
+      inputType: 'text',
+    });
+
+    console.log('🎯 Client-side buildPrompt for Practice (with context):', fullPrompt);
+
+    const userSettings = getUserSettingsForAPI();
+
+    // Convert message history to the format expected by the API
+    const formattedHistory =
+      messageHistory?.map(msg => ({
+        type: msg.type || msg.role, // Handle both 'type' and 'role' properties
+        content: msg.content,
+      })) || [];
+
+    return this.makeRequest({
+      fullPrompt,
+      originalMessage: message,
+      context: 'practice',
+      lessonMode,
+      userSettings,
+      messageHistory: formattedHistory,
+    });
+  }
 }
