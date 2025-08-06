@@ -17,7 +17,6 @@ import {
   normalizeModeNames,
   ChordInfo,
   NoteName,
-  ModeName,
 } from '@/lib/music-theory';
 
 interface PluginSuggestion {
@@ -194,10 +193,7 @@ export default function StudioBrain() {
   const chatMessageToMessage = (chatMsg: ChatMessage): Message => ({
     role: chatMsg.type as 'user' | 'assistant',
     content: chatMsg.content,
-    timestamp:
-      chatMsg.timestamp instanceof Date
-        ? chatMsg.timestamp
-        : new Date(chatMsg.timestamp),
+    timestamp: new Date(chatMsg.timestamp),
     plugins: chatMsg.plugins,
   });
 
@@ -905,7 +901,7 @@ export default function StudioBrain() {
   // Message list renderer
   const renderMessageList = (
     messages: ChatMessage[],
-    scrollRef: React.RefObject<HTMLDivElement>,
+    scrollRef: React.RefObject<HTMLDivElement | null>,
     tabName: 'general' | 'mix' | 'theory' | 'instrument' | 'practice',
     loading: boolean
   ) => {
@@ -1524,7 +1520,7 @@ export default function StudioBrain() {
           <div className="flex-1 p-6">
             <div className="max-w-6xl mx-auto">
               {/* Lesson Mode Toggle & Settings - Responsive Position */}
-              <div className="flex items-center gap-4 fixed top-6 right-6 z-50 sm:top-6 sm:right-6 max-sm:top-4 max-sm:right-4">
+              <div className="flex items-center gap-2 sm:gap-4 fixed top-4 right-4 z-50 sm:top-6 sm:right-6">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -1563,14 +1559,14 @@ export default function StudioBrain() {
               </div>
 
               {/* Header */}
-              <div className="mb-12 text-center mt-20 sm:mt-12">
+              <div className="mb-8 sm:mb-12 text-center mt-16 sm:mt-12">
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-6">
                   <div className="relative p-2 sm:p-3 rounded-xl bg-glass-bg backdrop-blur-md border border-glass-border shadow-lg">
                     <Music
                       className={`w-8 h-8 sm:w-10 sm:h-10 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}
                     />
                   </div>
-                  <h1 className="text-5xl sm:text-5xl lg:text-6xl font-black tracking-tight bg-gradient-to-r from-neon-purple via-neon-blue to-neon-pink bg-clip-text text-transparent max-w-xs sm:max-w-none truncate sm:whitespace-normal">
+                  <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight bg-gradient-to-r from-neon-purple via-neon-blue to-neon-pink bg-clip-text text-transparent px-4 sm:px-0">
                     StudioBrain
                   </h1>
                 </div>
@@ -1589,7 +1585,7 @@ export default function StudioBrain() {
                   />
 
                   {/* Mobile Sidebar */}
-                  <div className="absolute left-0 top-0 h-full w-80">
+                  <div className="absolute left-0 top-0 h-full w-full max-w-xs sm:max-w-sm">
                     <div className="relative h-full">
                       <ChatHistoryPanel
                         currentTab={currentActiveTab}
@@ -2206,7 +2202,7 @@ export default function StudioBrain() {
                                               return (
                                                 <div
                                                   key={fretIndex}
-                                                  className={`aspect-square border rounded-md flex items-center justify-center text-[9px] sm:text-xs font-mono font-bold transition-all duration-200 ${
+                                                  className={`aspect-square border rounded-md flex items-center justify-center text-[8px] sm:text-xs font-mono font-bold transition-all duration-200 touch-manipulation ${
                                                     isTabNote
                                                       ? 'bg-orange-500 text-white border-orange-400 shadow-lg shadow-orange-500/50 ring-2 ring-orange-300/50'
                                                       : isRoot
@@ -2306,7 +2302,7 @@ export default function StudioBrain() {
                                           >
                                             <div className="h-6"></div>
                                             <div
-                                              className={`absolute top-0 left-1/2 transform -translate-x-1/2 translate-x-4 w-6 h-24 border rounded-b flex items-end justify-center pb-1 text-xs font-mono font-bold transition-colors duration-200 ${
+                                              className={`absolute top-0 left-1/2 transform -translate-x-1/2 translate-x-4 w-5 h-16 sm:w-6 sm:h-24 border rounded-b flex items-end justify-center pb-1 text-[10px] sm:text-xs font-mono font-bold transition-colors duration-200 ${
                                                 blackKeyNote.isRoot
                                                   ? lessonMode
                                                     ? 'bg-neon-cyan text-black border-neon-cyan shadow-lg shadow-neon-cyan/30'

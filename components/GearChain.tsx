@@ -447,7 +447,7 @@ export default function GearChain({
             {gearChains.studioBrainChain.length > 0 ? (
               <>
                 <p className="text-sm text-slate-400 mb-4">
-                  Gear extracted from StudioBrain's tone recommendations
+                  Gear extracted from StudioBrain&apos;s tone recommendations
                 </p>
                 <div className="space-y-3">
                   {gearChains.studioBrainChain.map((item, index) => (

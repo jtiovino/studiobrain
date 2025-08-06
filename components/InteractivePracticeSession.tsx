@@ -12,8 +12,6 @@ import { Badge } from '@/components/ui/badge';
 import {
   Play,
   Pause,
-  Square,
-  RotateCcw,
   ChevronLeft,
   ChevronRight,
   Home,
@@ -145,14 +143,7 @@ export const InteractivePracticeSession: React.FC<
     };
   }, []);
 
-  if (!session) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-slate-400">Loading practice session...</div>
-      </div>
-    );
-  }
-
+  // All hooks must be declared before any conditional returns
   const currentStep = useMemo(
     () => (session ? plan.steps[session.currentStepIndex] : null),
     [plan.steps, session?.currentStepIndex]
@@ -412,6 +403,14 @@ export const InteractivePracticeSession: React.FC<
     () => Math.floor((session?.totalTimeSpent || 0) / 60),
     [session?.totalTimeSpent]
   );
+
+  if (!session) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-slate-400">Loading practice session...</div>
+      </div>
+    );
+  }
 
   return (
     <div

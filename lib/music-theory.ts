@@ -59,7 +59,8 @@ export type RomanNumeral =
   | 'iv°'
   | 'v°'
   | 'vi°'
-  | 'vii°';
+  | 'vii°'
+  | 'III+';
 
 export interface ChordInfo {
   root: NoteName;

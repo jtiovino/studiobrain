@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { logger } from '@/lib/logger';
 import {
   detectGuitarTab,
   parseGuitarTab,
@@ -81,12 +82,57 @@ function cleanupExpiredEntries() {
   }
 }
 
-// Run cleanup every hour
-setInterval(cleanupExpiredEntries, 60 * 60 * 1000);
+// Run cleanup every hour with proper cleanup handling
+let cleanupInterval: NodeJS.Timeout | null = null;
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || '',
+function initializeCleanup() {
+  if (cleanupInterval) {
+    clearInterval(cleanupInterval);
+  }
+  cleanupInterval = setInterval(cleanupExpiredEntries, 60 * 60 * 1000);
+}
+
+// Initialize cleanup
+initializeCleanup();
+
+// Cleanup on process exit
+process.on('exit', () => {
+  if (cleanupInterval) {
+    clearInterval(cleanupInterval);
+  }
 });
+
+process.on('SIGINT', () => {
+  if (cleanupInterval) {
+    clearInterval(cleanupInterval);
+  }
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  if (cleanupInterval) {
+    clearInterval(cleanupInterval);
+  }
+  process.exit(0);
+});
+
+// Initialize OpenAI client with proper validation
+function createOpenAIClient() {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error('OpenAI API key is not configured');
+  }
+  return new OpenAI({
+    apiKey,
+  });
+}
+
+let openai: OpenAI;
+try {
+  openai = createOpenAIClient();
+} catch (error) {
+  logger.error('Failed to initialize OpenAI client:', error);
+}
 
 interface PluginSuggestion {
   name: string;
@@ -827,16 +873,19 @@ When suggesting adaptations, be specific with plugin names, amp models, and effe
 function buildConversationMessages(
   messageHistory: any[],
   userSettings: UserSettings | undefined,
-  context: string,
+  _context: string,
   lessonMode: boolean,
   currentMessage: string
 ) {
-  const systemMessage = buildSystemMessage(userSettings, context, lessonMode);
+  const systemMessage = buildSystemMessage(userSettings, _context, lessonMode);
 
   // Get last 5 messages for context (or all if fewer than 5)
   const recentMessages = messageHistory.slice(-5);
 
-  const messages = [{ role: 'system', content: systemMessage }];
+  const messages: Array<{
+    role: 'system' | 'user' | 'assistant';
+    content: string;
+  }> = [{ role: 'system', content: systemMessage }];
 
   // Add conversation history
   recentMessages.forEach(msg => {
@@ -1075,12 +1124,15 @@ export async function POST(request: NextRequest) {
       messageHistory,
     } = await request.json();
 
-    if (!process.env.OPENAI_API_KEY) {
-      return NextResponse.json({
-        response: '',
-        error:
-          'OpenAI API key not configured. Please set OPENAI_API_KEY in your environment variables.',
-      });
+    // Check if OpenAI client is properly initialized
+    if (!openai) {
+      return NextResponse.json(
+        {
+          response: '',
+          error: 'OpenAI service unavailable. Please contact support.',
+        },
+        { status: 503 }
+      );
     }
 
     // Rate limiting check - prevent abuse of OpenAI API
@@ -1088,7 +1140,7 @@ export async function POST(request: NextRequest) {
     const rateLimitResult = checkRateLimit(userKey, lessonMode);
 
     if (!rateLimitResult.allowed) {
-      console.log(`🚫 Rate limit exceeded for user: ${userKey}`);
+      logger.warn(`Rate limit exceeded for user: ${userKey}`);
       return NextResponse.json({
         response: '',
         error:
@@ -1096,8 +1148,8 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    console.log(
-      `✅ Rate limit check passed for user: ${userKey}, remaining: ${rateLimitResult.remaining}`
+    logger.debug(
+      `Rate limit check passed for user: ${userKey}, remaining: ${rateLimitResult.remaining}`
     );
 
     // Tab detection and parsing
@@ -1106,7 +1158,7 @@ export async function POST(request: NextRequest) {
     let enhancedMessage = originalMessage;
 
     if (detectGuitarTab(originalMessage)) {
-      console.log('🎸 Guitar tab detected in message');
+      logger.debug('Guitar tab detected in message');
       parsedTab = parseGuitarTab(originalMessage);
 
       if (parsedTab) {
@@ -1185,7 +1237,7 @@ Please analyze this tab and provide insights about the notes, fingering, and tec
     // Internal critic review - DISABLED
     // The critic was interfering with the new Universal Standards and lesson mode improvements
     // Accuracy and sourcing are now handled directly by the main prompt system
-    let finalResponse = enhancedResponse;
+    const finalResponse = enhancedResponse;
     console.log(
       '✅ Using direct response (critic disabled for improved accuracy)'
     );
@@ -1212,12 +1264,12 @@ Please analyze this tab and provide insights about the notes, fingering, and tec
       error: null,
     });
   } catch (error) {
-    console.error('OpenAI API error:', error);
+    logger.error('OpenAI API error:', error);
 
     // Return more specific error information
     const errorMessage =
       error instanceof Error ? error.message : 'Unknown error';
-    console.error('Detailed error:', errorMessage);
+    logger.error('Detailed error:', errorMessage);
 
     return NextResponse.json({
       response: '',

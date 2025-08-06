@@ -219,3 +219,5 @@ export const PracticeTimer: React.FC<PracticeTimerProps> = React.memo(
     );
   }
 );
+
+PracticeTimer.displayName = 'PracticeTimer';

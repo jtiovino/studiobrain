@@ -1,6 +1,12 @@
 import { buildPrompt } from './promptBuilder';
 import { useUserStore } from './useUserStore';
-import { PracticePlan } from './practice-plan-schema';
+import {
+  PracticePlan,
+  PracticeSessionState,
+  Step,
+} from './practice-plan-schema';
+import { ChordShape } from './voicings';
+import { GearItem } from './gearService';
 
 export type TabContext =
   | 'general'
@@ -71,7 +77,7 @@ export interface TabData {
     originalText: string;
   };
   identifiedChord: string | null;
-  chordShape: any | null;
+  chordShape: ChordShape | null;
 }
 
 export interface ChatResponse {
@@ -144,8 +150,10 @@ export class OpenAIService {
     // Convert message history to the format expected by the API
     const formattedHistory =
       messageHistory?.map(msg => ({
+        id: msg.id || `msg-${Date.now()}-${Math.random()}`,
         type: msg.type || msg.role, // Handle both 'type' and 'role' properties
         content: msg.content,
+        timestamp: msg.timestamp || Date.now(),
       })) || [];
 
     return this.makeRequest({
@@ -161,7 +169,7 @@ export class OpenAIService {
   static async askMix(
     message: string,
     lessonMode: boolean,
-    gearChain?: any[],
+    gearChain?: GearItem[],
     messageHistory?: Array<any>
   ): Promise<ChatResponse> {
     const contextualMessage =
@@ -182,8 +190,10 @@ export class OpenAIService {
     // Convert message history to the format expected by the API
     const formattedHistory =
       messageHistory?.map(msg => ({
+        id: msg.id || `msg-${Date.now()}-${Math.random()}`,
         type: msg.type || msg.role, // Handle both 'type' and 'role' properties
         content: msg.content,
+        timestamp: msg.timestamp || Date.now(),
       })) || [];
 
     return this.makeRequest({
@@ -214,8 +224,10 @@ export class OpenAIService {
     // Convert message history to the format expected by the API
     const formattedHistory =
       messageHistory?.map(msg => ({
+        id: msg.id || `msg-${Date.now()}-${Math.random()}`,
         type: msg.type || msg.role, // Handle both 'type' and 'role' properties
         content: msg.content,
+        timestamp: msg.timestamp || Date.now(),
       })) || [];
 
     return this.makeRequest({
@@ -232,7 +244,7 @@ export class OpenAIService {
     message: string,
     lessonMode: boolean,
     instrumentType: string,
-    gearChain?: any[],
+    gearChain?: GearItem[],
     messageHistory?: Array<any>
   ): Promise<ChatResponse> {
     let contextualMessage = `For ${instrumentType}: ${message}`;
@@ -254,8 +266,10 @@ export class OpenAIService {
     // Convert message history to the format expected by the API
     const formattedHistory =
       messageHistory?.map(msg => ({
+        id: msg.id || `msg-${Date.now()}-${Math.random()}`,
         type: msg.type || msg.role, // Handle both 'type' and 'role' properties
         content: msg.content,
+        timestamp: msg.timestamp || Date.now(),
       })) || [];
 
     return this.makeRequest({
@@ -287,8 +301,10 @@ export class OpenAIService {
     // Convert message history to the format expected by the API
     const formattedHistory =
       messageHistory?.map(msg => ({
+        id: msg.id || `msg-${Date.now()}-${Math.random()}`,
         type: msg.type || msg.role, // Handle both 'type' and 'role' properties
         content: msg.content,
+        timestamp: msg.timestamp || Date.now(),
       })) || [];
 
     return this.makeRequest({
@@ -304,8 +320,8 @@ export class OpenAIService {
   static async askPracticeWithContext(
     message: string,
     lessonMode: boolean,
-    practiceSession: any,
-    currentStep: any,
+    practiceSession: PracticeSessionState,
+    currentStep: Step,
     messageHistory?: Array<any>
   ): Promise<ChatResponse> {
     // Build a context-aware prompt that includes current practice session info
@@ -323,15 +339,20 @@ User question: ${message}`;
       inputType: 'text',
     });
 
-    console.log('🎯 Client-side buildPrompt for Practice (with context):', fullPrompt);
+    console.log(
+      '🎯 Client-side buildPrompt for Practice (with context):',
+      fullPrompt
+    );
 
     const userSettings = getUserSettingsForAPI();
 
     // Convert message history to the format expected by the API
     const formattedHistory =
       messageHistory?.map(msg => ({
+        id: msg.id || `msg-${Date.now()}-${Math.random()}`,
         type: msg.type || msg.role, // Handle both 'type' and 'role' properties
         content: msg.content,
+        timestamp: msg.timestamp || Date.now(),
       })) || [];
 
     return this.makeRequest({

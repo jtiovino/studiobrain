@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { PracticeSessionState, PracticeStepState } from './practice-plan-schema';
+import {
+  PracticeSessionState,
+  PracticeStepState,
+} from './practice-plan-schema';
 
 export interface Message {
   role: 'user' | 'assistant';
@@ -53,11 +56,18 @@ interface ChatHistoryState {
   searchSessions: (query: string) => ChatSession[];
   exportSessions: () => string;
   importSessions: (jsonData: string) => boolean;
-  
+
   // Practice Session Actions
   getPracticeSession: (sessionId: string) => PracticeSessionState | null;
-  updatePracticeSession: (sessionId: string, updates: Partial<PracticeSessionState>) => void;
-  updateStepState: (sessionId: string, stepIndex: number, stepUpdates: Partial<PracticeStepState>) => void;
+  updatePracticeSession: (
+    sessionId: string,
+    updates: Partial<PracticeSessionState>
+  ) => void;
+  updateStepState: (
+    sessionId: string,
+    stepIndex: number,
+    stepUpdates: Partial<PracticeStepState>
+  ) => void;
 }
 
 // Helper function to generate session title from first user message
@@ -264,20 +274,30 @@ export const useChatHistoryStore = create<ChatHistoryState>()(
       // Practice Session Methods
       getPracticeSession: (sessionId: string) => {
         const state = get();
-        return state.practiceSessions.find(session => session.id === sessionId) || null;
+        return (
+          state.practiceSessions.find(session => session.id === sessionId) ||
+          null
+        );
       },
 
-      updatePracticeSession: (sessionId: string, updates: Partial<PracticeSessionState>) => {
+      updatePracticeSession: (
+        sessionId: string,
+        updates: Partial<PracticeSessionState>
+      ) => {
         set(state => ({
           practiceSessions: state.practiceSessions.map(session =>
             session.id === sessionId
               ? { ...session, ...updates, updatedAt: new Date() }
               : session
-          )
+          ),
         }));
       },
 
-      updateStepState: (sessionId: string, stepIndex: number, stepUpdates: Partial<PracticeStepState>) => {
+      updateStepState: (
+        sessionId: string,
+        stepIndex: number,
+        stepUpdates: Partial<PracticeStepState>
+      ) => {
         set(state => ({
           practiceSessions: state.practiceSessions.map(session =>
             session.id === sessionId
@@ -291,43 +311,12 @@ export const useChatHistoryStore = create<ChatHistoryState>()(
                   updatedAt: new Date(),
                 }
               : session
-          )
+          ),
         }));
       },
     }),
     {
       name: 'studio-brain-chat-history',
-      // Custom serializer to handle Date objects
-      serialize: state => {
-        return JSON.stringify(state);
-      },
-      deserialize: str => {
-        const data = JSON.parse(str);
-        // Convert date strings back to Date objects
-        if (data.state?.sessions) {
-          data.state.sessions = data.state.sessions.map((session: any) => ({
-            ...session,
-            createdAt: new Date(session.createdAt),
-            lastModified: new Date(session.lastModified),
-            messages: session.messages.map((msg: any) => ({
-              ...msg,
-              timestamp: new Date(msg.timestamp),
-            })),
-          }));
-        }
-        if (data.state?.practiceSessions) {
-          data.state.practiceSessions = data.state.practiceSessions.map((session: any) => ({
-            ...session,
-            createdAt: new Date(session.createdAt),
-            updatedAt: new Date(session.updatedAt),
-            stepStates: session.stepStates.map((stepState: any) => ({
-              ...stepState,
-              startTime: stepState.startTime ? new Date(stepState.startTime) : undefined,
-            })),
-          }));
-        }
-        return data;
-      },
     }
   )
 );
