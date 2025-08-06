@@ -67,6 +67,7 @@ import {
   BookOpen,
   MessageCircle,
   Send,
+  Settings,
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { OpenAIService } from '@/lib/openai-service';
@@ -81,8 +82,6 @@ import {
   Message,
 } from '@/lib/useChatHistoryStore';
 import ChatHistoryPanel from '@/components/ChatHistoryPanel';
-import GearChain from '@/components/GearChain';
-import { GearItem } from '@/lib/gearService';
 import { useUserStore } from '@/lib/useUserStore';
 
 interface PianoKey {
@@ -101,6 +100,7 @@ export default function StudioBrain() {
     userLevel,
     preferredTuning,
     lessonMode: storeLessonMode,
+    flipFretboardView,
     set,
   } = useUserStore();
   const router = useRouter();
@@ -115,7 +115,7 @@ export default function StudioBrain() {
   const [scaleChangeAnimation, setScaleChangeAnimation] = useState(false);
   const [selectedTuning, setSelectedTuning] = useState('standard');
   const [tuningChangeAnimation, setTuningChangeAnimation] = useState(false);
-  const [fretboardFlipped, setFretboardFlipped] = useState(true); // Default to standard view (high E on top)
+  const [fretboardFlipped, setFretboardFlipped] = useState(false); // Default to standard view (high e on top, low E on bottom)
   const [flipAnimation, setFlipAnimation] = useState(false);
   const [selectedVoicing, setSelectedVoicing] = useState<string | null>(null);
   const [voicingView, setVoicingView] = useState(false);
@@ -143,7 +143,6 @@ export default function StudioBrain() {
   );
   const [instrumentQuestion, setInstrumentQuestion] = useState('');
   const [instrumentLoading, setInstrumentLoading] = useState(false);
-  const [currentGearChain, setCurrentGearChain] = useState<GearItem[]>([]);
 
   const [practiceMessages, setPracticeMessages] = useState<ChatMessage[]>([]);
   const [practiceLoading, setPracticeLoading] = useState(false);
@@ -194,10 +193,6 @@ export default function StudioBrain() {
     practice: false,
   });
 
-  // Create a stable callback for gear updates to prevent infinite loops
-  const handleGearUpdate = useCallback((newChain: GearItem[]) => {
-    setCurrentGearChain(newChain);
-  }, []);
 
   // Helper functions to convert between ChatMessage and Message formats
   const chatMessageToMessage = (chatMsg: ChatMessage): Message => ({
@@ -434,6 +429,11 @@ export default function StudioBrain() {
     setSelectedVoicing(null);
   };
 
+  // Function to navigate to settings for tuning change
+  const handleChangeTuning = () => {
+    router.push('/settings');
+  };
+
   // Function to clear tab notes
   const clearTabNotes = () => {
     setActiveTabNotes([]);
@@ -551,6 +551,13 @@ export default function StudioBrain() {
   useEffect(() => {
     setLessonMode(storeLessonMode);
   }, [storeLessonMode]);
+
+  // Sync guitar settings with user preferences
+  useEffect(() => {
+    const parsedTuning = parseTuningToKey(preferredTuning);
+    setSelectedTuning(parsedTuning);
+    setFretboardFlipped(flipFretboardView);
+  }, [preferredTuning, flipFretboardView]);
 
   // Rehydration effect - restore last session and migrate old data
   useEffect(() => {
@@ -773,21 +780,39 @@ export default function StudioBrain() {
   const tuningMap: { [key: string]: { name: string; strings: string[] } } = {
     standard: {
       name: 'Standard (E-A-D-G-B-E)',
-      strings: ['E', 'A', 'D', 'G', 'B', 'E'],
+      strings: ['E', 'B', 'G', 'D', 'A', 'E'],
     },
-    dropd: { name: 'Drop D', strings: ['D', 'A', 'D', 'G', 'B', 'E'] },
-    openg: { name: 'Open G', strings: ['D', 'G', 'D', 'G', 'B', 'D'] },
-    dadgad: { name: 'DADGAD', strings: ['D', 'A', 'D', 'G', 'A', 'D'] },
-    dropc: { name: 'Drop C', strings: ['C', 'G', 'C', 'F', 'A', 'D'] },
-    opene: { name: 'Open E', strings: ['E', 'B', 'E', 'G#', 'B', 'E'] },
+    dropd: { name: 'Drop D', strings: ['E', 'B', 'G', 'D', 'A', 'D'] },
+    openg: { name: 'Open G', strings: ['D', 'B', 'G', 'D', 'G', 'D'] },
+    dadgad: { name: 'DADGAD', strings: ['D', 'A', 'G', 'D', 'A', 'D'] },
+    dropc: { name: 'Drop C', strings: ['D', 'A', 'F', 'C', 'G', 'C'] },
+    opene: { name: 'Open E', strings: ['E', 'B', 'G#', 'E', 'B', 'E'] },
     halfstep: {
       name: 'Half Step Down',
-      strings: ['D#', 'G#', 'C#', 'F#', 'A#', 'D#'],
+      strings: ['D#', 'A#', 'F#', 'C#', 'G#', 'D#'],
     },
     wholestep: {
       name: 'Whole Step Down',
-      strings: ['D', 'G', 'C', 'F', 'A', 'D'],
+      strings: ['D', 'A', 'F', 'C', 'G', 'D'],
     },
+  };
+
+  // Parse user's preferred tuning text to tuning map key
+  const parseTuningToKey = (preferredTuning: string): string => {
+    const tuning = preferredTuning.toLowerCase().trim();
+    
+    // Direct matches
+    if (tuning.includes('standard')) return 'standard';
+    if (tuning.includes('drop d')) return 'dropd';
+    if (tuning.includes('open g')) return 'openg';
+    if (tuning.includes('dadgad')) return 'dadgad';
+    if (tuning.includes('drop c')) return 'dropc';
+    if (tuning.includes('open e')) return 'opene';
+    if (tuning.includes('half step')) return 'halfstep';
+    if (tuning.includes('whole step')) return 'wholestep';
+    
+    // Default fallback
+    return 'standard';
   };
 
   const currentTuning = tuningMap[selectedTuning] || tuningMap.standard;
@@ -1149,7 +1174,7 @@ export default function StudioBrain() {
       const response = await OpenAIService.askMix(
         sanitizedQuestion,
         lessonMode,
-        currentGearChain,
+        [],
         currentHistory
       );
       if (isMounted.current) {
@@ -1293,7 +1318,7 @@ export default function StudioBrain() {
         sanitizedQuestion,
         lessonMode,
         selectedInstrument,
-        currentGearChain,
+        [],
         currentHistory
       );
       if (isMounted.current) {
@@ -2225,7 +2250,7 @@ export default function StudioBrain() {
                                     size="sm"
                                     onClick={handleFretboardFlip}
                                     className={`h-10 w-10 p-0 rounded-xl transition-all duration-300 ${lessonMode ? 'bg-white/10 backdrop-blur-md border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/10 hover:border-neon-cyan' : 'bg-white/10 backdrop-blur-md border-neon-purple/40 text-neon-purple hover:bg-neon-purple/10 hover:border-neon-purple'}`}
-                                    title={`${fretboardFlipped ? 'Standard view (High E top)' : 'Inverted view (Low E top)'}`}
+                                    title={`${fretboardFlipped ? 'Flip to standard view (high e top, low E bottom)' : 'Flip to inverted view (low E top, high e bottom)'}`}
                                   >
                                     <RotateCcw className="w-4 h-4" />
                                   </Button>
@@ -2331,6 +2356,15 @@ export default function StudioBrain() {
                                   </div>
                                 </div>
                               </div>
+                            </div>
+                            <div className="mt-3 text-center">
+                              <button
+                                onClick={handleChangeTuning}
+                                className={`text-xs font-medium transition-all duration-300 hover:underline ${lessonMode ? 'text-neon-cyan hover:text-neon-cyan/80' : 'text-neon-purple hover:text-neon-purple/80'}`}
+                                title="Change guitar tuning in settings"
+                              >
+                                Change Tuning
+                              </button>
                             </div>
                           </div>
                         ) : (
@@ -2511,205 +2545,6 @@ export default function StudioBrain() {
                     />
                   ) : (
                     <>
-                      <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <Card className="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl shadow-2xl">
-                          <CardHeader className="pb-6">
-                            <CardTitle
-                              className={`flex items-center gap-3 text-xl font-bold ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}
-                            >
-                              <div
-                                className={`p-2 rounded-lg ${lessonMode ? 'bg-neon-cyan/20' : 'bg-neon-purple/20'}`}
-                              >
-                                {selectedInstrument === 'guitar' ? (
-                                  <Guitar
-                                    className={`w-5 h-5 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}
-                                  />
-                                ) : (
-                                  <Piano
-                                    className={`w-5 h-5 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}
-                                  />
-                                )}
-                              </div>
-                              Instrument Settings
-                            </CardTitle>
-                            <CardDescription className="text-slate-300 text-base">
-                              Customize settings for your selected instrument
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent className="space-y-8 pt-0">
-                            <div className="space-y-3">
-                              <Label className="text-slate-200 font-medium text-base">
-                                Select Instrument
-                              </Label>
-                              <Select
-                                value={selectedInstrument}
-                                onValueChange={setSelectedInstrument}
-                              >
-                                <SelectTrigger
-                                  className={`bg-glass-bg backdrop-blur-sm border border-glass-border rounded-xl h-12 transition-all duration-300 ${lessonMode ? 'focus:border-neon-cyan focus:shadow-lg focus:shadow-neon-cyan/20 data-[state=open]:border-neon-cyan' : 'focus:border-neon-purple focus:shadow-lg focus:shadow-neon-purple/20 data-[state=open]:border-neon-purple'} hover:border-slate-400`}
-                                >
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent className="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl">
-                                  <SelectItem
-                                    value="guitar"
-                                    className={`rounded-lg ${lessonMode ? 'focus:bg-neon-cyan/20 focus:text-neon-cyan data-[highlighted]:bg-neon-cyan/20 data-[highlighted]:text-neon-cyan' : 'focus:bg-neon-purple/20 focus:text-neon-purple data-[highlighted]:bg-neon-purple/20 data-[highlighted]:text-neon-purple'}`}
-                                  >
-                                    Guitar
-                                  </SelectItem>
-                                  <SelectItem
-                                    value="piano"
-                                    className={`rounded-lg ${lessonMode ? 'focus:bg-neon-cyan/20 focus:text-neon-cyan data-[highlighted]:bg-neon-cyan/20 data-[highlighted]:text-neon-cyan' : 'focus:bg-neon-purple/20 focus:text-neon-purple data-[highlighted]:bg-neon-purple/20 data-[highlighted]:text-neon-purple'}`}
-                                  >
-                                    Piano
-                                  </SelectItem>
-                                  <SelectItem
-                                    value="bass"
-                                    className={`rounded-lg ${lessonMode ? 'focus:bg-neon-cyan/20 focus:text-neon-cyan data-[highlighted]:bg-neon-cyan/20 data-[highlighted]:text-neon-cyan' : 'focus:bg-neon-purple/20 focus:text-neon-purple data-[highlighted]:bg-neon-purple/20 data-[highlighted]:text-neon-purple'}`}
-                                  >
-                                    Bass
-                                  </SelectItem>
-                                  <SelectItem
-                                    value="drums"
-                                    className={`rounded-lg ${lessonMode ? 'focus:bg-neon-cyan/20 focus:text-neon-cyan data-[highlighted]:bg-neon-cyan/20 data-[highlighted]:text-neon-cyan' : 'focus:bg-neon-purple/20 focus:text-neon-purple data-[highlighted]:bg-neon-purple/20 data-[highlighted]:text-neon-purple'}`}
-                                  >
-                                    Drums
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-
-                            {selectedInstrument === 'guitar' && (
-                              <div className="grid gap-8 md:grid-cols-2">
-                                <div>
-                                  <h4
-                                    className={`font-bold text-lg mb-4 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}
-                                  >
-                                    Tunings
-                                  </h4>
-                                  <p className="text-sm text-slate-400 mb-4">
-                                    Click to update fretboard visualization
-                                  </p>
-                                  <div className="space-y-3">
-                                    {Object.entries(tuningMap)
-                                      .slice(0, 4)
-                                      .map(([key, tuning]) => (
-                                        <button
-                                          key={key}
-                                          type="button"
-                                          className={`w-full text-left p-4 rounded-xl text-sm font-medium cursor-pointer transition-all duration-300 ${
-                                            selectedTuning === key
-                                              ? lessonMode
-                                                ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/40 shadow-lg shadow-neon-cyan/20'
-                                                : 'bg-neon-purple/20 text-neon-purple border border-neon-purple/40 shadow-lg shadow-neon-purple/20'
-                                              : 'bg-white/10 text-white hover:bg-white/20 border border-white/20 hover:border-white/40 backdrop-blur-md'
-                                          }`}
-                                          onClick={() =>
-                                            handleTuningChange(key)
-                                          }
-                                          disabled={tuningChangeAnimation}
-                                        >
-                                          {tuning.name}
-                                        </button>
-                                      ))}
-                                  </div>
-                                </div>
-                                <div>
-                                  <h4
-                                    className={`font-bold text-lg mb-4 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}
-                                  >
-                                    Voicings
-                                  </h4>
-                                  <div className="space-y-3">
-                                    {[
-                                      'Open Chords',
-                                      'Barre Chords',
-                                      'Jazz Voicings',
-                                      'Power Chords',
-                                    ].map(voicing => (
-                                      <button
-                                        key={voicing}
-                                        type="button"
-                                        className={`w-full text-left p-4 bg-white/10 backdrop-blur-md rounded-xl text-sm font-medium text-white hover:bg-white/20 cursor-pointer transition-all duration-300 border border-white/20 hover:border-white/40 ${lessonMode ? 'hover:bg-neon-cyan/10 hover:border-neon-cyan/30 hover:text-neon-cyan' : 'hover:bg-neon-purple/10 hover:border-neon-purple/30 hover:text-neon-purple'} hover:shadow-lg`}
-                                        onClick={() =>
-                                          handleVoicingSelect(voicing)
-                                        }
-                                      >
-                                        {voicing}
-                                      </button>
-                                    ))}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-
-                            {selectedInstrument === 'piano' && (
-                              <div className="grid gap-8 md:grid-cols-2">
-                                <div>
-                                  <h4
-                                    className={`font-bold text-lg mb-4 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}
-                                  >
-                                    Scales & Modes
-                                  </h4>
-                                  <div className="space-y-3">
-                                    {[
-                                      'Major Scales',
-                                      'Minor Scales',
-                                      'Modal Scales',
-                                      'Jazz Scales',
-                                    ].map((scale, index) => (
-                                      <div
-                                        key={index}
-                                        className="p-4 bg-white/10 backdrop-blur-md rounded-xl text-sm font-medium text-white hover:bg-white/20 cursor-pointer transition-all duration-300 border border-white/20 hover:border-white/40 hover:shadow-lg"
-                                      >
-                                        {scale}
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                                <div>
-                                  <h4
-                                    className={`font-bold text-lg mb-4 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}
-                                  >
-                                    Voicings
-                                  </h4>
-                                  <div className="space-y-3">
-                                    {[
-                                      'Triads',
-                                      '7th Chords',
-                                      'Extended Chords',
-                                      'Inversions',
-                                    ].map(voicing => (
-                                      <button
-                                        key={voicing}
-                                        type="button"
-                                        className={`w-full text-left p-4 bg-white/10 backdrop-blur-md rounded-xl text-sm font-medium text-white hover:bg-white/20 cursor-pointer transition-all duration-300 border border-white/20 hover:border-white/40 ${lessonMode ? 'hover:bg-neon-cyan/10 hover:border-neon-cyan/30 hover:text-neon-cyan' : 'hover:bg-neon-purple/10 hover:border-neon-purple/30 hover:text-neon-purple'} hover:shadow-lg`}
-                                        onClick={() =>
-                                          handleVoicingSelect(voicing)
-                                        }
-                                      >
-                                        {voicing}
-                                      </button>
-                                    ))}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </CardContent>
-                        </Card>
-
-                        <GearChain
-                          lessonMode={lessonMode}
-                          studioBrainResponse={
-                            instrumentMessages.length > 0
-                              ? instrumentMessages[
-                                  instrumentMessages.length - 1
-                                ]?.content || ''
-                              : ''
-                          }
-                          onGearUpdate={handleGearUpdate}
-                        />
-                      </div>
 
                       <div className="mt-8">
                         <Card className="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl shadow-2xl">
