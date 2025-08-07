@@ -1,9 +1,5 @@
 'use client';
 
-import React, { useState, useRef, useLayoutEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import {
   MessageCircle,
   Send,
@@ -13,6 +9,11 @@ import {
   HelpCircle,
   Lightbulb,
 } from 'lucide-react';
+import React, { useState, useRef, useLayoutEffect } from 'react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import { OpenAIService } from '@/lib/openai-service';
 import { PracticeSessionState, Step } from '@/lib/practice-plan-schema';
 

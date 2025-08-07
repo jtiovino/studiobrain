@@ -1,14 +1,5 @@
 'use client';
 
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  useRef,
-  useMemo,
-} from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   Play,
   Pause,
@@ -17,14 +8,25 @@ import {
   Home,
   CheckCircle2,
 } from 'lucide-react';
-import { PracticeProgressBar } from './PracticeProgressBar';
-import { PracticeStepCard } from './PracticeStepCard';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from 'react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   PracticePlan,
   PracticeSessionState,
   PracticeStepState,
 } from '@/lib/practice-plan-schema';
 import { useChatHistoryStore } from '@/lib/useChatHistoryStore';
+
+import { PracticeProgressBar } from './PracticeProgressBar';
+import { PracticeStepCard } from './PracticeStepCard';
 
 interface InteractivePracticeSessionProps {
   plan: PracticePlan;

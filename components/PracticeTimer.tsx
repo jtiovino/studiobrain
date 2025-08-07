@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Button } from '@/components/ui/button';
 import { Play, Pause, Square, RotateCcw } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+
+import { Button } from '@/components/ui/button';
 
 interface PracticeTimerProps {
   isActive: boolean;

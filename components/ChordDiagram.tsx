@@ -1,8 +1,9 @@
+import { Play } from 'lucide-react';
 import React from 'react';
-import { ChordShape } from '@/lib/voicings';
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Play } from 'lucide-react';
+import { ChordShape } from '@/lib/voicings';
 
 interface ChordDiagramProps {
   chord: ChordShape;

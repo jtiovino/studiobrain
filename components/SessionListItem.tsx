@@ -1,11 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
 import { format } from 'date-fns';
-import { ChatSession } from '@/lib/useChatHistoryStore';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import {
   MoreHorizontal,
   Trash2,
@@ -16,6 +11,10 @@ import {
   Guitar,
   Volume2,
 } from 'lucide-react';
+import React, { useState } from 'react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +22,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { ChatSession } from '@/lib/useChatHistoryStore';
 
 interface SessionListItemProps {
   session: ChatSession;

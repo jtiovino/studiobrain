@@ -1,11 +1,5 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { useChatHistoryStore, ChatSession } from '@/lib/useChatHistoryStore';
-import SessionListItem from './SessionListItem';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import {
   Search,
   Plus,
@@ -19,6 +13,8 @@ import {
   Volume2,
   BookOpen,
 } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,6 +26,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useChatHistoryStore, ChatSession } from '@/lib/useChatHistoryStore';
+
+import SessionListItem from './SessionListItem';
 
 interface ChatHistoryPanelProps {
   currentTab: ChatSession['tabType'];

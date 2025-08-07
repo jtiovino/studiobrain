@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUserStore } from '@/lib/useUserStore';
-import { useHydration } from '@/lib/useHydration';
-import { useChatHistoryStore } from '@/lib/useChatHistoryStore';
+import React, { useState, useEffect } from 'react';
+
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -16,7 +15,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Checkbox } from '@/components/ui/checkbox';
+import { useChatHistoryStore } from '@/lib/useChatHistoryStore';
+import { useHydration } from '@/lib/useHydration';
+import { useUserStore } from '@/lib/useUserStore';
 
 export default function UserSettingsForm() {
   const router = useRouter();

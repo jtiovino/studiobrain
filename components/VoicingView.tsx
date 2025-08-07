@@ -1,12 +1,9 @@
+import { ArrowLeft, Music, Volume2 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
-import {
-  ChordShape,
-  getVoicingsForInstrument,
-  getChordShapesForRoot,
-} from '@/lib/voicings';
-import { ChordDiagram } from './ChordDiagram';
-import { Button } from '@/components/ui/button';
+
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -14,8 +11,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Music, Volume2 } from 'lucide-react';
+import {
+  ChordShape,
+  getVoicingsForInstrument,
+  getChordShapesForRoot,
+} from '@/lib/voicings';
+
+import { ChordDiagram } from './ChordDiagram';
 
 interface VoicingViewProps {
   selectedVoicing: string;

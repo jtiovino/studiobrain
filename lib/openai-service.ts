@@ -1,13 +1,13 @@
-import { buildPrompt } from './promptBuilder';
-import { useUserStore } from './useUserStore';
+import { GearItem } from './gearService';
 import {
   PracticePlan,
   PracticeSessionState,
   Step,
 } from './practice-plan-schema';
-import { ChordShape } from './voicings';
-import { GearItem } from './gearService';
+import { buildPrompt } from './promptBuilder';
 import { Message } from './useChatHistoryStore';
+import { useUserStore } from './useUserStore';
+import { ChordShape } from './voicings';
 
 export type TabContext =
   | 'general'

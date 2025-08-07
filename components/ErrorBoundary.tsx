@@ -1,6 +1,8 @@
 'use client';
 
+import { AlertTriangle, RotateCcw } from 'lucide-react';
 import React from 'react';
+
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -9,7 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { AlertTriangle, RotateCcw } from 'lucide-react';
 
 interface ErrorBoundaryState {
   hasError: boolean;

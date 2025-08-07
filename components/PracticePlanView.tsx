@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
-import { PracticePlan } from '@/lib/practice-plan-schema';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Clock, Guitar, Target, CheckCircle, AlertCircle } from 'lucide-react';
+import React from 'react';
+
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { PracticePlan } from '@/lib/practice-plan-schema';
 
 interface PracticePlanViewProps {
   plan: PracticePlan;

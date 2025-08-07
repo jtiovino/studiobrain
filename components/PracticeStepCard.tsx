@@ -1,10 +1,5 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   ChevronLeft,
   ChevronRight,
@@ -14,13 +9,20 @@ import {
   AlertCircle,
   StickyNote,
 } from 'lucide-react';
-import { PracticeTimer } from './PracticeTimer';
-import { PracticeChatPanel } from './PracticeChatPanel';
+import React, { useState } from 'react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Step,
   PracticeSessionState,
   PracticeStepState,
 } from '@/lib/practice-plan-schema';
+
+import { PracticeChatPanel } from './PracticeChatPanel';
+import { PracticeTimer } from './PracticeTimer';
 
 interface PracticeStepCardProps {
   step: Step;

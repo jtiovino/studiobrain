@@ -1,5 +1,5 @@
-import UserSettingsForm from '@/components/UserSettingsForm';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import UserSettingsForm from '@/components/UserSettingsForm';
 
 export default function SettingsPage() {
   return (

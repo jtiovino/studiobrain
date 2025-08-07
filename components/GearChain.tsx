@@ -1,19 +1,5 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useUserStore } from '@/lib/useUserStore';
-import { GearService, GearItem } from '@/lib/gearService';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import {
-  Zap,
-  Settings,
-  Guitar,
-  Volume2,
-  Trash2,
-  GripVertical,
-} from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -31,9 +17,24 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
+  useSortable,
 } from '@dnd-kit/sortable';
-import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import {
+  Zap,
+  Settings,
+  Guitar,
+  Volume2,
+  Trash2,
+  GripVertical,
+} from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { GearService, GearItem } from '@/lib/gearService';
+import { useUserStore } from '@/lib/useUserStore';
 
 interface GearChainProps {
   lessonMode: boolean;

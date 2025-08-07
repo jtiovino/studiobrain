@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import {
+import { useRouter } from 'next/navigation';
+import React, {
   useState,
   useEffect,
   useRef,
@@ -9,9 +9,20 @@ import {
   useLayoutEffect,
   useMemo,
 } from 'react';
-import { useRouter } from 'next/navigation';
+
+import ChatHistoryPanel from '@/components/ChatHistoryPanel';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { HydrationBoundary } from '@/components/HydrationBoundary';
+import SettingsButton from '@/components/SettingsButton';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import {
   getModeChords,
   getScaleNotes,
@@ -39,14 +50,6 @@ interface TabNote {
   string: number;
   fret: number;
 }
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -59,7 +62,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
+
 import {
   Music,
   Guitar,
@@ -74,20 +77,19 @@ import {
   MessageCircle,
   Send,
 } from 'lucide-react';
+
 import { Switch } from '@/components/ui/switch';
 import { OpenAIService } from '@/lib/openai-service';
-import { stripMarkdown } from '@/lib/utils';
-import { VoicingView } from '@/components/VoicingView';
-import { ChordShape } from '@/lib/voicings';
-import SettingsButton from '@/components/SettingsButton';
-import { useSessionStore } from '@/lib/useSessionStore';
 import {
   useChatHistoryStore,
   ChatSession,
   Message,
 } from '@/lib/useChatHistoryStore';
-import ChatHistoryPanel from '@/components/ChatHistoryPanel';
+import { useSessionStore } from '@/lib/useSessionStore';
 import { useUserStore } from '@/lib/useUserStore';
+import { stripMarkdown } from '@/lib/utils';
+import { VoicingView } from '@/components/VoicingView';
+import { ChordShape } from '@/lib/voicings';
 
 interface PianoKey {
   note: string;
@@ -1021,57 +1023,50 @@ export default function StudioBrain() {
   );
 
   // Parse user's preferred tuning text to tuning map key or custom strings
-  const parseTuningToKey = useCallback(
-    (preferredTuning: string): string => {
-      const tuning = preferredTuning.toLowerCase().trim();
+  const parseTuningToKey = useCallback((preferredTuning: string): string => {
+    const tuning = preferredTuning.toLowerCase().trim();
 
-      // Direct matches for preset tunings
-      if (
-        tuning.includes('standard') &&
-        !tuning.includes('7') &&
-        !tuning.includes('8')
-      )
-        return 'standard';
-      if (tuning.includes('drop d')) return 'dropd';
-      if (tuning.includes('open g')) return 'openg';
-      if (tuning.includes('dadgad') || tuning.includes('celtic'))
-        return 'dadgad';
-      if (tuning.includes('drop c')) return 'dropc';
-      if (tuning.includes('drop b')) return 'dropb';
-      if (tuning.includes('open e')) return 'opene';
-      if (tuning.includes('open a')) return 'openA';
-      if (tuning.includes('open d')) return 'openD';
-      if (tuning.includes('open c')) return 'openc';
-      if (tuning.includes('half step')) return 'halfstep';
-      if (tuning.includes('whole step')) return 'wholestep';
-
-      // 7-String matches
-      if (tuning.includes('7') && tuning.includes('standard'))
-        return 'standard7';
-      if (tuning.includes('7') && tuning.includes('drop a')) return 'dropa7';
-
-      // 8-String matches
-      if (tuning.includes('8') && tuning.includes('standard'))
-        return 'standard8';
-      if (tuning.includes('8') && tuning.includes('drop e')) return 'drope8';
-
-      // Baritone matches
-      if (tuning.includes('baritone') && tuning.includes('a'))
-        return 'baritoneA';
-      if (tuning.includes('baritone')) return 'baritone';
-
-      // Try to parse custom note sequences
-      const customTuning = parseCustomTuning(preferredTuning);
-      if (customTuning) {
-        // Return custom key without mutating the memoized map
-        return 'custom';
-      }
-
-      // Default fallback
+    // Direct matches for preset tunings
+    if (
+      tuning.includes('standard') &&
+      !tuning.includes('7') &&
+      !tuning.includes('8')
+    )
       return 'standard';
-    },
-    [tuningMap]
-  );
+    if (tuning.includes('drop d')) return 'dropd';
+    if (tuning.includes('open g')) return 'openg';
+    if (tuning.includes('dadgad') || tuning.includes('celtic')) return 'dadgad';
+    if (tuning.includes('drop c')) return 'dropc';
+    if (tuning.includes('drop b')) return 'dropb';
+    if (tuning.includes('open e')) return 'opene';
+    if (tuning.includes('open a')) return 'openA';
+    if (tuning.includes('open d')) return 'openD';
+    if (tuning.includes('open c')) return 'openc';
+    if (tuning.includes('half step')) return 'halfstep';
+    if (tuning.includes('whole step')) return 'wholestep';
+
+    // 7-String matches
+    if (tuning.includes('7') && tuning.includes('standard')) return 'standard7';
+    if (tuning.includes('7') && tuning.includes('drop a')) return 'dropa7';
+
+    // 8-String matches
+    if (tuning.includes('8') && tuning.includes('standard')) return 'standard8';
+    if (tuning.includes('8') && tuning.includes('drop e')) return 'drope8';
+
+    // Baritone matches
+    if (tuning.includes('baritone') && tuning.includes('a')) return 'baritoneA';
+    if (tuning.includes('baritone')) return 'baritone';
+
+    // Try to parse custom note sequences
+    const customTuning = parseCustomTuning(preferredTuning);
+    if (customTuning) {
+      // Return custom key without mutating the memoized map
+      return 'custom';
+    }
+
+    // Default fallback
+    return 'standard';
+  }, []);
 
   // Parse custom tuning strings like "EADGBE", "E-A-D-G-B-E", "E A D G B E"
   const parseCustomTuning = (

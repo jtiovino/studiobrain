@@ -1,6 +1,9 @@
 'use client';
 
+import { Eye, EyeOff } from 'lucide-react';
 import React from 'react';
+
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import {
@@ -10,8 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Eye, EyeOff } from 'lucide-react';
 import { ChordInfo, NoteName } from '@/lib/music-theory';
 
 interface PianoKey {

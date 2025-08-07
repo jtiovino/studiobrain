@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
 import { Clock, CheckCircle2 } from 'lucide-react';
+import React from 'react';
+
 import { PracticeSessionState } from '@/lib/practice-plan-schema';
 
 interface PracticeProgressBarProps {

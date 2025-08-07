@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Message } from '@/lib/useChatHistoryStore';
 import OpenAI from 'openai';
+
 import { logger } from '@/lib/logger';
 import {
   detectGuitarTab,
@@ -9,6 +9,7 @@ import {
   tabToChordShape,
   ParsedTab,
 } from '@/lib/tabParser';
+import { Message } from '@/lib/useChatHistoryStore';
 
 // Rate limiting storage - in production, consider using Redis or a database
 interface RateLimitEntry {
