@@ -117,6 +117,7 @@ export default function StudioBrain() {
     lessonMode: storeLessonMode,
     flipFretboardView,
     currentTab: storeCurrentTab,
+    defaultTab,
     set,
   } = useUserStore();
   const router = useRouter();
@@ -206,6 +207,9 @@ export default function StudioBrain() {
 
   // Ref to track if refresh detection has already run (prevents infinite loops)
   const hasRunRefreshDetection = useRef(false);
+
+  // Ref to track if we handled a page refresh (to avoid overriding default tab)
+  const hasHandledPageRefresh = useRef(false);
 
   // State to track if user has scrolled up
   const [isUserScrolled, setIsUserScrolled] = useState({
@@ -729,8 +733,11 @@ export default function StudioBrain() {
       console.log('❌ No settings session found');
     }
 
-    // Initialize tab from user preferences on first load
-    if (storeCurrentTab !== currentActiveTab) {
+    // Initialize tab from user preferences on first load (but not after page refresh)
+    if (
+      storeCurrentTab !== currentActiveTab &&
+      !hasHandledPageRefresh.current
+    ) {
       console.log('🆕 First load - setting tab to:', storeCurrentTab);
       setCurrentActiveTabState(storeCurrentTab);
     }
@@ -808,9 +815,28 @@ export default function StudioBrain() {
     };
 
     if (isPageRefresh()) {
-      // Page was refreshed - clear the current session
-      console.log('🔄 Page refresh detected - clearing current session');
+      // Page was refreshed - clear the current session and reset to default tab
+      console.log(
+        '🔄 Page refresh detected - clearing current session and resetting to default tab'
+      );
       setCurrentSession(null);
+
+      // Reset to user's preferred default tab
+      const tabMapping: Record<
+        string,
+        'general' | 'mix' | 'theory' | 'instrument' | 'practice'
+      > = {
+        General: 'general',
+        Mix: 'mix',
+        Theory: 'theory',
+        Instrument: 'instrument',
+      };
+      const userDefaultTab = tabMapping[defaultTab] || 'general';
+      setCurrentActiveTab(userDefaultTab);
+      console.log('🎯 Reset tab to user default:', userDefaultTab);
+
+      // Mark that we handled a page refresh
+      hasHandledPageRefresh.current = true;
     } else {
       // Normal navigation - restore session if available (including return from settings)
       if (
@@ -842,6 +868,8 @@ export default function StudioBrain() {
     handleSessionSelect,
     loadSession,
     setCurrentSession,
+    setCurrentActiveTab,
+    defaultTab,
   ]);
 
   // Auto-scroll to bottom function with delay to avoid conflicts
