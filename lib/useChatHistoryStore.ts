@@ -128,7 +128,8 @@ export const useChatHistoryStore = create<ChatHistoryState>()(
             // Remove oldest sessions first (keep most recently modified)
             sessions = sessions
               .sort(
-                (a, b) => getTimeValue(b.lastModified) - getTimeValue(a.lastModified)
+                (a, b) =>
+                  getTimeValue(b.lastModified) - getTimeValue(a.lastModified)
               )
               .slice(0, state.settings.maxSessions);
           }
@@ -233,7 +234,10 @@ export const useChatHistoryStore = create<ChatHistoryState>()(
       getSessionsByTab: tabType => {
         return get()
           .sessions.filter(session => session.tabType === tabType)
-          .sort((a, b) => getTimeValue(b.lastModified) - getTimeValue(a.lastModified));
+          .sort(
+            (a, b) =>
+              getTimeValue(b.lastModified) - getTimeValue(a.lastModified)
+          );
       },
 
       searchSessions: query => {
@@ -246,7 +250,10 @@ export const useChatHistoryStore = create<ChatHistoryState>()(
                 message.content.toLowerCase().includes(lowercaseQuery)
               )
           )
-          .sort((a, b) => getTimeValue(b.lastModified) - getTimeValue(a.lastModified));
+          .sort(
+            (a, b) =>
+              getTimeValue(b.lastModified) - getTimeValue(a.lastModified)
+          );
       },
 
       exportSessions: () => {

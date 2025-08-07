@@ -57,14 +57,8 @@ function SortableGearItem({
   getGearIcon: (type: GearItem['type']) => React.ReactNode;
   getGearColor: (type: GearItem['type']) => string;
 }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition: _transition,
-    isDragging,
-  } = useSortable({ id: item.id });
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    useSortable({ id: item.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),

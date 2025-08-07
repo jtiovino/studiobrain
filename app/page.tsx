@@ -7,6 +7,7 @@ import {
   useRef,
   useCallback,
   useLayoutEffect,
+  useMemo,
 } from 'react';
 import { useRouter } from 'next/navigation';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -500,7 +501,7 @@ export default function StudioBrain() {
   const handleSettingsNavigation = () => {
     console.log('⚙️ Navigating to settings from tab:', currentActiveTab);
     console.log('⚙️ Current session ID before navigation:', currentSessionId);
-    
+
     // Force save current tab messages before navigation
     const getCurrentTabMessages = () => {
       switch (currentActiveTab) {
@@ -520,8 +521,12 @@ export default function StudioBrain() {
     };
 
     const currentMessages = getCurrentTabMessages();
-    console.log('💾 Saving', currentMessages.length, 'messages for tab:', currentActiveTab);
-    
+    console.log(
+      '💾 Saving',
+      currentMessages.length,
+      'messages for tab:',
+      currentActiveTab
+    );
     if (currentMessages.length > 0) {
       saveMessagesToHistory(currentActiveTab, currentMessages);
     }
@@ -538,7 +543,7 @@ export default function StudioBrain() {
     // Store current session and tab before navigating to settings
     console.log('🏪 Storing session ID:', currentSessionId);
     console.log('🏪 Storing current tab:', currentActiveTab);
-    
+
     const sessionToStore = currentSessionId;
     setSettingsSession(sessionToStore);
     set({ currentTab: currentActiveTab });
@@ -734,6 +739,7 @@ export default function StudioBrain() {
     setCurrentActiveTabState,
     currentActiveTab,
     loadTabMessages,
+    handleSessionSelect,
   ]); // Proper dependencies
 
   // Rehydration effect - restore last session and migrate old data
@@ -938,73 +944,81 @@ export default function StudioBrain() {
       isMounted.current = false;
       clearAllTimeouts();
       // Clear scroll timeouts
-      Object.values(scrollTimeoutRef.current).forEach(timeout => {
+      const currentScrollTimeouts = scrollTimeoutRef.current;
+      Object.values(currentScrollTimeouts).forEach(timeout => {
         if (timeout) clearTimeout(timeout);
       });
     };
   }, []);
 
   // Guitar tuning mappings (high to low string order)
-  const tuningMap: { [key: string]: { name: string; strings: string[] } } = {
-    // 6-String Standard Tunings
-    standard: {
-      name: 'Standard (E-A-D-G-B-E)',
-      strings: ['E', 'B', 'G', 'D', 'A', 'E'],
-    },
-    dropd: { name: 'Drop D', strings: ['E', 'B', 'G', 'D', 'A', 'D'] },
-    openg: { name: 'Open G', strings: ['D', 'B', 'G', 'D', 'G', 'D'] },
-    dadgad: { name: 'DADGAD', strings: ['D', 'A', 'G', 'D', 'A', 'D'] },
-    dropc: { name: 'Drop C', strings: ['D', 'A', 'F', 'C', 'G', 'C'] },
-    opene: { name: 'Open E', strings: ['E', 'B', 'G#', 'E', 'B', 'E'] },
-    halfstep: {
-      name: 'Half Step Down',
-      strings: ['D#', 'A#', 'F#', 'C#', 'G#', 'D#'],
-    },
-    wholestep: {
-      name: 'Whole Step Down',
-      strings: ['D', 'A', 'F', 'C', 'G', 'D'],
-    },
+  const tuningMap = useMemo(
+    () => ({
+      // 6-String Standard Tunings
+      standard: {
+        name: 'Standard (E-A-D-G-B-E)',
+        strings: ['E', 'B', 'G', 'D', 'A', 'E'],
+      },
+      dropd: { name: 'Drop D', strings: ['E', 'B', 'G', 'D', 'A', 'D'] },
+      openg: { name: 'Open G', strings: ['D', 'B', 'G', 'D', 'G', 'D'] },
+      dadgad: { name: 'DADGAD', strings: ['D', 'A', 'G', 'D', 'A', 'D'] },
+      dropc: { name: 'Drop C', strings: ['D', 'A', 'F', 'C', 'G', 'C'] },
+      opene: { name: 'Open E', strings: ['E', 'B', 'G#', 'E', 'B', 'E'] },
+      halfstep: {
+        name: 'Half Step Down',
+        strings: ['D#', 'A#', 'F#', 'C#', 'G#', 'D#'],
+      },
+      wholestep: {
+        name: 'Whole Step Down',
+        strings: ['D', 'A', 'F', 'C', 'G', 'D'],
+      },
 
-    // Additional 6-String Tunings
-    dropb: { name: 'Drop B', strings: ['D#', 'A#', 'F#', 'B', 'F#', 'B'] },
-    openA: { name: 'Open A', strings: ['E', 'C#', 'A', 'E', 'A', 'E'] },
-    openD: { name: 'Open D', strings: ['D', 'A', 'F#', 'D', 'A', 'D'] },
-    openc: { name: 'Open C', strings: ['E', 'C', 'G', 'C', 'G', 'C'] },
-    celtic: {
-      name: 'Celtic (DADGAD)',
-      strings: ['D', 'A', 'G', 'D', 'A', 'D'],
-    },
+      // Additional 6-String Tunings
+      dropb: { name: 'Drop B', strings: ['D#', 'A#', 'F#', 'B', 'F#', 'B'] },
+      openA: { name: 'Open A', strings: ['E', 'C#', 'A', 'E', 'A', 'E'] },
+      openD: { name: 'Open D', strings: ['D', 'A', 'F#', 'D', 'A', 'D'] },
+      openc: { name: 'Open C', strings: ['E', 'C', 'G', 'C', 'G', 'C'] },
+      celtic: {
+        name: 'Celtic (DADGAD)',
+        strings: ['D', 'A', 'G', 'D', 'A', 'D'],
+      },
 
-    // 7-String Tunings
-    standard7: {
-      name: '7-String Standard (B-E-A-D-G-B-E)',
-      strings: ['E', 'B', 'G', 'D', 'A', 'E', 'B'],
-    },
-    dropa7: {
-      name: '7-String Drop A (A-E-A-D-G-B-E)',
-      strings: ['E', 'B', 'G', 'D', 'A', 'E', 'A'],
-    },
+      // 7-String Tunings
+      standard7: {
+        name: '7-String Standard (B-E-A-D-G-B-E)',
+        strings: ['E', 'B', 'G', 'D', 'A', 'E', 'B'],
+      },
+      dropa7: {
+        name: '7-String Drop A (A-E-A-D-G-B-E)',
+        strings: ['E', 'B', 'G', 'D', 'A', 'E', 'A'],
+      },
 
-    // 8-String Tunings
-    standard8: {
-      name: '8-String Standard (F#-B-E-A-D-G-B-E)',
-      strings: ['E', 'B', 'G', 'D', 'A', 'E', 'B', 'F#'],
-    },
-    drope8: {
-      name: '8-String Drop E (E-B-E-A-D-G-B-E)',
-      strings: ['E', 'B', 'G', 'D', 'A', 'E', 'B', 'E'],
-    },
+      // 8-String Tunings
+      standard8: {
+        name: '8-String Standard (F#-B-E-A-D-G-B-E)',
+        strings: ['E', 'B', 'G', 'D', 'A', 'E', 'B', 'F#'],
+      },
+      drope8: {
+        name: '8-String Drop E (E-B-E-A-D-G-B-E)',
+        strings: ['E', 'B', 'G', 'D', 'A', 'E', 'B', 'E'],
+      },
 
-    // Baritone Tunings
-    baritone: {
-      name: 'Baritone Standard (B-E-A-D-F#-B)',
-      strings: ['B', 'F#', 'D', 'A', 'E', 'B'],
-    },
-    baritoneA: {
-      name: 'Baritone A (A-D-G-C-E-A)',
-      strings: ['A', 'E', 'C', 'G', 'D', 'A'],
-    },
-  };
+      // Baritone Tunings
+      baritone: {
+        name: 'Baritone Standard (B-E-A-D-F#-B)',
+        strings: ['B', 'F#', 'D', 'A', 'E', 'B'],
+      },
+      baritoneA: {
+        name: 'Baritone A (A-D-G-C-E-A)',
+        strings: ['A', 'E', 'C', 'G', 'D', 'A'],
+      },
+      custom: {
+        name: 'Custom Tuning',
+        strings: ['E', 'B', 'G', 'D', 'A', 'E'], // Default fallback
+      },
+    }),
+    []
+  );
 
   // Parse user's preferred tuning text to tuning map key or custom strings
   const parseTuningToKey = useCallback(
@@ -1049,10 +1063,8 @@ export default function StudioBrain() {
       // Try to parse custom note sequences
       const customTuning = parseCustomTuning(preferredTuning);
       if (customTuning) {
-        // Add custom tuning to map temporarily
-        const customKey = 'custom_' + Date.now();
-        tuningMap[customKey] = customTuning;
-        return customKey;
+        // Return custom key without mutating the memoized map
+        return 'custom';
       }
 
       // Default fallback
@@ -1088,7 +1100,17 @@ export default function StudioBrain() {
     };
   };
 
-  const currentTuning = tuningMap[selectedTuning] || tuningMap.standard;
+  const currentTuning = useMemo(() => {
+    if (selectedTuning === 'custom') {
+      const customTuning = parseCustomTuning(preferredTuning);
+      if (customTuning) {
+        return customTuning;
+      }
+    }
+    return (
+      tuningMap[selectedTuning as keyof typeof tuningMap] || tuningMap.standard
+    );
+  }, [selectedTuning, preferredTuning, tuningMap]);
 
   // Dynamic fretboard configuration
   const fretCount = 13; // Could be made configurable later
@@ -1196,11 +1218,11 @@ export default function StudioBrain() {
   // Memoized values to prevent unnecessary re-renders
   const scaleNotes = React.useMemo(
     () => generateScaleNotes(),
-    [selectedChord, selectedMode, generateScaleNotes]
+    [generateScaleNotes]
   );
   const fretboard = React.useMemo(
     () => generateFretboardNotes(),
-    [currentTuning, generateFretboardNotes]
+    [generateFretboardNotes]
   );
   const pianoKeys = React.useMemo(
     () => generatePianoKeys(scaleNotes, selectedChord, 3, 1),

@@ -7,7 +7,9 @@ interface SettingsButtonProps {
   onSettingsClick: () => void;
 }
 
-export default function SettingsButton({ onSettingsClick }: SettingsButtonProps) {
+export default function SettingsButton({
+  onSettingsClick,
+}: SettingsButtonProps) {
   const handleClick = () => {
     onSettingsClick();
   };
