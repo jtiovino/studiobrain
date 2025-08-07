@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useUserStore } from './useUserStore';
 
 /**
@@ -6,23 +6,33 @@ import { useUserStore } from './useUserStore';
  * Returns true when hydration is complete
  */
 export function useHydration() {
+  const [isClient, setIsClient] = useState(false);
   const hasHydrated = useUserStore(state => state.hasHydrated);
   const setHasHydrated = useUserStore(state => state.setHasHydrated);
 
   useEffect(() => {
-    // Force hydration check after mount
+    // Mark that we're on the client side
+    setIsClient(true);
+
+    // Check if we're actually hydrated
     const checkHydration = () => {
       console.log('🔄 Checking hydration status...');
-      const stored = localStorage.getItem('studio-brain-user');
-      if (stored) {
-        console.log('📱 Found localStorage data:', stored);
-        // If we have data but haven't hydrated yet, wait a bit more
-        if (!hasHydrated) {
-          setTimeout(() => setHasHydrated(true), 100);
+
+      try {
+        const stored = localStorage.getItem('studio-brain-user');
+        if (stored) {
+          console.log('📱 Found localStorage data');
+          // If we have data but haven't hydrated yet, mark as hydrated
+          if (!hasHydrated) {
+            setHasHydrated(true);
+          }
+        } else {
+          console.log('📱 No localStorage data found');
+          setHasHydrated(true); // No data to hydrate, consider it "hydrated"
         }
-      } else {
-        console.log('📱 No localStorage data found');
-        setHasHydrated(true); // No data to hydrate, consider it "hydrated"
+      } catch (error) {
+        console.error('❌ Error accessing localStorage:', error);
+        setHasHydrated(true); // If we can't access localStorage, just proceed
       }
     };
 
@@ -31,5 +41,6 @@ export function useHydration() {
     }
   }, [hasHydrated, setHasHydrated]);
 
-  return hasHydrated;
+  // Only return true when we're on client AND hydrated
+  return isClient && hasHydrated;
 }

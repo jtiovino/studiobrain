@@ -22,6 +22,7 @@ export default function UserSettingsForm() {
   const router = useRouter();
   const hasHydrated = useHydration();
   const { restoreFromSettings } = useChatHistoryStore();
+
   const {
     userLevel,
     roles,
@@ -47,6 +48,18 @@ export default function UserSettingsForm() {
       console.log('🎯 Settings form hydrated - current gear:', gear);
     }
   }, [hasHydrated, genreInfluence, gear]);
+
+  // Don't render until hydration is complete to prevent SSR/client mismatch
+  if (!hasHydrated) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading settings...</p>
+        </div>
+      </div>
+    );
+  }
 
   const addGuitar = () => {
     if (newGuitar.trim()) {
