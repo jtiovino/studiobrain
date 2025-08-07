@@ -6,10 +6,10 @@
 type LogLevel = 'error' | 'warn' | 'info' | 'debug';
 
 interface Logger {
-  error: (message: string, ...args: any[]) => void;
-  warn: (message: string, ...args: any[]) => void;
-  info: (message: string, ...args: any[]) => void;
-  debug: (message: string, ...args: any[]) => void;
+  error: (message: string, ...args: unknown[]) => void;
+  warn: (message: string, ...args: unknown[]) => void;
+  info: (message: string, ...args: unknown[]) => void;
+  debug: (message: string, ...args: unknown[]) => void;
 }
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -25,31 +25,30 @@ function shouldLog(level: LogLevel): boolean {
 }
 
 function formatMessage(level: LogLevel, message: string): string {
-  const timestamp = new Date().toISOString();
   const prefix = isDevelopment ? `[${level.toUpperCase()}]` : '';
   return `${prefix} ${message}`;
 }
 
 export const logger: Logger = {
-  error: (message: string, ...args: any[]) => {
+  error: (message: string, ...args: unknown[]) => {
     if (shouldLog('error')) {
       console.error(formatMessage('error', message), ...args);
     }
   },
 
-  warn: (message: string, ...args: any[]) => {
+  warn: (message: string, ...args: unknown[]) => {
     if (shouldLog('warn')) {
       console.warn(formatMessage('warn', message), ...args);
     }
   },
 
-  info: (message: string, ...args: any[]) => {
+  info: (message: string, ...args: unknown[]) => {
     if (shouldLog('info')) {
       console.log(formatMessage('info', message), ...args);
     }
   },
 
-  debug: (message: string, ...args: any[]) => {
+  debug: (message: string, ...args: unknown[]) => {
     if (shouldLog('debug')) {
       console.log(formatMessage('debug', message), ...args);
     }

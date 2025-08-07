@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Progress } from '@/components/ui/progress';
 import { Clock, CheckCircle2 } from 'lucide-react';
 import { PracticeSessionState } from '@/lib/practice-plan-schema';
 

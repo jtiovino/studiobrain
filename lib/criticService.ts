@@ -1,9 +1,10 @@
 import OpenAI from 'openai';
+import { UserSettings } from '@/lib/useUserStore';
 
 export interface CriticRequest {
   originalPrompt: string;
   assistantResponse: string;
-  userSettings?: any;
+  userSettings?: UserSettings;
   context: string;
   lessonMode: boolean;
 }

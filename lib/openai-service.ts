@@ -7,6 +7,7 @@ import {
 } from './practice-plan-schema';
 import { ChordShape } from './voicings';
 import { GearItem } from './gearService';
+import { Message } from './useChatHistoryStore';
 
 export type TabContext =
   | 'general'
@@ -135,7 +136,7 @@ export class OpenAIService {
   static async askGeneral(
     message: string,
     lessonMode: boolean,
-    messageHistory?: Array<any>
+    messageHistory?: Array<Message>
   ): Promise<ChatResponse> {
     const fullPrompt = buildPrompt({
       tab: 'General',
@@ -170,7 +171,7 @@ export class OpenAIService {
     message: string,
     lessonMode: boolean,
     gearChain?: GearItem[],
-    messageHistory?: Array<any>
+    messageHistory?: Array<Message>
   ): Promise<ChatResponse> {
     const contextualMessage =
       gearChain && gearChain.length > 0
@@ -209,7 +210,7 @@ export class OpenAIService {
   static async askTheory(
     message: string,
     lessonMode: boolean,
-    messageHistory?: Array<any>
+    messageHistory?: Array<Message>
   ): Promise<ChatResponse> {
     const fullPrompt = buildPrompt({
       tab: 'Theory',
@@ -245,7 +246,7 @@ export class OpenAIService {
     lessonMode: boolean,
     instrumentType: string,
     gearChain?: GearItem[],
-    messageHistory?: Array<any>
+    messageHistory?: Array<Message>
   ): Promise<ChatResponse> {
     let contextualMessage = `For ${instrumentType}: ${message}`;
 
@@ -286,7 +287,7 @@ export class OpenAIService {
   static async askPractice(
     message: string,
     lessonMode: boolean,
-    messageHistory?: Array<any>
+    messageHistory?: Array<Message>
   ): Promise<ChatResponse> {
     const fullPrompt = buildPrompt({
       tab: 'Practice',
@@ -322,7 +323,7 @@ export class OpenAIService {
     lessonMode: boolean,
     practiceSession: PracticeSessionState,
     currentStep: Step,
-    messageHistory?: Array<any>
+    messageHistory?: Array<Message>
   ): Promise<ChatResponse> {
     // Build a context-aware prompt that includes current practice session info
     const contextInfo = `

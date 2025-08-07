@@ -252,15 +252,19 @@ export const useChatHistoryStore = create<ChatHistoryState>()(
           const data = JSON.parse(jsonData);
           if (data.sessions && Array.isArray(data.sessions)) {
             set({
-              sessions: data.sessions.map((session: any) => ({
-                ...session,
-                createdAt: new Date(session.createdAt),
-                lastModified: new Date(session.lastModified),
-                messages: session.messages.map((msg: any) => ({
-                  ...msg,
-                  timestamp: new Date(msg.timestamp),
-                })),
-              })),
+              sessions: data.sessions.map(
+                (session: Record<string, unknown>) => ({
+                  ...session,
+                  createdAt: new Date(session.createdAt),
+                  lastModified: new Date(session.lastModified),
+                  messages: (
+                    session.messages as Array<Record<string, unknown>>
+                  ).map((msg: Record<string, unknown>) => ({
+                    ...msg,
+                    timestamp: new Date(msg.timestamp),
+                  })),
+                })
+              ),
               settings: data.settings || get().settings,
             });
             return true;

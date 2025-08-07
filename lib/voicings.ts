@@ -479,7 +479,7 @@ export function getVoicingsForInstrument(instrument: 'guitar' | 'piano'): {
 
 export function adaptVoicingsForTuning(
   voicingSet: VoicingSet,
-  tuning: string[]
+  _tuning: string[]
 ): VoicingSet {
   // For now, return the voicing set as-is
   // Full implementation would adjust chord shapes based on tuning

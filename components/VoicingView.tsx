@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   ChordShape,
-  VoicingSet,
   getVoicingsForInstrument,
   getChordShapesForRoot,
 } from '@/lib/voicings';
@@ -15,13 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, Music, Volume2 } from 'lucide-react';
 
 interface VoicingViewProps {

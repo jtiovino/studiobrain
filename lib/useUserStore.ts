@@ -119,7 +119,7 @@ export const useUserStore = create<UserState>()(
       version: 1,
       onRehydrateStorage: () => {
         console.log('💾 Zustand: Starting rehydration from localStorage');
-        return (state: UserState | undefined, error: any) => {
+        return (state: UserState | undefined, error: unknown) => {
           if (error) {
             console.error('💾 Zustand: Rehydration failed:', error);
           } else {

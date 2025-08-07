@@ -13,7 +13,6 @@ import {
   Clock,
   AlertCircle,
   StickyNote,
-  MessageCircle,
 } from 'lucide-react';
 import { PracticeTimer } from './PracticeTimer';
 import { PracticeChatPanel } from './PracticeChatPanel';

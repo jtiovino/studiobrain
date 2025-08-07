@@ -87,7 +87,7 @@ export default function ChatHistoryPanel({
       );
     }
     return getSessionsByTab(activeTab);
-  }, [searchQuery, activeTab, sessions, getSessionsByTab, searchSessions]);
+  }, [searchQuery, activeTab, getSessionsByTab, searchSessions]);
 
   const handleExport = () => {
     const data = exportSessions();

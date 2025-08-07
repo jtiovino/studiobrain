@@ -62,7 +62,7 @@ function SortableGearItem({
     listeners,
     setNodeRef,
     transform,
-    transition,
+    transition: _transition,
     isDragging,
   } = useSortable({ id: item.id });
 

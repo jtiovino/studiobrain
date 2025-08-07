@@ -14,7 +14,6 @@ import {
   MessageCircle,
   Music,
   Guitar,
-  Piano,
   Volume2,
 } from 'lucide-react';
 import {
@@ -51,7 +50,6 @@ const getTabIcon = (tabType: ChatSession['tabType']) => {
 };
 
 const getTabColor = (tabType: ChatSession['tabType'], lessonMode: boolean) => {
-  const baseColor = lessonMode ? 'neon-cyan' : 'neon-purple';
   return {
     general: lessonMode
       ? 'text-neon-cyan bg-neon-cyan/10'

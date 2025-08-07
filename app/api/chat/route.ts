@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Message } from '@/lib/useChatHistoryStore';
 import OpenAI from 'openai';
 import { logger } from '@/lib/logger';
 import {
@@ -568,7 +569,7 @@ function categorizeUserPlugins(
   return { valid, invalid };
 }
 
-function getValidAmpModels(userGear: GearSettings, context: string): string[] {
+function getValidAmpModels(userGear: GearSettings, _context: string): string[] {
   const ampModels: string[] = [];
 
   // Check for hardware amp modeling devices
@@ -871,7 +872,7 @@ When suggesting adaptations, be specific with plugin names, amp models, and effe
 }
 
 function buildConversationMessages(
-  messageHistory: any[],
+  messageHistory: Message[],
   userSettings: UserSettings | undefined,
   _context: string,
   lessonMode: boolean,

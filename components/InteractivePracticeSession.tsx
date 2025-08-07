@@ -75,7 +75,7 @@ export const InteractivePracticeSession: React.FC<
   );
 
   const syncStepToStore = useCallback(
-    (stepIndex: number, stepUpdates: any) => {
+    (stepIndex: number, stepUpdates: Partial<PracticeStepState>) => {
       updateStepState(sessionId, stepIndex, stepUpdates);
       setSession(prev => {
         if (!prev) return null;
@@ -311,6 +311,8 @@ export const InteractivePracticeSession: React.FC<
   }, [
     session?.currentStepIndex,
     currentStepState?.isActive,
+    currentStepState,
+    session,
     syncStepToStore,
     syncSessionToStore,
   ]);
@@ -332,6 +334,8 @@ export const InteractivePracticeSession: React.FC<
   }, [
     session?.currentStepIndex,
     currentStepState?.isCompleted,
+    currentStepState,
+    session,
     syncStepToStore,
     syncSessionToStore,
   ]);
@@ -383,7 +387,9 @@ export const InteractivePracticeSession: React.FC<
     session?.isPaused,
     currentStepState?.isActive,
     currentStepState?.isCompleted,
+    currentStepState,
     session?.currentStepIndex,
+    session,
     handleStartStepTimer,
     handlePauseStepTimer,
     handlePreviousStep,
@@ -396,7 +402,7 @@ export const InteractivePracticeSession: React.FC<
   const completedSteps = useMemo(
     () =>
       session ? session.stepStates.filter(step => step.isCompleted).length : 0,
-    [session?.stepStates]
+    [session?.stepStates, session]
   );
 
   const totalMinutes = useMemo(

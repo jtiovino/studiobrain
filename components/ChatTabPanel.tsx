@@ -37,7 +37,7 @@ export function ChatTabPanel({
   title,
   messages,
   scrollRef,
-  tabName,
+  tabName: _tabName,
   loading,
   inputValue,
   onInputChange,

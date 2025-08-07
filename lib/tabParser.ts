@@ -96,7 +96,6 @@ export function parseGuitarTab(text: string): ParsedTab | null {
       if (pos >= content.length) continue;
 
       const char = content[pos];
-      const nextChar = pos + 1 < content.length ? content[pos + 1] : '';
 
       // Parse fret number
       if (/\d/.test(char)) {
