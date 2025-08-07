@@ -468,9 +468,9 @@ export default function StudioBrain() {
     // Verify session creation if no current session exists
     if (!currentSessionId && currentMessages.length > 0) {
       console.log('⚠️ No session ID but messages exist - creating session');
-      const firstMessage = currentMessages[0];
+      const firstMessage = chatMessageToMessage(currentMessages[0]);
       const newSessionId = createSession(currentActiveTab, firstMessage);
-      setCurrentSessionId(newSessionId);
+      setCurrentSession(newSessionId);
       console.log('✅ Created new session:', newSessionId);
     }
 
@@ -814,18 +814,6 @@ export default function StudioBrain() {
     loadSession,
     setCurrentSession,
   ]);
-
-  // Mobile detection effect
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640);
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   // Auto-scroll to bottom function with delay to avoid conflicts
   const scrollToBottom = useCallback(
@@ -1369,7 +1357,7 @@ export default function StudioBrain() {
       const response = await OpenAIService.askGeneral(
         sanitizedQuestion,
         lessonMode,
-        currentHistory
+        currentHistory.map(chatMessageToMessage)
       );
       if (isMounted.current) {
         const answer = response.response || response.error || 'No response';
@@ -1461,7 +1449,7 @@ export default function StudioBrain() {
         sanitizedQuestion,
         lessonMode,
         [],
-        currentHistory
+        currentHistory.map(chatMessageToMessage)
       );
       if (isMounted.current) {
         const answer = response.response || response.error || 'No response';
@@ -1516,7 +1504,7 @@ export default function StudioBrain() {
       const response = await OpenAIService.askTheory(
         sanitizedQuestion,
         lessonMode,
-        currentHistory
+        currentHistory.map(chatMessageToMessage)
       );
       if (isMounted.current) {
         const answer = response.response || response.error || 'No response';
@@ -1605,7 +1593,7 @@ export default function StudioBrain() {
         lessonMode,
         selectedInstrument,
         [],
-        currentHistory
+        currentHistory.map(chatMessageToMessage)
       );
       if (isMounted.current) {
         const answer = response.response || response.error || 'No response';
@@ -1702,7 +1690,7 @@ export default function StudioBrain() {
       const response = await OpenAIService.askPractice(
         jsonString,
         lessonMode,
-        currentHistory
+        currentHistory.map(chatMessageToMessage)
       );
       if (isMounted.current) {
         const displayContent =
@@ -1766,7 +1754,7 @@ export default function StudioBrain() {
       const response = await OpenAIService.askPractice(
         practiceFollowUp.trim(),
         lessonMode,
-        currentHistory
+        currentHistory.map(chatMessageToMessage)
       );
       if (isMounted.current) {
         const displayContent =
@@ -1830,7 +1818,7 @@ export default function StudioBrain() {
       const response = await OpenAIService.askPractice(
         practiceChatInput.trim(),
         lessonMode,
-        currentHistory
+        currentHistory.map(chatMessageToMessage)
       );
 
       if (isMounted.current) {
@@ -1854,12 +1842,6 @@ export default function StudioBrain() {
           responseText.includes('practice goal') ||
           responseText.includes('focus on')
         ) {
-          // Extract potential practice settings from response
-          // This is a simple implementation - could be enhanced with better parsing
-          const goalMatch = response.response.match(/goal:?\s*([^\n]+)/i);
-          if (goalMatch && goalMatch[1]) {
-            setPracticeGoal(goalMatch[1].trim());
-          }
         }
 
         // Save to history if enabled

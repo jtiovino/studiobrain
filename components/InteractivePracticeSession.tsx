@@ -19,7 +19,11 @@ import {
 } from 'lucide-react';
 import { PracticeProgressBar } from './PracticeProgressBar';
 import { PracticeStepCard } from './PracticeStepCard';
-import { PracticePlan, PracticeSessionState } from '@/lib/practice-plan-schema';
+import {
+  PracticePlan,
+  PracticeSessionState,
+  PracticeStepState,
+} from '@/lib/practice-plan-schema';
 import { useChatHistoryStore } from '@/lib/useChatHistoryStore';
 
 interface InteractivePracticeSessionProps {

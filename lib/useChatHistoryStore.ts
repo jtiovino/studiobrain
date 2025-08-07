@@ -255,13 +255,13 @@ export const useChatHistoryStore = create<ChatHistoryState>()(
               sessions: data.sessions.map(
                 (session: Record<string, unknown>) => ({
                   ...session,
-                  createdAt: new Date(session.createdAt),
-                  lastModified: new Date(session.lastModified),
+                  createdAt: new Date(session.createdAt as string),
+                  lastModified: new Date(session.lastModified as string),
                   messages: (
                     session.messages as Array<Record<string, unknown>>
                   ).map((msg: Record<string, unknown>) => ({
                     ...msg,
-                    timestamp: new Date(msg.timestamp),
+                    timestamp: new Date(msg.timestamp as string),
                   })),
                 })
               ),

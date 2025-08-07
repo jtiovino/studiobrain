@@ -84,7 +84,12 @@ export const PracticeChatPanel: React.FC<PracticeChatPanelProps> = ({
         lessonMode,
         practiceSession,
         currentStep,
-        messages
+        messages.map(msg => ({
+          role: msg.type as 'user' | 'assistant',
+          content: msg.content,
+          timestamp: new Date(msg.timestamp),
+          plugins: msg.plugins,
+        }))
       );
 
       const assistantMessage: ChatMessage = {

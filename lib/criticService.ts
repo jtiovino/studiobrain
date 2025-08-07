@@ -1,5 +1,15 @@
 import OpenAI from 'openai';
-import { UserSettings } from '@/lib/useUserStore';
+
+interface UserSettings {
+  gear?: {
+    guitar?: string[];
+    pedals?: string[];
+    interface?: string;
+    monitors?: string;
+    plugins?: string[];
+    daw?: string;
+  };
+}
 
 export interface CriticRequest {
   originalPrompt: string;

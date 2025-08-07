@@ -151,10 +151,11 @@ export class OpenAIService {
     // Convert message history to the format expected by the API
     const formattedHistory =
       messageHistory?.map(msg => ({
-        id: msg.id || `msg-${Date.now()}-${Math.random()}`,
-        type: msg.type || msg.role, // Handle both 'type' and 'role' properties
+        id: `msg-${Date.now()}-${Math.random()}`,
+        type: msg.role, // Message interface uses 'role' not 'type'
         content: msg.content,
-        timestamp: msg.timestamp || Date.now(),
+        timestamp:
+          msg.timestamp instanceof Date ? msg.timestamp.getTime() : Date.now(),
       })) || [];
 
     return this.makeRequest({
@@ -191,10 +192,11 @@ export class OpenAIService {
     // Convert message history to the format expected by the API
     const formattedHistory =
       messageHistory?.map(msg => ({
-        id: msg.id || `msg-${Date.now()}-${Math.random()}`,
-        type: msg.type || msg.role, // Handle both 'type' and 'role' properties
+        id: `msg-${Date.now()}-${Math.random()}`,
+        type: msg.role, // Message interface uses 'role' not 'type'
         content: msg.content,
-        timestamp: msg.timestamp || Date.now(),
+        timestamp:
+          msg.timestamp instanceof Date ? msg.timestamp.getTime() : Date.now(),
       })) || [];
 
     return this.makeRequest({
@@ -225,10 +227,11 @@ export class OpenAIService {
     // Convert message history to the format expected by the API
     const formattedHistory =
       messageHistory?.map(msg => ({
-        id: msg.id || `msg-${Date.now()}-${Math.random()}`,
-        type: msg.type || msg.role, // Handle both 'type' and 'role' properties
+        id: `msg-${Date.now()}-${Math.random()}`,
+        type: msg.role, // Message interface uses 'role' not 'type'
         content: msg.content,
-        timestamp: msg.timestamp || Date.now(),
+        timestamp:
+          msg.timestamp instanceof Date ? msg.timestamp.getTime() : Date.now(),
       })) || [];
 
     return this.makeRequest({
@@ -267,10 +270,11 @@ export class OpenAIService {
     // Convert message history to the format expected by the API
     const formattedHistory =
       messageHistory?.map(msg => ({
-        id: msg.id || `msg-${Date.now()}-${Math.random()}`,
-        type: msg.type || msg.role, // Handle both 'type' and 'role' properties
+        id: `msg-${Date.now()}-${Math.random()}`,
+        type: msg.role, // Message interface uses 'role' not 'type'
         content: msg.content,
-        timestamp: msg.timestamp || Date.now(),
+        timestamp:
+          msg.timestamp instanceof Date ? msg.timestamp.getTime() : Date.now(),
       })) || [];
 
     return this.makeRequest({
@@ -302,10 +306,11 @@ export class OpenAIService {
     // Convert message history to the format expected by the API
     const formattedHistory =
       messageHistory?.map(msg => ({
-        id: msg.id || `msg-${Date.now()}-${Math.random()}`,
-        type: msg.type || msg.role, // Handle both 'type' and 'role' properties
+        id: `msg-${Date.now()}-${Math.random()}`,
+        type: msg.role, // Message interface uses 'role' not 'type'
         content: msg.content,
-        timestamp: msg.timestamp || Date.now(),
+        timestamp:
+          msg.timestamp instanceof Date ? msg.timestamp.getTime() : Date.now(),
       })) || [];
 
     return this.makeRequest({
@@ -350,10 +355,11 @@ User question: ${message}`;
     // Convert message history to the format expected by the API
     const formattedHistory =
       messageHistory?.map(msg => ({
-        id: msg.id || `msg-${Date.now()}-${Math.random()}`,
-        type: msg.type || msg.role, // Handle both 'type' and 'role' properties
+        id: `msg-${Date.now()}-${Math.random()}`,
+        type: msg.role, // Message interface uses 'role' not 'type'
         content: msg.content,
-        timestamp: msg.timestamp || Date.now(),
+        timestamp:
+          msg.timestamp instanceof Date ? msg.timestamp.getTime() : Date.now(),
       })) || [];
 
     return this.makeRequest({

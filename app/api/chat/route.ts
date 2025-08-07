@@ -891,7 +891,7 @@ function buildConversationMessages(
   // Add conversation history
   recentMessages.forEach(msg => {
     messages.push({
-      role: msg.type === 'user' ? 'user' : 'assistant',
+      role: msg.role === 'user' ? 'user' : 'assistant',
       content: msg.content,
     });
   });
