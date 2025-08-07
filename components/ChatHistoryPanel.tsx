@@ -142,6 +142,7 @@ export default function ChatHistoryPanel({
     mix: sessions.filter(s => s.tabType === 'mix').length,
     theory: sessions.filter(s => s.tabType === 'theory').length,
     instrument: sessions.filter(s => s.tabType === 'instrument').length,
+    practice: sessions.filter(s => s.tabType === 'practice').length,
   };
 
   return (
@@ -274,7 +275,7 @@ export default function ChatHistoryPanel({
       </div>
 
       {/* Session Lists */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1">
         <div className="px-5 pb-5">
           <div className="flex items-center justify-between mb-2 px-1">
             <div className="flex items-center gap-2">

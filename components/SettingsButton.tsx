@@ -1,18 +1,15 @@
 'use client';
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
 import { Settings } from 'lucide-react';
-import { useChatHistoryStore } from '@/lib/useChatHistoryStore';
 
-export default function SettingsButton() {
-  const router = useRouter();
-  const { currentSessionId, setSettingsSession } = useChatHistoryStore();
+interface SettingsButtonProps {
+  onSettingsClick: () => void;
+}
 
+export default function SettingsButton({ onSettingsClick }: SettingsButtonProps) {
   const handleClick = () => {
-    // Store current session before navigating to settings
-    setSettingsSession(currentSessionId);
-    router.push('/settings');
+    onSettingsClick();
   };
 
   return (

@@ -496,6 +496,56 @@ export default function StudioBrain() {
     router.push('/settings');
   };
 
+  // Handle settings navigation (similar to handleChangeTuning)
+  const handleSettingsNavigation = () => {
+    console.log('⚙️ Navigating to settings from tab:', currentActiveTab);
+    console.log('⚙️ Current session ID before navigation:', currentSessionId);
+    
+    // Force save current tab messages before navigation
+    const getCurrentTabMessages = () => {
+      switch (currentActiveTab) {
+        case 'general':
+          return generalMessages;
+        case 'mix':
+          return mixMessages;
+        case 'theory':
+          return theoryMessages;
+        case 'instrument':
+          return instrumentMessages;
+        case 'practice':
+          return practiceMessages;
+        default:
+          return [];
+      }
+    };
+
+    const currentMessages = getCurrentTabMessages();
+    console.log('💾 Saving', currentMessages.length, 'messages for tab:', currentActiveTab);
+    
+    if (currentMessages.length > 0) {
+      saveMessagesToHistory(currentActiveTab, currentMessages);
+    }
+
+    // Verify session creation if no current session exists
+    if (!currentSessionId && currentMessages.length > 0) {
+      console.log('⚠️ No session ID but messages exist - creating session');
+      const firstMessage = chatMessageToMessage(currentMessages[0]);
+      const newSessionId = createSession(currentActiveTab, firstMessage);
+      setCurrentSession(newSessionId);
+      console.log('✅ Created new session:', newSessionId);
+    }
+
+    // Store current session and tab before navigating to settings
+    console.log('🏪 Storing session ID:', currentSessionId);
+    console.log('🏪 Storing current tab:', currentActiveTab);
+    
+    const sessionToStore = currentSessionId;
+    setSettingsSession(sessionToStore);
+    set({ currentTab: currentActiveTab });
+
+    router.push('/settings');
+  };
+
   // Function to clear tab notes
   const clearTabNotes = () => {
     setActiveTabNotes([]);
@@ -665,37 +715,8 @@ export default function StudioBrain() {
       console.log('📝 Loaded session:', session?.title, session?.tabType);
 
       if (session) {
-        const messages = loadTabMessages(session.tabType);
-        console.log(
-          '💬 Loaded messages count:',
-          messages.length,
-          'for tab:',
-          session.tabType
-        );
-
-        // Restore messages to appropriate tab state
-        switch (session.tabType) {
-          case 'general':
-            setGeneralMessages(messages);
-            console.log('📋 Restored general messages');
-            break;
-          case 'mix':
-            setMixMessages(messages);
-            console.log('🎛️ Restored mix messages');
-            break;
-          case 'theory':
-            setTheoryMessages(messages);
-            console.log('🎼 Restored theory messages');
-            break;
-          case 'instrument':
-            setInstrumentMessages(messages);
-            console.log('🎸 Restored instrument messages');
-            break;
-          case 'practice':
-            setPracticeMessages(messages);
-            console.log('🏃 Restored practice messages');
-            break;
-        }
+        console.log('🔄 Restoring session using handleSessionSelect');
+        handleSessionSelect(session);
       }
     } else {
       console.log('❌ No settings session found');
@@ -1921,7 +1942,7 @@ export default function StudioBrain() {
                     className={`w-5 h-5 transition-colors ${showChatHistory ? (lessonMode ? 'text-neon-cyan' : 'text-neon-purple') : 'text-slate-400'}`}
                   />
                 </Button>
-                <SettingsButton />
+                <SettingsButton onSettingsClick={handleSettingsNavigation} />
                 <div
                   className={`flex items-center gap-3 p-3 backdrop-blur-xl rounded-xl border shadow-2xl transition-all duration-300 hover:shadow-neon ${lessonMode ? 'bg-neon-cyan/10 border-neon-cyan/30 shadow-neon-cyan/20' : 'bg-neon-purple/15 border-neon-purple/40 shadow-neon-purple/30'}`}
                 >
@@ -1999,7 +2020,7 @@ export default function StudioBrain() {
 
               {/* Main Interface */}
               <Tabs
-                defaultValue="general"
+                value={currentActiveTab}
                 className="space-y-8"
                 onValueChange={value =>
                   setCurrentActiveTab(
