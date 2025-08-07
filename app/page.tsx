@@ -729,6 +729,9 @@ export default function StudioBrain() {
         console.log('🔄 Restoring session using handleSessionSelect');
         handleSessionSelect(session);
       }
+
+      // Clear the settings session ID after restoration
+      setSettingsSession(null);
     } else {
       console.log('❌ No settings session found');
     }
@@ -815,11 +818,10 @@ export default function StudioBrain() {
     };
 
     if (isPageRefresh()) {
-      // Page was refreshed - clear the current session and reset to default tab
+      // Page was refreshed - reset to default tab but preserve chat session
       console.log(
-        '🔄 Page refresh detected - clearing current session and resetting to default tab'
+        '🔄 Page refresh detected - resetting to default tab but preserving chat'
       );
-      setCurrentSession(null);
 
       // Reset to user's preferred default tab
       const tabMapping: Record<
@@ -837,34 +839,11 @@ export default function StudioBrain() {
 
       // Mark that we handled a page refresh
       hasHandledPageRefresh.current = true;
-    } else {
-      // Normal navigation - restore session if available (including return from settings)
-      if (
-        currentSessionId &&
-        generalMessages.length === 0 &&
-        mixMessages.length === 0 &&
-        theoryMessages.length === 0 &&
-        instrumentMessages.length === 0
-      ) {
-        const currentSession = loadSession(currentSessionId);
-        if (currentSession) {
-          console.log(
-            '🔄 Navigation return detected - restoring session:',
-            currentSession.title
-          );
-          handleSessionSelect(currentSession);
-        }
-      }
     }
 
     // Mark that refresh detection has run
     hasRunRefreshDetection.current = true;
   }, [
-    currentSessionId,
-    generalMessages.length,
-    mixMessages.length,
-    theoryMessages.length,
-    instrumentMessages.length,
     handleSessionSelect,
     loadSession,
     setCurrentSession,
@@ -1233,9 +1212,12 @@ export default function StudioBrain() {
     return keys;
   };
 
-  // Reset active chord when root or mode changes
+  // Set first chord as active when root or mode changes
   useEffect(() => {
-    setActiveChord(null);
+    const chords = generateChords();
+    if (chords.length > 0) {
+      setActiveChord(chords[0].name);
+    }
   }, [selectedChord, selectedMode]);
 
   // Memoized values to prevent unnecessary re-renders
@@ -2079,42 +2061,52 @@ export default function StudioBrain() {
                 }
               >
                 <TabsList
-                  className={`grid w-full grid-cols-5 h-14 bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl shadow-2xl ${lessonMode ? '[&>[data-state=active]]:bg-neon-cyan/20 [&>[data-state=active]]:text-neon-cyan [&>[data-state=active]]:shadow-[inset_0_1px_0_rgba(6,182,212,0.3),0_0_6px_rgba(6,182,212,0.15)]' : '[&>[data-state=active]]:bg-neon-purple/20 [&>[data-state=active]]:text-neon-purple [&>[data-state=active]]:shadow-[inset_0_1px_0_rgba(139,92,246,0.3),0_0_6px_rgba(139,92,246,0.15)]'}`}
+                  className={`grid w-full grid-cols-5 h-auto sm:h-14 gap-0 p-0 sm:p-1 bg-glass-bg backdrop-blur-xl border border-glass-border rounded-lg sm:rounded-xl shadow-2xl ${lessonMode ? '[&>[data-state=active]]:bg-neon-cyan/20 [&>[data-state=active]]:text-neon-cyan [&>[data-state=active]]:shadow-[inset_0_1px_0_rgba(6,182,212,0.3),0_0_6px_rgba(6,182,212,0.15)]' : '[&>[data-state=active]]:bg-neon-purple/20 [&>[data-state=active]]:text-neon-purple [&>[data-state=active]]:shadow-[inset_0_1px_0_rgba(139,92,246,0.3),0_0_6px_rgba(139,92,246,0.15)]'}`}
                 >
                   <TabsTrigger
                     value="general"
-                    className={`transition-all duration-300 rounded-lg font-medium h-full flex items-center justify-center ${lessonMode ? 'text-slate-300 data-[state=active]:bg-neon-cyan/20 data-[state=active]:text-neon-cyan hover:bg-neon-cyan/10 hover:text-neon-cyan' : 'text-slate-300 data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple hover:bg-neon-purple/10 hover:text-neon-purple'}`}
+                    className={`transition-all duration-200 rounded-none sm:rounded-lg font-normal sm:font-medium min-h-[32px] sm:min-h-[44px] h-full flex items-center justify-center flex-col sm:flex-row px-1 py-1 sm:px-3 sm:py-1.5 ${lessonMode ? 'text-slate-300 data-[state=active]:bg-neon-cyan/20 data-[state=active]:text-neon-cyan hover:bg-neon-cyan/10 hover:text-neon-cyan' : 'text-slate-300 data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple hover:bg-neon-purple/10 hover:text-neon-purple'}`}
                   >
-                    <Lightbulb className="w-5 h-5 mr-2" />
-                    General
+                    <Lightbulb className="w-3 h-3 sm:w-5 sm:h-5 sm:mr-2 mb-0 sm:mb-0" />
+                    <span className="text-2xs sm:text-sm leading-none sm:leading-tight">
+                      General
+                    </span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="mix"
-                    className={`transition-all duration-300 rounded-lg font-medium h-full flex items-center justify-center ${lessonMode ? 'text-slate-300 data-[state=active]:bg-neon-cyan/20 data-[state=active]:text-neon-cyan hover:bg-neon-cyan/10 hover:text-neon-cyan' : 'text-slate-300 data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple hover:bg-neon-purple/10 hover:text-neon-purple'}`}
+                    className={`transition-all duration-200 rounded-none sm:rounded-lg font-normal sm:font-medium min-h-[32px] sm:min-h-[44px] h-full flex items-center justify-center flex-col sm:flex-row px-1 py-1 sm:px-3 sm:py-1.5 ${lessonMode ? 'text-slate-300 data-[state=active]:bg-neon-cyan/20 data-[state=active]:text-neon-cyan hover:bg-neon-cyan/10 hover:text-neon-cyan' : 'text-slate-300 data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple hover:bg-neon-purple/10 hover:text-neon-purple'}`}
                   >
-                    <Volume2 className="w-5 h-5 mr-2" />
-                    Mix
+                    <Volume2 className="w-3 h-3 sm:w-5 sm:h-5 sm:mr-2 mb-0 sm:mb-0" />
+                    <span className="text-2xs sm:text-sm leading-none sm:leading-tight">
+                      Mix
+                    </span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="theory"
-                    className={`transition-all duration-300 rounded-lg font-medium h-full flex items-center justify-center ${lessonMode ? 'text-slate-300 data-[state=active]:bg-neon-cyan/20 data-[state=active]:text-neon-cyan hover:bg-neon-cyan/10 hover:text-neon-cyan' : 'text-slate-300 data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple hover:bg-neon-purple/10 hover:text-neon-purple'}`}
+                    className={`transition-all duration-200 rounded-none sm:rounded-lg font-normal sm:font-medium min-h-[32px] sm:min-h-[44px] h-full flex items-center justify-center flex-col sm:flex-row px-1 py-1 sm:px-3 sm:py-1.5 ${lessonMode ? 'text-slate-300 data-[state=active]:bg-neon-cyan/20 data-[state=active]:text-neon-cyan hover:bg-neon-cyan/10 hover:text-neon-cyan' : 'text-slate-300 data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple hover:bg-neon-purple/10 hover:text-neon-purple'}`}
                   >
-                    <Music className="w-5 h-5 mr-2" />
-                    Theory
+                    <Music className="w-3 h-3 sm:w-5 sm:h-5 sm:mr-2 mb-0 sm:mb-0" />
+                    <span className="text-2xs sm:text-sm leading-none sm:leading-tight">
+                      Theory
+                    </span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="instrument"
-                    className={`transition-all duration-300 rounded-lg font-medium h-full flex items-center justify-center ${lessonMode ? 'text-slate-300 data-[state=active]:bg-neon-cyan/20 data-[state=active]:text-neon-cyan hover:bg-neon-cyan/10 hover:text-neon-cyan' : 'text-slate-300 data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple hover:bg-neon-purple/10 hover:text-neon-purple'}`}
+                    className={`transition-all duration-200 rounded-none sm:rounded-lg font-normal sm:font-medium min-h-[32px] sm:min-h-[44px] h-full flex items-center justify-center flex-col sm:flex-row px-1 py-1 sm:px-3 sm:py-1.5 ${lessonMode ? 'text-slate-300 data-[state=active]:bg-neon-cyan/20 data-[state=active]:text-neon-cyan hover:bg-neon-cyan/10 hover:text-neon-cyan' : 'text-slate-300 data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple hover:bg-neon-purple/10 hover:text-neon-purple'}`}
                   >
-                    <Guitar className="w-5 h-5 mr-2" />
-                    Instrument
+                    <Guitar className="w-3 h-3 sm:w-5 sm:h-5 sm:mr-2 mb-0 sm:mb-0" />
+                    <span className="text-2xs sm:text-sm leading-none sm:leading-tight">
+                      Instrument
+                    </span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="practice"
-                    className={`transition-all duration-300 rounded-lg font-medium h-full flex items-center justify-center ${lessonMode ? 'text-slate-300 data-[state=active]:bg-neon-cyan/20 data-[state=active]:text-neon-cyan hover:bg-neon-cyan/10 hover:text-neon-cyan' : 'text-slate-300 data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple hover:bg-neon-purple/10 hover:text-neon-purple'}`}
+                    className={`transition-all duration-200 rounded-none sm:rounded-lg font-normal sm:font-medium min-h-[32px] sm:min-h-[44px] h-full flex items-center justify-center flex-col sm:flex-row px-1 py-1 sm:px-3 sm:py-1.5 ${lessonMode ? 'text-slate-300 data-[state=active]:bg-neon-cyan/20 data-[state=active]:text-neon-cyan hover:bg-neon-cyan/10 hover:text-neon-cyan' : 'text-slate-300 data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple hover:bg-neon-purple/10 hover:text-neon-purple'}`}
                   >
-                    <BookOpen className="w-5 h-5 mr-2" />
-                    Practice
+                    <BookOpen className="w-3 h-3 sm:w-5 sm:h-5 sm:mr-2 mb-0 sm:mb-0" />
+                    <span className="text-2xs sm:text-sm leading-none sm:leading-tight">
+                      Practice
+                    </span>
                   </TabsTrigger>
                 </TabsList>
 
@@ -2277,7 +2269,7 @@ export default function StudioBrain() {
                               className={`w-6 h-6 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}
                             />
                           </div>
-                          Chord & Scale Explorer
+                          Chord Explorer
                         </CardTitle>
                         <CardDescription className="text-slate-300 text-base">
                           Explore scales and chord progressions interactively
@@ -2525,9 +2517,7 @@ export default function StudioBrain() {
                                   />
                                 )}
                               </div>
-                              {visualizerView === 'guitar'
-                                ? 'Guitar Fretboard'
-                                : 'Piano Keyboard'}
+                              Scale Visualizer
                             </CardTitle>
                             <CardDescription className="text-slate-300 text-base mt-2">
                               {selectedChord} {selectedMode} scale visualization{' '}

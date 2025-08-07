@@ -160,7 +160,6 @@ export default function UserSettingsForm() {
     <div className="max-w-2xl mx-auto p-6 space-y-6">
       <button
         onClick={() => {
-          restoreFromSettings();
           router.push('/');
         }}
         className="text-sm text-indigo-500 hover:underline mb-4"

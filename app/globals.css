@@ -18,6 +18,11 @@ body {
     overflow: hidden;
   }
 
+  .text-2xs {
+    font-size: 0.625rem;
+    line-height: 0.75rem;
+  }
+
   /* Extended grid columns for dynamic fretboard layouts */
   .grid-cols-15 {
     grid-template-columns: repeat(15, minmax(0, 1fr));
