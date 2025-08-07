@@ -1885,7 +1885,14 @@ export default function StudioBrain() {
           </div>
         }
       >
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 backdrop-blur-xl text-white flex" style={{background: 'linear-gradient(135deg, rgba(15,15,15,0.95) 0%, rgba(0,0,0,0.98) 50%, rgba(15,15,15,0.95) 100%)'}}>
+        <div
+          className="min-h-screen text-white flex"
+          style={{
+            background:
+              'linear-gradient(145deg, #000000 0%, #0a0a0a 50%, #000000 100%)',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
+          }}
+        >
           {/* Chat History Sidebar */}
           {showChatHistory && (
             <div className="hidden lg:block">

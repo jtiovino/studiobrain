@@ -130,12 +130,7 @@ export const InteractivePracticeSession: React.FC<
         globalTimerRef.current = undefined;
       }
     };
-  }, [
-    session?.currentStepIndex,
-    session?.isPaused,
-    sessionId,
-    updatePracticeSession,
-  ]);
+  }, [session, sessionId, updatePracticeSession]);
 
   // Cleanup on component unmount
   useEffect(() => {
@@ -150,12 +145,12 @@ export const InteractivePracticeSession: React.FC<
   // All hooks must be declared before any conditional returns
   const currentStep = useMemo(
     () => (session ? plan.steps[session.currentStepIndex] : null),
-    [plan.steps, session?.currentStepIndex]
+    [plan.steps, session]
   );
 
   const currentStepState = useMemo(
     () => (session ? session.stepStates[session.currentStepIndex] : null),
-    [session?.stepStates, session?.currentStepIndex]
+    [session]
   );
 
   const handlePreviousStep = useCallback(() => {
@@ -171,7 +166,7 @@ export const InteractivePracticeSession: React.FC<
       currentStepIndex: session.currentStepIndex - 1,
       isPaused: true,
     });
-  }, [session?.currentStepIndex, syncStepToStore, syncSessionToStore]);
+  }, [session, syncStepToStore, syncSessionToStore]);
 
   const handleNextStep = useCallback(() => {
     if (!session || session.currentStepIndex >= plan.steps.length - 1) return;
@@ -186,12 +181,7 @@ export const InteractivePracticeSession: React.FC<
       currentStepIndex: session.currentStepIndex + 1,
       isPaused: true,
     });
-  }, [
-    session?.currentStepIndex,
-    plan.steps.length,
-    syncStepToStore,
-    syncSessionToStore,
-  ]);
+  }, [session, plan.steps.length, syncStepToStore, syncSessionToStore]);
 
   const handleCompleteStep = useCallback(() => {
     if (!session) return;
@@ -226,13 +216,7 @@ export const InteractivePracticeSession: React.FC<
         isPaused: true,
       });
     }
-  }, [
-    session?.currentStepIndex,
-    session?.stepStates,
-    plan.steps.length,
-    syncStepToStore,
-    syncSessionToStore,
-  ]);
+  }, [session, plan.steps.length, syncStepToStore, syncSessionToStore]);
 
   const handleStartStepTimer = useCallback(() => {
     if (!session) return;
@@ -244,7 +228,7 @@ export const InteractivePracticeSession: React.FC<
     syncSessionToStore({
       isPaused: false,
     });
-  }, [session?.currentStepIndex, syncStepToStore, syncSessionToStore]);
+  }, [session, syncStepToStore, syncSessionToStore]);
 
   const handlePauseStepTimer = useCallback(() => {
     if (!session) return;
@@ -255,7 +239,7 @@ export const InteractivePracticeSession: React.FC<
     syncSessionToStore({
       isPaused: true,
     });
-  }, [session?.currentStepIndex, syncStepToStore, syncSessionToStore]);
+  }, [session, syncStepToStore, syncSessionToStore]);
 
   const handleStopStepTimer = useCallback(() => {
     if (!session) return;
@@ -267,7 +251,7 @@ export const InteractivePracticeSession: React.FC<
     syncSessionToStore({
       isPaused: true,
     });
-  }, [session?.currentStepIndex, syncStepToStore, syncSessionToStore]);
+  }, [session, syncStepToStore, syncSessionToStore]);
 
   const handleResetStepTimer = useCallback(() => {
     if (!session) return;
@@ -277,7 +261,7 @@ export const InteractivePracticeSession: React.FC<
       timeSpent: 0,
       startTime: undefined,
     });
-  }, [session?.currentStepIndex, syncStepToStore]);
+  }, [session, syncStepToStore]);
 
   const handleStepTimeUpdate = useCallback(
     (seconds: number) => {
@@ -286,7 +270,7 @@ export const InteractivePracticeSession: React.FC<
         timeSpent: seconds,
       });
     },
-    [session?.currentStepIndex, syncStepToStore]
+    [session, syncStepToStore]
   );
 
   const handleStepNotesChange = useCallback(
@@ -296,7 +280,7 @@ export const InteractivePracticeSession: React.FC<
         notes,
       });
     },
-    [session?.currentStepIndex, syncStepToStore]
+    [session, syncStepToStore]
   );
 
   const handlePauseSession = useCallback(() => {
@@ -312,14 +296,7 @@ export const InteractivePracticeSession: React.FC<
     syncSessionToStore({
       isPaused: true,
     });
-  }, [
-    session?.currentStepIndex,
-    currentStepState?.isActive,
-    currentStepState,
-    session,
-    syncStepToStore,
-    syncSessionToStore,
-  ]);
+  }, [session, currentStepState, syncStepToStore, syncSessionToStore]);
 
   const handleResumeSession = useCallback(() => {
     if (!session || !currentStepState) return;
@@ -335,14 +312,7 @@ export const InteractivePracticeSession: React.FC<
     syncSessionToStore({
       isPaused: false,
     });
-  }, [
-    session?.currentStepIndex,
-    currentStepState?.isCompleted,
-    currentStepState,
-    session,
-    syncStepToStore,
-    syncSessionToStore,
-  ]);
+  }, [session, currentStepState, syncStepToStore, syncSessionToStore]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -406,7 +376,7 @@ export const InteractivePracticeSession: React.FC<
   const completedSteps = useMemo(
     () =>
       session ? session.stepStates.filter(step => step.isCompleted).length : 0,
-    [session?.stepStates, session]
+    [session]
   );
 
   const totalMinutes = useMemo(
