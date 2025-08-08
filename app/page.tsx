@@ -701,7 +701,7 @@ export default function StudioBrain() {
     const parsedTuning = parseTuningToKey(preferredTuning);
     setSelectedTuning(parsedTuning);
     setFretboardFlipped(flipFretboardView);
-  }, [preferredTuning, flipFretboardView]);
+  }, [preferredTuning, flipFretboardView, parseTuningToKey]);
 
   // Restoration logic for returning from settings
   useEffect(() => {
