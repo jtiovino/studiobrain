@@ -149,19 +149,19 @@ export default function ChatHistoryPanel({
 
   return (
     <div
-      className={`w-64 h-screen overflow-y-auto bg-zinc-900 flex flex-col !bg-gradient-to-b !from-slate-900/98 !to-slate-800/95 backdrop-blur-sm !border-r-2 !border-slate-600/60 !shadow-2xl ${className}`}
+      className={`w-64 h-screen overflow-y-auto bg-background flex flex-col border-r-2 border-border shadow-2xl ${className}`}
     >
       {/* Header */}
-      <div className="p-5 border-b border-slate-700/80">
+      <div className="p-5 border-b border-border">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
-            <History className="w-5 h-5 text-slate-400" />
+            <History className="w-5 h-5 text-muted-foreground" />
             <h2 className="font-semibold text-slate-200 text-base">
               Chat History
             </h2>
             <Badge
               variant="outline"
-              className="text-xs text-slate-400 border-slate-600/70 bg-slate-800/30 px-2 py-0.5"
+              className="text-xs text-muted-foreground border-border bg-secondary px-2 py-0.5"
             >
               {totalSessions}
             </Badge>
@@ -172,10 +172,10 @@ export default function ChatHistoryPanel({
               variant="ghost"
               size="sm"
               onClick={handleExport}
-              className="p-2 hover:bg-slate-700/50 rounded-lg transition-all duration-200"
+              className="p-2 hover:bg-secondary/80 rounded-lg transition-all duration-200"
               title="Export sessions"
             >
-              <Download className="w-4 h-4 text-slate-400" />
+              <Download className="w-4 h-4 text-muted-foreground" />
             </Button>
 
             <input
@@ -191,10 +191,10 @@ export default function ChatHistoryPanel({
               onClick={() =>
                 document.getElementById('import-sessions')?.click()
               }
-              className="p-2 hover:bg-slate-700/50 rounded-lg transition-all duration-200"
+              className="p-2 hover:bg-secondary/80 rounded-lg transition-all duration-200"
               title="Import sessions"
             >
-              <Upload className="w-4 h-4 text-slate-400" />
+              <Upload className="w-4 h-4 text-muted-foreground" />
             </Button>
 
             <AlertDialog>
@@ -202,7 +202,7 @@ export default function ChatHistoryPanel({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="p-2 hover:bg-red-500/10 rounded-lg text-red-400 hover:text-red-300 transition-all duration-200"
+                  className="p-2 hover:bg-red-500/10 rounded-lg text-red-500 hover:text-red-400 transition-all duration-200"
                   title="Clear all sessions"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -237,7 +237,7 @@ export default function ChatHistoryPanel({
             placeholder="Search sessions..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="!pl-10 !bg-slate-700/60 !border-2 !border-slate-600/70 !shadow-inner !text-slate-100 !placeholder:text-slate-400 focus:!border-slate-500 focus:!shadow-inner focus:!shadow-slate-900/30 !transition-all !duration-200 !rounded-lg"
+            className="pl-10 bg-secondary border-2 border-border shadow-inner text-foreground placeholder:text-muted-foreground focus:border-ring transition-all duration-200 rounded-lg"
           />
         </div>
 
@@ -253,7 +253,7 @@ export default function ChatHistoryPanel({
                     ? lessonMode
                       ? 'bg-cyan-600 text-white shadow-sm'
                       : 'bg-purple-700 text-white shadow-sm'
-                    : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600/50 hover:text-slate-200'
+                    : 'bg-secondary text-foreground hover:bg-secondary/80'
                 }`}
               >
                 {tabIcons[key as keyof typeof tabIcons]}
@@ -265,7 +265,7 @@ export default function ChatHistoryPanel({
                       ? lessonMode
                         ? 'bg-cyan-500/30 text-cyan-100 border-cyan-400/30'
                         : 'bg-purple-600/30 text-purple-100 border-purple-400/30'
-                      : 'bg-slate-600/50 text-slate-300 border-slate-500/50'
+                      : 'bg-secondary/80 text-foreground border-border'
                   }`}
                 >
                   {tabCounts[key as keyof typeof tabCounts]}
@@ -281,7 +281,7 @@ export default function ChatHistoryPanel({
         <div className="px-5 pb-5">
           <div className="flex items-center justify-between mb-2 px-1">
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-400 bg-slate-800/50 px-2 py-1 rounded-full border border-slate-700/30 font-medium">
+              <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-full border border-border font-medium">
                 {displaySessions.length} session
                 {displaySessions.length !== 1 ? 's' : ''}
               </span>
@@ -302,9 +302,9 @@ export default function ChatHistoryPanel({
 
           <div className="space-y-2 overflow-y-auto max-h-[calc(100vh-300px)]">
             {displaySessions.length === 0 ? (
-              <div className="!bg-gradient-to-br !from-slate-800/60 !to-slate-700/40 !border-2 !border-slate-600/60 !rounded-xl !p-8 mt-4 !shadow-xl">
-                <div className="text-center py-8 text-slate-400">
-                  <div className="!bg-slate-700/30 !rounded-full !p-4 !w-16 !h-16 mx-auto mb-4 flex items-center justify-center">
+              <div className="bg-secondary/50 border-2 border-border rounded-xl p-8 mt-4 shadow-xl">
+                <div className="text-center py-8 text-muted-foreground">
+                  <div className="bg-secondary rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                     <MessageCircle className="!w-8 !h-8 !text-slate-300" />
                   </div>
                   <p className="!text-base !font-semibold mb-2 !text-slate-200">
@@ -313,7 +313,7 @@ export default function ChatHistoryPanel({
                       : `No ${tabLabels[activeTab].toLowerCase()} sessions`}
                   </p>
                   {!searchQuery && (
-                    <p className="!text-sm !text-slate-400 !leading-relaxed">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
                       Start a conversation to create your first session
                     </p>
                   )}

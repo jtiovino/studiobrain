@@ -11,6 +11,7 @@ interface UserState {
   genreInfluence: string[];
   lessonMode: boolean;
   flipFretboardView: boolean;
+  theme: 'light' | 'dark' | 'system';
   defaultTab: 'General' | 'Mix' | 'Theory' | 'Instrument';
   currentTab: 'general' | 'mix' | 'theory' | 'instrument' | 'practice';
   gear: {
@@ -46,6 +47,7 @@ export const useUserStore = create<UserState>()(
       genreInfluence: [],
       lessonMode: false,
       flipFretboardView: false,
+      theme: 'dark',
       defaultTab: 'General',
       currentTab: 'general',
       gear: {
@@ -149,6 +151,7 @@ export const useUserStore = create<UserState>()(
         genreInfluence: state.genreInfluence,
         lessonMode: state.lessonMode,
         flipFretboardView: state.flipFretboardView,
+        theme: state.theme,
         defaultTab: state.defaultTab,
         currentTab: state.currentTab,
         gear: state.gear,

@@ -1270,12 +1270,11 @@ export default function StudioBrain() {
     return (
       <div
         ref={scrollRef}
-        className="h-96 max-h-[60vh] overflow-y-scroll mb-6 p-3 sm:p-4 rounded-xl border space-y-3 sm:space-y-4"
+        className={`h-96 max-h-[60vh] overflow-y-scroll mb-6 p-3 sm:p-4 rounded-xl border space-y-3 sm:space-y-4 chat-history-bg ${lessonMode ? 'lesson-mode' : ''}`}
         style={{
           WebkitOverflowScrolling: 'touch',
           overscrollBehavior: 'contain',
           scrollBehavior: 'auto', // Allow manual control of smooth scrolling
-          background: lessonMode ? '#0e1117' : '#1a1625',
           borderColor: lessonMode
             ? 'rgba(6, 182, 212, 0.3)'
             : 'rgba(168, 85, 247, 0.3)',
@@ -1291,10 +1290,8 @@ export default function StudioBrain() {
             <div
               className={`max-w-[85%] sm:max-w-[80%] rounded-xl p-3 sm:p-4 ${
                 message.type === 'user'
-                  ? lessonMode
-                    ? 'text-black'
-                    : 'text-white'
-                  : 'border border-slate-600/50 text-slate-200'
+                  ? 'user-message'
+                  : 'border border-border bg-card'
               }`}
               style={{
                 backgroundColor:
@@ -1302,7 +1299,7 @@ export default function StudioBrain() {
                     ? lessonMode
                       ? '#06b6d4'
                       : '#a855f7'
-                    : '#1e293b',
+                    : undefined, // Let CSS handle assistant message backgrounds
               }}
             >
               <div className="whitespace-pre-line leading-relaxed">
@@ -1318,8 +1315,7 @@ export default function StudioBrain() {
                   {message.plugins.map((plugin, index) => (
                     <div
                       key={index}
-                      className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg border border-slate-600/50"
-                      style={{ backgroundColor: '#334155' }}
+                      className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg border border-border bg-muted"
                     >
                       <div
                         className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm ${lessonMode ? 'bg-neon-cyan' : 'bg-neon-purple'}`}
@@ -1328,7 +1324,7 @@ export default function StudioBrain() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1 sm:gap-2 mb-1 flex-wrap">
-                          <span className="font-semibold text-white text-xs sm:text-sm">
+                          <span className="font-semibold text-foreground text-xs sm:text-sm">
                             {plugin.name}
                           </span>
                           <span
@@ -1337,11 +1333,11 @@ export default function StudioBrain() {
                             {plugin.type}
                           </span>
                         </div>
-                        <p className="text-slate-300 text-xs sm:text-sm mb-1">
+                        <p className="text-muted-foreground text-xs sm:text-sm mb-1">
                           {plugin.description}
                         </p>
                         {plugin.explanation && (
-                          <p className="text-slate-400 text-xs">
+                          <p className="text-muted-foreground text-xs">
                             {plugin.explanation}
                           </p>
                         )}
@@ -1355,24 +1351,21 @@ export default function StudioBrain() {
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div
-              className="border border-slate-600/50 text-slate-200 rounded-xl p-3 sm:p-4 max-w-[85%] sm:max-w-[80%]"
-              style={{ backgroundColor: '#1e293b' }}
-            >
+            <div className="border border-border bg-secondary text-card-foreground rounded-xl p-3 sm:p-4 max-w-[85%] sm:max-w-[80%]">
               <div className="flex items-center gap-2 sm:gap-3">
                 <div
-                  className="w-2 h-2 rounded-full bg-slate-400 animate-bounce"
+                  className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce"
                   style={{ animationDelay: '0ms' }}
                 ></div>
                 <div
-                  className="w-2 h-2 rounded-full bg-slate-400 animate-bounce"
+                  className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce"
                   style={{ animationDelay: '150ms' }}
                 ></div>
                 <div
-                  className="w-2 h-2 rounded-full bg-slate-400 animate-bounce"
+                  className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce"
                   style={{ animationDelay: '300ms' }}
                 ></div>
-                <span className="text-slate-400 text-xs sm:text-sm ml-1 sm:ml-2">
+                <span className="text-muted-foreground text-xs sm:text-sm ml-1 sm:ml-2">
                   StudioBrain is thinking...
                 </span>
               </div>
@@ -1926,24 +1919,17 @@ export default function StudioBrain() {
     <ErrorBoundary>
       <HydrationBoundary
         fallback={
-          <div className="fixed inset-0 bg-zinc-900 text-white flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-background text-foreground flex items-center justify-center z-50">
             <div className="text-center animate-fade-in">
               <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-xl text-gray-300 mt-6">
+              <p className="text-xl text-muted-foreground mt-6">
                 Loading StudioBrain...
               </p>
             </div>
           </div>
         }
       >
-        <div
-          className="min-h-screen text-white flex"
-          style={{
-            background:
-              'linear-gradient(145deg, #000000 0%, #0a0a0a 50%, #000000 100%)',
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
-          }}
-        >
+        <div className="min-h-screen app-gradient theme-text flex">
           {/* Chat History Sidebar */}
           {showChatHistory && (
             <div className="hidden lg:block">
@@ -1969,7 +1955,7 @@ export default function StudioBrain() {
                   title="Chat History"
                 >
                   <History
-                    className={`w-5 h-5 transition-colors ${showChatHistory ? (lessonMode ? 'text-neon-cyan' : 'text-neon-purple') : 'text-slate-400'}`}
+                    className={`w-5 h-5 transition-colors ${showChatHistory ? (lessonMode ? 'text-neon-cyan' : 'text-neon-purple') : 'text-muted-foreground'}`}
                   />
                 </Button>
                 <SettingsButton onSettingsClick={handleSettingsNavigation} />
@@ -1977,7 +1963,7 @@ export default function StudioBrain() {
                   className={`flex items-center gap-3 p-3 backdrop-blur-xl rounded-xl border shadow-2xl transition-all duration-300 hover:shadow-neon ${lessonMode ? 'bg-neon-cyan/10 border-neon-cyan/30 shadow-neon-cyan/20' : 'bg-neon-purple/15 border-neon-purple/40 shadow-neon-purple/30'}`}
                 >
                   <Lightbulb
-                    className={`w-5 h-5 transition-colors ${lessonMode ? 'text-neon-cyan' : 'text-slate-400'}`}
+                    className={`w-5 h-5 transition-colors ${lessonMode ? 'text-neon-cyan' : 'text-muted-foreground'}`}
                   />
                   <Switch
                     id="lesson-mode"
@@ -1991,7 +1977,7 @@ export default function StudioBrain() {
                     }
                   />
                   <span
-                    className={`text-sm font-medium min-w-[50px] text-center transition-colors ${lessonMode ? 'text-neon-cyan' : 'text-slate-400'}`}
+                    className={`text-sm font-medium min-w-[50px] text-center transition-colors ${lessonMode ? 'text-neon-cyan' : 'text-muted-foreground'}`}
                   >
                     {lessonMode ? 'Lesson' : 'Quick'}
                   </span>
@@ -2010,7 +1996,7 @@ export default function StudioBrain() {
                     StudioBrain
                   </h1>
                 </div>
-                <p className="text-slate-400 text-xl font-light max-w-2xl mx-auto leading-relaxed">
+                <p className="text-muted-foreground text-xl font-light max-w-2xl mx-auto leading-relaxed">
                   A creative assistant for musicians, powered by AI.
                 </p>
               </div>
@@ -2064,11 +2050,11 @@ export default function StudioBrain() {
                 }
               >
                 <TabsList
-                  className={`grid w-full grid-cols-5 h-auto sm:h-14 gap-0 p-0 sm:p-1 bg-glass-bg backdrop-blur-xl border border-glass-border rounded-lg sm:rounded-xl shadow-2xl ${lessonMode ? '[&>[data-state=active]]:bg-neon-cyan/20 [&>[data-state=active]]:text-neon-cyan [&>[data-state=active]]:shadow-[inset_0_1px_0_rgba(6,182,212,0.3),0_0_6px_rgba(6,182,212,0.15)]' : '[&>[data-state=active]]:bg-neon-purple/20 [&>[data-state=active]]:text-neon-purple [&>[data-state=active]]:shadow-[inset_0_1px_0_rgba(139,92,246,0.3),0_0_6px_rgba(139,92,246,0.15)]'}`}
+                  className={`grid w-full grid-cols-5 h-auto sm:h-14 gap-0 p-0 sm:p-1 bg-glass-bg backdrop-blur-xl border border-glass-border rounded-lg sm:rounded-xl shadow-2xl ${lessonMode ? '[&>[data-state=active]]:bg-cyan-700/20 [&>[data-state=active]]:text-cyan-700 [&>[data-state=active]]:shadow-[inset_0_1px_0_rgba(14,116,144,0.3),0_0_6px_rgba(14,116,144,0.15)] dark:[&>[data-state=active]]:bg-neon-cyan/20 dark:[&>[data-state=active]]:text-neon-cyan dark:[&>[data-state=active]]:shadow-[inset_0_1px_0_rgba(0,212,255,0.3),0_0_6px_rgba(0,212,255,0.15)]' : '[&>[data-state=active]]:bg-neon-purple/20 [&>[data-state=active]]:text-neon-purple [&>[data-state=active]]:shadow-[inset_0_1px_0_rgba(139,92,246,0.3),0_0_6px_rgba(139,92,246,0.15)]'}`}
                 >
                   <TabsTrigger
                     value="general"
-                    className={`transition-all duration-200 rounded-none sm:rounded-lg font-normal sm:font-medium min-h-[32px] sm:min-h-[44px] h-full flex items-center justify-center flex-col sm:flex-row px-1 py-1 sm:px-3 sm:py-1.5 ${lessonMode ? 'text-slate-300 data-[state=active]:bg-neon-cyan/20 data-[state=active]:text-neon-cyan hover:bg-neon-cyan/10 hover:text-neon-cyan' : 'text-slate-300 data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple hover:bg-neon-purple/10 hover:text-neon-purple'}`}
+                    className={`transition-all duration-200 rounded-none sm:rounded-lg font-normal sm:font-medium min-h-[32px] sm:min-h-[44px] h-full flex items-center justify-center flex-col sm:flex-row px-1 py-1 sm:px-3 sm:py-1.5 ${lessonMode ? 'text-muted-foreground data-[state=active]:bg-cyan-700/20 data-[state=active]:text-cyan-700 hover:bg-cyan-700/10 hover:text-cyan-700 dark:data-[state=active]:bg-neon-cyan/20 dark:data-[state=active]:text-neon-cyan dark:hover:bg-neon-cyan/10 dark:hover:text-neon-cyan' : 'text-muted-foreground data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple hover:bg-neon-purple/10 hover:text-neon-purple'}`}
                   >
                     <Lightbulb className="w-3 h-3 sm:w-5 sm:h-5 sm:mr-2 mb-0 sm:mb-0" />
                     <span className="text-2xs sm:text-sm leading-none sm:leading-tight">
@@ -2077,7 +2063,7 @@ export default function StudioBrain() {
                   </TabsTrigger>
                   <TabsTrigger
                     value="mix"
-                    className={`transition-all duration-200 rounded-none sm:rounded-lg font-normal sm:font-medium min-h-[32px] sm:min-h-[44px] h-full flex items-center justify-center flex-col sm:flex-row px-1 py-1 sm:px-3 sm:py-1.5 ${lessonMode ? 'text-slate-300 data-[state=active]:bg-neon-cyan/20 data-[state=active]:text-neon-cyan hover:bg-neon-cyan/10 hover:text-neon-cyan' : 'text-slate-300 data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple hover:bg-neon-purple/10 hover:text-neon-purple'}`}
+                    className={`transition-all duration-200 rounded-none sm:rounded-lg font-normal sm:font-medium min-h-[32px] sm:min-h-[44px] h-full flex items-center justify-center flex-col sm:flex-row px-1 py-1 sm:px-3 sm:py-1.5 ${lessonMode ? 'text-muted-foreground data-[state=active]:bg-cyan-700/20 data-[state=active]:text-cyan-700 hover:bg-cyan-700/10 hover:text-cyan-700 dark:data-[state=active]:bg-neon-cyan/20 dark:data-[state=active]:text-neon-cyan dark:hover:bg-neon-cyan/10 dark:hover:text-neon-cyan' : 'text-muted-foreground data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple hover:bg-neon-purple/10 hover:text-neon-purple'}`}
                   >
                     <Volume2 className="w-3 h-3 sm:w-5 sm:h-5 sm:mr-2 mb-0 sm:mb-0" />
                     <span className="text-2xs sm:text-sm leading-none sm:leading-tight">
@@ -2086,7 +2072,7 @@ export default function StudioBrain() {
                   </TabsTrigger>
                   <TabsTrigger
                     value="theory"
-                    className={`transition-all duration-200 rounded-none sm:rounded-lg font-normal sm:font-medium min-h-[32px] sm:min-h-[44px] h-full flex items-center justify-center flex-col sm:flex-row px-1 py-1 sm:px-3 sm:py-1.5 ${lessonMode ? 'text-slate-300 data-[state=active]:bg-neon-cyan/20 data-[state=active]:text-neon-cyan hover:bg-neon-cyan/10 hover:text-neon-cyan' : 'text-slate-300 data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple hover:bg-neon-purple/10 hover:text-neon-purple'}`}
+                    className={`transition-all duration-200 rounded-none sm:rounded-lg font-normal sm:font-medium min-h-[32px] sm:min-h-[44px] h-full flex items-center justify-center flex-col sm:flex-row px-1 py-1 sm:px-3 sm:py-1.5 ${lessonMode ? 'text-muted-foreground data-[state=active]:bg-cyan-700/20 data-[state=active]:text-cyan-700 hover:bg-cyan-700/10 hover:text-cyan-700 dark:data-[state=active]:bg-neon-cyan/20 dark:data-[state=active]:text-neon-cyan dark:hover:bg-neon-cyan/10 dark:hover:text-neon-cyan' : 'text-muted-foreground data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple hover:bg-neon-purple/10 hover:text-neon-purple'}`}
                   >
                     <Music className="w-3 h-3 sm:w-5 sm:h-5 sm:mr-2 mb-0 sm:mb-0" />
                     <span className="text-2xs sm:text-sm leading-none sm:leading-tight">
@@ -2095,7 +2081,7 @@ export default function StudioBrain() {
                   </TabsTrigger>
                   <TabsTrigger
                     value="instrument"
-                    className={`transition-all duration-200 rounded-none sm:rounded-lg font-normal sm:font-medium min-h-[32px] sm:min-h-[44px] h-full flex items-center justify-center flex-col sm:flex-row px-1 py-1 sm:px-3 sm:py-1.5 ${lessonMode ? 'text-slate-300 data-[state=active]:bg-neon-cyan/20 data-[state=active]:text-neon-cyan hover:bg-neon-cyan/10 hover:text-neon-cyan' : 'text-slate-300 data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple hover:bg-neon-purple/10 hover:text-neon-purple'}`}
+                    className={`transition-all duration-200 rounded-none sm:rounded-lg font-normal sm:font-medium min-h-[32px] sm:min-h-[44px] h-full flex items-center justify-center flex-col sm:flex-row px-1 py-1 sm:px-3 sm:py-1.5 ${lessonMode ? 'text-muted-foreground data-[state=active]:bg-cyan-700/20 data-[state=active]:text-cyan-700 hover:bg-cyan-700/10 hover:text-cyan-700 dark:data-[state=active]:bg-neon-cyan/20 dark:data-[state=active]:text-neon-cyan dark:hover:bg-neon-cyan/10 dark:hover:text-neon-cyan' : 'text-muted-foreground data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple hover:bg-neon-purple/10 hover:text-neon-purple'}`}
                   >
                     <Guitar className="w-3 h-3 sm:w-5 sm:h-5 sm:mr-2 mb-0 sm:mb-0" />
                     <span className="text-2xs sm:text-sm leading-none sm:leading-tight">
@@ -2104,7 +2090,7 @@ export default function StudioBrain() {
                   </TabsTrigger>
                   <TabsTrigger
                     value="practice"
-                    className={`transition-all duration-200 rounded-none sm:rounded-lg font-normal sm:font-medium min-h-[32px] sm:min-h-[44px] h-full flex items-center justify-center flex-col sm:flex-row px-1 py-1 sm:px-3 sm:py-1.5 ${lessonMode ? 'text-slate-300 data-[state=active]:bg-neon-cyan/20 data-[state=active]:text-neon-cyan hover:bg-neon-cyan/10 hover:text-neon-cyan' : 'text-slate-300 data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple hover:bg-neon-purple/10 hover:text-neon-purple'}`}
+                    className={`transition-all duration-200 rounded-none sm:rounded-lg font-normal sm:font-medium min-h-[32px] sm:min-h-[44px] h-full flex items-center justify-center flex-col sm:flex-row px-1 py-1 sm:px-3 sm:py-1.5 ${lessonMode ? 'text-muted-foreground data-[state=active]:bg-cyan-700/20 data-[state=active]:text-cyan-700 hover:bg-cyan-700/10 hover:text-cyan-700 dark:data-[state=active]:bg-neon-cyan/20 dark:data-[state=active]:text-neon-cyan dark:hover:bg-neon-cyan/10 dark:hover:text-neon-cyan' : 'text-muted-foreground data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple hover:bg-neon-purple/10 hover:text-neon-purple'}`}
                   >
                     <BookOpen className="w-3 h-3 sm:w-5 sm:h-5 sm:mr-2 mb-0 sm:mb-0" />
                     <span className="text-2xs sm:text-sm leading-none sm:leading-tight">
@@ -2129,7 +2115,7 @@ export default function StudioBrain() {
                         Ask StudioBrain
                       </CardTitle>
                       <CardDescription
-                        className={`text-lg ${lessonMode ? 'text-slate-300' : 'text-slate-300'}`}
+                        className={`text-lg ${lessonMode ? 'text-muted-foreground' : 'text-muted-foreground'}`}
                       >
                         Get general music production advice and tips
                       </CardDescription>
@@ -2150,7 +2136,7 @@ export default function StudioBrain() {
                           onKeyDown={e =>
                             handleKeyDown(e, handleGeneralQuestion)
                           }
-                          className={`glass-textarea min-h-[100px] bg-glass-bg border border-glass-border rounded-xl p-4 text-white transition-all duration-300 hover:border-slate-400 ${
+                          className={`glass-textarea min-h-[100px] bg-glass-bg border border-glass-border rounded-xl p-4 theme-text transition-all duration-300 hover:border-slate-400 ${
                             lessonMode
                               ? 'focus:border-neon-cyan focus:shadow-lg focus:shadow-neon-cyan/20'
                               : 'focus:border-neon-purple focus:shadow-lg focus:shadow-neon-purple/20'
@@ -2201,7 +2187,7 @@ export default function StudioBrain() {
                         Ask StudioBrain
                       </CardTitle>
                       <CardDescription
-                        className={`text-lg ${lessonMode ? 'text-slate-300' : 'text-slate-300'}`}
+                        className={`text-lg ${lessonMode ? 'text-muted-foreground' : 'text-muted-foreground'}`}
                       >
                         Get mixing and mastering advice
                       </CardDescription>
@@ -2220,7 +2206,7 @@ export default function StudioBrain() {
                           value={mixQuestion}
                           onChange={e => setMixQuestion(e.target.value)}
                           onKeyDown={e => handleKeyDown(e, handleMixQuestion)}
-                          className={`glass-textarea min-h-[100px] bg-glass-bg border border-glass-border rounded-xl p-4 text-white transition-all duration-300 hover:border-slate-400 ${
+                          className={`glass-textarea min-h-[100px] bg-glass-bg border border-glass-border rounded-xl p-4 theme-text transition-all duration-300 hover:border-slate-400 ${
                             lessonMode
                               ? 'focus:border-neon-cyan focus:shadow-lg focus:shadow-neon-cyan/20'
                               : 'focus:border-neon-purple focus:shadow-lg focus:shadow-neon-purple/20'
@@ -2274,7 +2260,7 @@ export default function StudioBrain() {
                           </div>
                           Chord Explorer
                         </CardTitle>
-                        <CardDescription className="text-slate-300 text-base">
+                        <CardDescription className="text-muted-foreground text-base">
                           Explore scales and chord progressions interactively
                         </CardDescription>
                       </CardHeader>
@@ -2283,7 +2269,7 @@ export default function StudioBrain() {
                           <div className="space-y-3">
                             <Label
                               htmlFor="root-select"
-                              className="text-slate-200 font-medium"
+                              className="text-foreground font-medium"
                             >
                               Root Note
                             </Label>
@@ -2328,7 +2314,7 @@ export default function StudioBrain() {
                           <div className="space-y-3">
                             <Label
                               htmlFor="mode-select"
-                              className="text-slate-200 font-medium"
+                              className="text-foreground font-medium"
                             >
                               Mode
                             </Label>
@@ -2459,18 +2445,18 @@ export default function StudioBrain() {
                                     </h4>
                                     <Badge
                                       variant="outline"
-                                      className="bg-gray-800 text-gray-300 font-mono"
+                                      className="bg-secondary text-secondary-foreground font-mono"
                                     >
                                       {selectedChordInfo.romanNumeral}
                                     </Badge>
                                     <Badge
                                       variant="outline"
-                                      className="bg-gray-700 text-gray-200 capitalize"
+                                      className="bg-muted text-muted-foreground capitalize"
                                     >
                                       {selectedChordInfo.function}
                                     </Badge>
                                   </div>
-                                  <div className="space-y-2 text-slate-300">
+                                  <div className="space-y-2 text-muted-foreground">
                                     <p>
                                       <strong>Scale Degree:</strong>{' '}
                                       {selectedChordInfo.scaleDegree}
@@ -2522,7 +2508,7 @@ export default function StudioBrain() {
                               </div>
                               Scale Visualizer
                             </CardTitle>
-                            <CardDescription className="text-slate-300 text-base mt-2">
+                            <CardDescription className="text-muted-foreground text-base mt-2">
                               {selectedChord} {selectedMode} scale visualization{' '}
                               {visualizerView === 'guitar'
                                 ? `- ${currentTuning.name}`
@@ -2619,7 +2605,7 @@ export default function StudioBrain() {
                                         key={stringIndex}
                                         className="grid grid-cols-[auto_1fr] items-center gap-2"
                                       >
-                                        <div className="w-6 text-xs font-mono text-slate-300 text-right font-medium">
+                                        <div className="w-6 text-xs font-mono text-muted-foreground text-right font-medium">
                                           {displayTuningStrings[stringIndex]}
                                         </div>
                                         <div
@@ -2663,7 +2649,7 @@ export default function StudioBrain() {
                                                           ? lessonMode
                                                             ? 'bg-neon-blue/70 text-white border-neon-blue shadow-md shadow-neon-blue/20'
                                                             : 'bg-neon-purple/70 text-white border-neon-purple shadow-md shadow-neon-purple/20'
-                                                          : 'bg-slate-800/80 text-slate-400 border-slate-600 hover:bg-slate-700/80 hover:border-slate-500'
+                                                          : 'bg-muted text-muted-foreground border-border hover:bg-muted/80 hover:border-border'
                                                   }`}
                                                   title={`${note} ${isTabNote ? '(Tab Note)' : isRoot ? '(Root)' : isInScale ? '(Scale)' : ''}`}
                                                 >
@@ -2687,7 +2673,7 @@ export default function StudioBrain() {
                                         (_, i) => (
                                           <span
                                             key={i}
-                                            className={`text-center text-[9px] sm:text-xs font-mono ${[3, 5, 7, 9, 12].includes(i) ? 'font-bold text-slate-300' : 'font-medium text-slate-400'}`}
+                                            className={`text-center text-[9px] sm:text-xs font-mono ${[3, 5, 7, 9, 12].includes(i) ? 'font-bold text-foreground' : 'font-medium text-muted-foreground'}`}
                                           >
                                             {i}
                                           </span>
@@ -2791,7 +2777,7 @@ export default function StudioBrain() {
                                       })}
                                   </div>
                                 </div>
-                                <div className="text-center mt-4 sm:mt-6 text-xs sm:text-sm text-slate-400 font-medium">
+                                <div className="text-center mt-4 sm:mt-6 text-xs sm:text-sm text-muted-foreground font-medium">
                                   C3 - B3 (One Octave)
                                 </div>
                               </div>
@@ -2818,7 +2804,7 @@ export default function StudioBrain() {
                         Ask StudioBrain
                       </CardTitle>
                       <CardDescription
-                        className={`text-lg ${lessonMode ? 'text-slate-300' : 'text-slate-300'}`}
+                        className={`text-lg ${lessonMode ? 'text-muted-foreground' : 'text-muted-foreground'}`}
                       >
                         Get music theory and composition help
                       </CardDescription>
@@ -2839,7 +2825,7 @@ export default function StudioBrain() {
                           onKeyDown={e =>
                             handleKeyDown(e, handleTheoryQuestion)
                           }
-                          className={`glass-textarea min-h-[100px] bg-glass-bg border border-glass-border rounded-xl p-4 text-white transition-all duration-300 hover:border-slate-400 ${
+                          className={`glass-textarea min-h-[100px] bg-glass-bg border border-glass-border rounded-xl p-4 theme-text transition-all duration-300 hover:border-slate-400 ${
                             lessonMode
                               ? 'focus:border-neon-cyan focus:shadow-lg focus:shadow-neon-cyan/20'
                               : 'focus:border-neon-purple focus:shadow-lg focus:shadow-neon-purple/20'
@@ -2902,7 +2888,7 @@ export default function StudioBrain() {
                               Ask StudioBrain
                             </CardTitle>
                             <CardDescription
-                              className={`text-lg ${lessonMode ? 'text-slate-300' : 'text-slate-300'}`}
+                              className={`text-lg ${lessonMode ? 'text-muted-foreground' : 'text-muted-foreground'}`}
                             >
                               Get instrument-specific advice and techniques
                             </CardDescription>
@@ -2925,7 +2911,7 @@ export default function StudioBrain() {
                                 onKeyDown={e =>
                                   handleKeyDown(e, handleInstrumentQuestion)
                                 }
-                                className={`glass-textarea min-h-[100px] bg-glass-bg border border-glass-border rounded-xl p-4 text-white transition-all duration-300 hover:border-slate-400 ${
+                                className={`glass-textarea min-h-[100px] bg-glass-bg border border-glass-border rounded-xl p-4 theme-text transition-all duration-300 hover:border-slate-400 ${
                                   lessonMode
                                     ? 'focus:border-neon-cyan focus:shadow-lg focus:shadow-neon-cyan/20'
                                     : 'focus:border-neon-purple focus:shadow-lg focus:shadow-neon-purple/20'
@@ -2981,7 +2967,7 @@ export default function StudioBrain() {
                         Practice with StudioBrain
                       </CardTitle>
                       <CardDescription
-                        className={`text-lg ${lessonMode ? 'text-slate-300' : 'text-slate-300'}`}
+                        className={`text-lg ${lessonMode ? 'text-muted-foreground' : 'text-muted-foreground'}`}
                       >
                         Get personalized practice guidance and exercises
                       </CardDescription>
@@ -3030,7 +3016,7 @@ export default function StudioBrain() {
                               />
                               <Label
                                 htmlFor={`focus-${tag}`}
-                                className={`text-sm capitalize ${lessonMode ? 'text-slate-300' : 'text-slate-300'} cursor-pointer`}
+                                className={`text-sm capitalize ${lessonMode ? 'text-muted-foreground' : 'text-muted-foreground'} cursor-pointer`}
                               >
                                 {tag.replace('-', ' ')}
                               </Label>
@@ -3111,13 +3097,13 @@ export default function StudioBrain() {
                             }`}
                           >
                             <CardContent className="p-4">
-                              <div className="space-y-2 text-sm text-slate-300">
+                              <div className="space-y-2 text-sm text-muted-foreground">
                                 <div>Level: {userLevel}</div>
                                 <div>Tuning: {preferredTuning}</div>
                                 <div>
                                   Lesson Mode: {lessonMode ? 'On' : 'Off'}
                                 </div>
-                                <div className="text-xs text-slate-400 mt-3 opacity-60 border-t border-glass-border/50 pt-2">
+                                <div className="text-xs text-muted-foreground mt-3 opacity-60 border-t border-glass-border/50 pt-2">
                                   Click to edit settings
                                 </div>
                               </div>
@@ -3144,7 +3130,7 @@ export default function StudioBrain() {
                         </div>
                         {practiceChatMessages.length === 0 ? (
                           <div className="text-center py-4">
-                            <p className="text-sm text-slate-400">
+                            <p className="text-sm text-muted-foreground">
                               Need help with your practice goals? Ask me
                               anything!
                             </p>
@@ -3219,7 +3205,7 @@ export default function StudioBrain() {
                               }
                             }}
                             placeholder="Ask about practice goals, get suggestions, or request help..."
-                            className="bg-glass-bg border-glass-border text-slate-200 placeholder:text-slate-400 resize-none"
+                            className="bg-glass-bg border-glass-border text-foreground placeholder:text-muted-foreground resize-none"
                             rows={2}
                             disabled={practiceChatLoading}
                           />

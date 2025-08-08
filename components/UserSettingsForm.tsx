@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
+import { useTheme } from 'next-themes';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -32,23 +33,30 @@ export default function UserSettingsForm() {
     genreInfluence,
     lessonMode,
     flipFretboardView,
+    theme: userTheme,
     defaultTab,
     gear,
     set,
   } = useUserStore();
+
+  const { theme: currentTheme, setTheme } = useTheme();
 
   const [newGuitar, setNewGuitar] = useState('');
   const [newPedal, setNewPedal] = useState('');
   const [newPlugin, setNewPlugin] = useState('');
   const [genreInput, setGenreInput] = useState('');
 
-  // Update genre input when store hydrates
+  // Update genre input and theme when store hydrates
   useEffect(() => {
     if (hasHydrated) {
       setGenreInput(genreInfluence.join(', '));
+      // Sync theme with next-themes if different
+      if (userTheme !== currentTheme && userTheme !== 'system') {
+        setTheme(userTheme);
+      }
       console.log('🎯 Settings form hydrated - current gear:', gear);
     }
-  }, [hasHydrated, genreInfluence, gear]);
+  }, [hasHydrated, genreInfluence, gear, userTheme, currentTheme, setTheme]);
 
   // Don't render until hydration is complete to prevent SSR/client mismatch
   if (!hasHydrated) {
@@ -128,6 +136,12 @@ export default function UserSettingsForm() {
     set({ genreInfluence: genres });
   };
 
+  const handleThemeToggle = (isDark: boolean) => {
+    const newTheme = isDark ? 'dark' : 'light';
+    setTheme(newTheme);
+    set({ theme: newTheme });
+  };
+
   const availableRoles = [
     'student',
     'teacher',
@@ -150,7 +164,7 @@ export default function UserSettingsForm() {
     return (
       <div className="max-w-2xl mx-auto p-6 space-y-6">
         <div className="text-center">
-          <p className="text-slate-600">Loading settings...</p>
+          <p className="text-muted-foreground">Loading settings...</p>
         </div>
       </div>
     );
@@ -166,12 +180,12 @@ export default function UserSettingsForm() {
       >
         ← Exit Settings
       </button>
-      <h2 className="text-2xl font-bold mb-6 text-slate-900">User Settings</h2>
+      <h2 className="text-2xl font-bold mb-6 text-foreground">User Settings</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* User Level */}
         <div className="space-y-2">
-          <Label htmlFor="userLevel" className="text-slate-800 font-medium">
+          <Label htmlFor="userLevel" className="text-foreground font-medium">
             User Level
           </Label>
           <Select
@@ -193,7 +207,7 @@ export default function UserSettingsForm() {
 
         {/* Roles */}
         <div className="space-y-2">
-          <Label className="text-slate-800 font-medium">
+          <Label className="text-foreground font-medium">
             Roles (select all that apply)
           </Label>
           <div className="grid grid-cols-2 gap-3">
@@ -203,11 +217,11 @@ export default function UserSettingsForm() {
                   id={role}
                   checked={roles.includes(role)}
                   onCheckedChange={() => toggleRole(role)}
-                  className="border-slate-300 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
+                  className="border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                 />
                 <Label
                   htmlFor={role}
-                  className="text-slate-700 font-normal capitalize cursor-pointer"
+                  className="text-foreground font-normal capitalize cursor-pointer"
                 >
                   {role}
                 </Label>
@@ -220,7 +234,7 @@ export default function UserSettingsForm() {
         <div className="space-y-2">
           <Label
             htmlFor="mainInstrument"
-            className="text-slate-800 font-medium"
+            className="text-foreground font-medium"
           >
             Main Instrument
           </Label>
@@ -243,7 +257,7 @@ export default function UserSettingsForm() {
 
         {/* Default Tab */}
         <div className="space-y-2">
-          <Label htmlFor="defaultTab" className="text-slate-800 font-medium">
+          <Label htmlFor="defaultTab" className="text-foreground font-medium">
             Default Tab
           </Label>
           <Select
@@ -267,7 +281,10 @@ export default function UserSettingsForm() {
 
       {/* Preferred Tuning */}
       <div className="space-y-2">
-        <Label htmlFor="preferredTuning" className="text-slate-800 font-medium">
+        <Label
+          htmlFor="preferredTuning"
+          className="text-foreground font-medium"
+        >
           Preferred Tuning
         </Label>
         <Input
@@ -275,13 +292,13 @@ export default function UserSettingsForm() {
           value={preferredTuning}
           onChange={e => set({ preferredTuning: e.target.value })}
           placeholder="e.g., Standard (E-A-D-G-B-E)"
-          className="text-slate-800 border-slate-300 placeholder:text-slate-400 focus:border-indigo-500"
+          className="bg-background text-foreground border-border placeholder:text-muted-foreground focus:border-ring"
         />
       </div>
 
       {/* Genre Influence */}
       <div className="space-y-2">
-        <Label htmlFor="genreInfluence" className="text-slate-800 font-medium">
+        <Label htmlFor="genreInfluence" className="text-foreground font-medium">
           Genre Influences (comma-separated)
         </Label>
         <Input
@@ -289,7 +306,7 @@ export default function UserSettingsForm() {
           value={genreInput}
           onChange={e => updateGenres(e.target.value)}
           placeholder="e.g., prog rock, jazz fusion, metal"
-          className="text-slate-800 border-slate-300 placeholder:text-slate-400 focus:border-indigo-500"
+          className="bg-background text-foreground border-border placeholder:text-muted-foreground focus:border-ring"
         />
       </div>
 
@@ -301,7 +318,7 @@ export default function UserSettingsForm() {
             checked={lessonMode}
             onCheckedChange={checked => set({ lessonMode: checked })}
           />
-          <Label htmlFor="lessonMode" className="text-slate-800 font-medium">
+          <Label htmlFor="lessonMode" className="text-foreground font-medium">
             Lesson Mode
           </Label>
         </div>
@@ -314,27 +331,39 @@ export default function UserSettingsForm() {
           />
           <Label
             htmlFor="flipFretboardView"
-            className="text-slate-800 font-medium"
+            className="text-foreground font-medium"
           >
             Flip Fretboard View
           </Label>
         </div>
       </div>
 
+      {/* Theme Toggle */}
+      <div className="flex items-center space-x-2">
+        <Switch
+          id="darkMode"
+          checked={currentTheme === 'dark'}
+          onCheckedChange={handleThemeToggle}
+        />
+        <Label htmlFor="darkMode" className="text-foreground font-medium">
+          Dark Mode
+        </Label>
+      </div>
+
       {/* Gear Section */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-slate-900">Gear</h3>
+        <h3 className="text-lg font-semibold text-foreground">Gear</h3>
 
         {/* Guitars */}
         <div className="space-y-2">
-          <Label className="text-slate-800 font-medium">Guitars</Label>
+          <Label className="text-foreground font-medium">Guitars</Label>
           <div className="flex space-x-2">
             <Input
               value={newGuitar}
               onChange={e => setNewGuitar(e.target.value)}
               placeholder="Add guitar"
               onKeyPress={e => e.key === 'Enter' && addGuitar()}
-              className="text-slate-800 border-slate-300 placeholder:text-slate-400 focus:border-indigo-500"
+              className="bg-background text-foreground border-border placeholder:text-muted-foreground focus:border-ring"
             />
             <Button
               onClick={addGuitar}
@@ -347,7 +376,7 @@ export default function UserSettingsForm() {
             {gear.guitar.map((guitar, index) => (
               <span
                 key={index}
-                className="bg-slate-100 text-slate-800 px-3 py-1 rounded-md text-sm cursor-pointer hover:bg-slate-200 border border-slate-200"
+                className="bg-secondary text-secondary-foreground px-3 py-1 rounded-md text-sm cursor-pointer hover:bg-secondary/80 border border-border"
                 onClick={() => removeGuitar(index)}
               >
                 {guitar} ×
@@ -358,14 +387,14 @@ export default function UserSettingsForm() {
 
         {/* Pedals */}
         <div className="space-y-2">
-          <Label className="text-slate-800 font-medium">Pedals</Label>
+          <Label className="text-foreground font-medium">Pedals</Label>
           <div className="flex space-x-2">
             <Input
               value={newPedal}
               onChange={e => setNewPedal(e.target.value)}
               placeholder="Add pedal"
               onKeyPress={e => e.key === 'Enter' && addPedal()}
-              className="text-slate-800 border-slate-300 placeholder:text-slate-400 focus:border-indigo-500"
+              className="bg-background text-foreground border-border placeholder:text-muted-foreground focus:border-ring"
             />
             <Button
               onClick={addPedal}
@@ -378,7 +407,7 @@ export default function UserSettingsForm() {
             {gear.pedals.map((pedal, index) => (
               <span
                 key={index}
-                className="bg-slate-100 text-slate-800 px-3 py-1 rounded-md text-sm cursor-pointer hover:bg-slate-200 border border-slate-200"
+                className="bg-secondary text-secondary-foreground px-3 py-1 rounded-md text-sm cursor-pointer hover:bg-secondary/80 border border-border"
                 onClick={() => removePedal(index)}
               >
                 {pedal} ×
@@ -389,7 +418,7 @@ export default function UserSettingsForm() {
 
         {/* Interface */}
         <div className="space-y-2">
-          <Label htmlFor="interface" className="text-slate-800 font-medium">
+          <Label htmlFor="interface" className="text-foreground font-medium">
             Audio Interface
           </Label>
           <Input
@@ -399,13 +428,13 @@ export default function UserSettingsForm() {
               set({ gear: { ...gear, interface: e.target.value } })
             }
             placeholder="e.g., Focusrite Scarlett 2i2"
-            className="text-slate-800 border-slate-300 placeholder:text-slate-400 focus:border-indigo-500"
+            className="bg-background text-foreground border-border placeholder:text-muted-foreground focus:border-ring"
           />
         </div>
 
         {/* Monitors */}
         <div className="space-y-2">
-          <Label htmlFor="monitors" className="text-slate-800 font-medium">
+          <Label htmlFor="monitors" className="text-foreground font-medium">
             Studio Monitors
           </Label>
           <Input
@@ -413,20 +442,20 @@ export default function UserSettingsForm() {
             value={gear.monitors}
             onChange={e => set({ gear: { ...gear, monitors: e.target.value } })}
             placeholder="e.g., KRK Rokit 5"
-            className="text-slate-800 border-slate-300 placeholder:text-slate-400 focus:border-indigo-500"
+            className="bg-background text-foreground border-border placeholder:text-muted-foreground focus:border-ring"
           />
         </div>
 
         {/* DAW */}
         <div className="space-y-2">
-          <Label htmlFor="daw" className="text-slate-800 font-medium">
+          <Label htmlFor="daw" className="text-foreground font-medium">
             DAW (Digital Audio Workstation)
           </Label>
           <Select
             value={gear.daw}
             onValueChange={value => set({ gear: { ...gear, daw: value } })}
           >
-            <SelectTrigger className="text-slate-800 border-slate-300 focus:border-indigo-500">
+            <SelectTrigger className="bg-background text-foreground border-border focus:border-ring">
               <SelectValue placeholder="Select your DAW" />
             </SelectTrigger>
             <SelectContent>
@@ -446,14 +475,14 @@ export default function UserSettingsForm() {
 
         {/* Plugins */}
         <div className="space-y-2">
-          <Label className="text-slate-800 font-medium">Plugins</Label>
+          <Label className="text-foreground font-medium">Plugins</Label>
           <div className="flex space-x-2">
             <Input
               value={newPlugin}
               onChange={e => setNewPlugin(e.target.value)}
               placeholder="Add plugin"
               onKeyPress={e => e.key === 'Enter' && addPlugin()}
-              className="text-slate-800 border-slate-300 placeholder:text-slate-400 focus:border-indigo-500"
+              className="bg-background text-foreground border-border placeholder:text-muted-foreground focus:border-ring"
             />
             <Button
               onClick={addPlugin}
@@ -466,7 +495,7 @@ export default function UserSettingsForm() {
             {gear.plugins.map((plugin, index) => (
               <span
                 key={index}
-                className="bg-slate-100 text-slate-800 px-3 py-1 rounded-md text-sm cursor-pointer hover:bg-slate-200 border border-slate-200"
+                className="bg-secondary text-secondary-foreground px-3 py-1 rounded-md text-sm cursor-pointer hover:bg-secondary/80 border border-border"
                 onClick={() => removePlugin(index)}
               >
                 {plugin} ×
