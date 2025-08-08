@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import React, {
   useState,
   useEffect,
@@ -9,60 +8,7 @@ import React, {
   useLayoutEffect,
   useMemo,
 } from 'react';
-
-import ChatHistoryPanel from '@/components/ChatHistoryPanel';
-import ErrorBoundary from '@/components/ErrorBoundary';
-import { HydrationBoundary } from '@/components/HydrationBoundary';
-import SettingsButton from '@/components/SettingsButton';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  getModeChords,
-  getScaleNotes,
-  normalizeModeNames,
-  ChordInfo,
-  NoteName,
-} from '@/lib/music-theory';
-
-interface PluginSuggestion {
-  name: string;
-  type: string;
-  description: string;
-  explanation?: string;
-}
-
-interface ChatMessage {
-  id: string;
-  type: 'user' | 'assistant';
-  content: string;
-  timestamp: number;
-  plugins?: PluginSuggestion[];
-}
-
-interface TabNote {
-  string: number;
-  fret: number;
-}
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Textarea } from '@/components/ui/textarea';
-
+import { useRouter } from 'next/navigation';
 import {
   Music,
   Guitar,
@@ -78,8 +24,57 @@ import {
   Send,
 } from 'lucide-react';
 
+import ChatHistoryPanel from '@/components/ChatHistoryPanel';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import { HydrationBoundary } from '@/components/HydrationBoundary';
+import SettingsButton from '@/components/SettingsButton';
+import { VoicingView } from '@/components/VoicingView';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+
+import {
+  getModeChords,
+  getScaleNotes,
+  normalizeModeNames,
+  ChordInfo,
+  NoteName,
+} from '@/lib/music-theory';
 import { OpenAIService } from '@/lib/openai-service';
+
+interface PluginSuggestion {
+  name: string;
+  type: string;
+  description: string;
+  explanation?: string;
+}
+
+interface ChatMessage {
+  id: string;
+  type: 'user' | 'assistant';
+  content: string;
+  timestamp: number;
+  plugins?: PluginSuggestion[];
+}
 import {
   useChatHistoryStore,
   ChatSession,
@@ -88,8 +83,12 @@ import {
 import { useSessionStore } from '@/lib/useSessionStore';
 import { useUserStore } from '@/lib/useUserStore';
 import { stripMarkdown } from '@/lib/utils';
-import { VoicingView } from '@/components/VoicingView';
 import { ChordShape } from '@/lib/voicings';
+
+interface TabNote {
+  string: number;
+  fret: number;
+}
 
 interface PianoKey {
   note: string;
@@ -348,7 +347,7 @@ export default function StudioBrain() {
   );
 
   // Generate chords based on selected root and mode using proper music theory
-  const generateChords = (): ChordInfo[] => {
+  const generateChords = useCallback((): ChordInfo[] => {
     const root = selectedChord as NoteName;
     const mode = normalizeModeNames(selectedMode);
     const chords = getModeChords(root, mode);
@@ -362,14 +361,14 @@ export default function StudioBrain() {
     }
 
     return chords;
-  };
+  }, [selectedChord, selectedMode]);
 
   // Generate scale notes for visualization using proper music theory
-  const generateScaleNotes = (): string[] => {
+  const generateScaleNotes = useCallback((): string[] => {
     const root = selectedChord as NoteName;
     const mode = normalizeModeNames(selectedMode);
     return getScaleNotes(root, mode);
-  };
+  }, [selectedChord, selectedMode]);
 
   // Helper function to describe chord functions
   const getFunctionDescription = (func: string): string => {
@@ -563,22 +562,25 @@ export default function StudioBrain() {
     setShowTabNotes(false);
   };
 
-  const loadTabMessages = (
-    tabType: 'general' | 'mix' | 'theory' | 'instrument' | 'practice'
-  ): ChatMessage[] => {
-    if (!currentSessionId) return [];
+  const loadTabMessages = useCallback(
+    (
+      tabType: 'general' | 'mix' | 'theory' | 'instrument' | 'practice'
+    ): ChatMessage[] => {
+      if (!currentSessionId) return [];
 
-    const session = loadSession(currentSessionId);
-    if (!session || session.tabType !== tabType) return [];
+      const session = loadSession(currentSessionId);
+      if (!session || session.tabType !== tabType) return [];
 
-    return session.messages.map(msg => ({
-      id: `${msg.role}-${msg.timestamp.getTime()}`,
-      type: msg.role,
-      content: msg.content,
-      timestamp: msg.timestamp.getTime(),
-      plugins: msg.plugins,
-    }));
-  };
+      return session.messages.map(msg => ({
+        id: `${msg.role}-${msg.timestamp.getTime()}`,
+        type: msg.role,
+        content: msg.content,
+        timestamp: msg.timestamp.getTime(),
+        plugins: msg.plugins,
+      }));
+    },
+    [currentSessionId, loadSession]
+  );
 
   // Function to navigate to settings page
   const handleSettingsClick = (e: React.MouseEvent) => {
@@ -752,6 +754,7 @@ export default function StudioBrain() {
     currentActiveTab,
     loadTabMessages,
     handleSessionSelect,
+    setSettingsSession,
   ]); // Proper dependencies
 
   // Rehydration effect - restore last session and migrate old data
@@ -949,11 +952,11 @@ export default function StudioBrain() {
   // Cleanup effect
   useEffect(() => {
     isMounted.current = true;
+    const currentScrollTimeouts = scrollTimeoutRef.current;
     return () => {
       isMounted.current = false;
       clearAllTimeouts();
       // Clear scroll timeouts
-      const currentScrollTimeouts = scrollTimeoutRef.current;
       Object.values(currentScrollTimeouts).forEach(timeout => {
         if (timeout) clearTimeout(timeout);
       });
@@ -1137,7 +1140,7 @@ export default function StudioBrain() {
   };
 
   // Generate fretboard notes based on tuning
-  const generateFretboardNotes = () => {
+  const generateFretboardNotes = useCallback(() => {
     const notes = [
       'C',
       'C#',
@@ -1167,7 +1170,7 @@ export default function StudioBrain() {
     });
 
     return fretboard;
-  };
+  }, [currentTuning]);
 
   // Piano keyboard layout (1 octave starting from C)
   const generatePianoKeys = (
@@ -1218,7 +1221,7 @@ export default function StudioBrain() {
     if (chords.length > 0) {
       setActiveChord(chords[0].name);
     }
-  }, [selectedChord, selectedMode]);
+  }, [selectedChord, selectedMode, generateChords]);
 
   // Memoized values to prevent unnecessary re-renders
   const scaleNotes = React.useMemo(
