@@ -691,6 +691,79 @@ export default function StudioBrain() {
     }
   };
 
+  // Parse custom tuning strings like "EADGBE", "E-A-D-G-B-E", "E A D G B E"
+  const parseCustomTuning = (
+    tuningString: string
+  ): { name: string; strings: string[] } | null => {
+    // Remove common separators and clean up
+    const cleaned = tuningString
+      .replace(/[-()\s]/g, '')
+      .toUpperCase()
+      .replace(/[^A-G#]/g, '');
+
+    // Match note pattern (A-G with optional # or b)
+    const notePattern = /[A-G][#b]?/g;
+    const matches = cleaned.match(notePattern);
+
+    if (!matches || matches.length < 4 || matches.length > 12) {
+      return null; // Invalid tuning
+    }
+
+    // Reverse to get high-to-low order for display
+    const strings = matches.reverse();
+
+    return {
+      name: `Custom (${matches.reverse().join('-')})`,
+      strings: strings,
+    };
+  };
+
+  // Parse user's preferred tuning text to tuning map key or custom strings
+  const parseTuningToKey = useCallback((preferredTuning: string): string => {
+    const tuning = preferredTuning.toLowerCase().trim();
+
+    // Direct matches for preset tunings
+    if (
+      tuning.includes('standard') &&
+      !tuning.includes('7') &&
+      !tuning.includes('8')
+    )
+      return 'standard';
+    if (tuning.includes('drop d')) return 'dropd';
+    if (tuning.includes('open g')) return 'openg';
+    if (tuning.includes('dadgad') || tuning.includes('celtic')) return 'dadgad';
+    if (tuning.includes('drop c')) return 'dropc';
+    if (tuning.includes('drop b')) return 'dropb';
+    if (tuning.includes('open e')) return 'opene';
+    if (tuning.includes('open a')) return 'openA';
+    if (tuning.includes('open d')) return 'openD';
+    if (tuning.includes('open c')) return 'openc';
+    if (tuning.includes('half step')) return 'halfstep';
+    if (tuning.includes('whole step')) return 'wholestep';
+
+    // 7-String matches
+    if (tuning.includes('7') && tuning.includes('standard')) return 'standard7';
+    if (tuning.includes('7') && tuning.includes('drop a')) return 'dropa7';
+
+    // 8-String matches
+    if (tuning.includes('8') && tuning.includes('standard')) return 'standard8';
+    if (tuning.includes('8') && tuning.includes('drop e')) return 'drope8';
+
+    // Baritone matches
+    if (tuning.includes('baritone') && tuning.includes('a')) return 'baritoneA';
+    if (tuning.includes('baritone')) return 'baritone';
+
+    // Try to parse custom note sequences
+    const customTuning = parseCustomTuning(preferredTuning);
+    if (customTuning) {
+      // Return custom key without mutating the memoized map
+      return 'custom';
+    }
+
+    // Default fallback
+    return 'standard';
+  }, []);
+
   // Sync main screen lesson mode with user's Settings preference on mount
   useEffect(() => {
     setLessonMode(storeLessonMode);
@@ -1031,79 +1104,6 @@ export default function StudioBrain() {
     }),
     []
   );
-
-  // Parse user's preferred tuning text to tuning map key or custom strings
-  const parseTuningToKey = useCallback((preferredTuning: string): string => {
-    const tuning = preferredTuning.toLowerCase().trim();
-
-    // Direct matches for preset tunings
-    if (
-      tuning.includes('standard') &&
-      !tuning.includes('7') &&
-      !tuning.includes('8')
-    )
-      return 'standard';
-    if (tuning.includes('drop d')) return 'dropd';
-    if (tuning.includes('open g')) return 'openg';
-    if (tuning.includes('dadgad') || tuning.includes('celtic')) return 'dadgad';
-    if (tuning.includes('drop c')) return 'dropc';
-    if (tuning.includes('drop b')) return 'dropb';
-    if (tuning.includes('open e')) return 'opene';
-    if (tuning.includes('open a')) return 'openA';
-    if (tuning.includes('open d')) return 'openD';
-    if (tuning.includes('open c')) return 'openc';
-    if (tuning.includes('half step')) return 'halfstep';
-    if (tuning.includes('whole step')) return 'wholestep';
-
-    // 7-String matches
-    if (tuning.includes('7') && tuning.includes('standard')) return 'standard7';
-    if (tuning.includes('7') && tuning.includes('drop a')) return 'dropa7';
-
-    // 8-String matches
-    if (tuning.includes('8') && tuning.includes('standard')) return 'standard8';
-    if (tuning.includes('8') && tuning.includes('drop e')) return 'drope8';
-
-    // Baritone matches
-    if (tuning.includes('baritone') && tuning.includes('a')) return 'baritoneA';
-    if (tuning.includes('baritone')) return 'baritone';
-
-    // Try to parse custom note sequences
-    const customTuning = parseCustomTuning(preferredTuning);
-    if (customTuning) {
-      // Return custom key without mutating the memoized map
-      return 'custom';
-    }
-
-    // Default fallback
-    return 'standard';
-  }, []);
-
-  // Parse custom tuning strings like "EADGBE", "E-A-D-G-B-E", "E A D G B E"
-  const parseCustomTuning = (
-    tuningString: string
-  ): { name: string; strings: string[] } | null => {
-    // Remove common separators and clean up
-    const cleaned = tuningString
-      .replace(/[-()\s]/g, '')
-      .toUpperCase()
-      .replace(/[^A-G#]/g, '');
-
-    // Match note pattern (A-G with optional # or b)
-    const notePattern = /[A-G][#b]?/g;
-    const matches = cleaned.match(notePattern);
-
-    if (!matches || matches.length < 4 || matches.length > 12) {
-      return null; // Invalid tuning
-    }
-
-    // Reverse to get high-to-low order for display
-    const strings = matches.reverse();
-
-    return {
-      name: `Custom (${matches.reverse().join('-')})`,
-      strings: strings,
-    };
-  };
 
   const currentTuning = useMemo(() => {
     if (selectedTuning === 'custom') {
