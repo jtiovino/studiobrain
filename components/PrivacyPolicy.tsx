@@ -2,8 +2,8 @@ import React from 'react';
 
 export default function PrivacyPolicy() {
   return (
-    <div className="space-y-6">
-      <div className="space-y-4">
+    <div className="space-y-6 sm:space-y-4">
+      <div className="space-y-4 sm:space-y-3">
         <h1 className="text-2xl font-bold text-foreground">Privacy Policy</h1>
         <p className="text-sm text-muted-foreground">
           Last updated: August 7, 2025
@@ -17,11 +17,11 @@ export default function PrivacyPolicy() {
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-3">
         <h2 className="text-lg font-semibold text-foreground">
           1. What We Collect
         </h2>
-        <div className="text-sm text-muted-foreground leading-relaxed space-y-3">
+        <div className="text-sm text-muted-foreground leading-relaxed space-y-3 sm:space-y-2">
           <p>
             We collect the following data from users who are at least 13 years
             old:
@@ -40,11 +40,11 @@ export default function PrivacyPolicy() {
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-3">
         <h2 className="text-lg font-semibold text-foreground">
           2. How We Use Your Data
         </h2>
-        <div className="text-sm text-muted-foreground leading-relaxed space-y-3">
+        <div className="text-sm text-muted-foreground leading-relaxed space-y-3 sm:space-y-2">
           <p>We use your data to:</p>
           <ul className="list-disc list-inside ml-4 space-y-1">
             <li>Provide and maintain the StudioBrain service</li>
@@ -55,11 +55,11 @@ export default function PrivacyPolicy() {
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-3">
         <h2 className="text-lg font-semibold text-foreground">
           3. Tools We Use
         </h2>
-        <div className="text-sm text-muted-foreground leading-relaxed space-y-3">
+        <div className="text-sm text-muted-foreground leading-relaxed space-y-3 sm:space-y-2">
           <p>StudioBrain uses:</p>
           <ul className="list-disc list-inside ml-4 space-y-1">
             <li>
@@ -77,7 +77,7 @@ export default function PrivacyPolicy() {
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-3">
         <h2 className="text-lg font-semibold text-foreground">
           4. Your Rights
         </h2>
@@ -94,7 +94,7 @@ export default function PrivacyPolicy() {
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-3">
         <h2 className="text-lg font-semibold text-foreground">
           5. Data Security
         </h2>
@@ -104,7 +104,7 @@ export default function PrivacyPolicy() {
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-3">
         <h2 className="text-lg font-semibold text-foreground">6. Changes</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
           We may update this policy as the product evolves. We&apos;ll update
@@ -112,7 +112,7 @@ export default function PrivacyPolicy() {
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-3">
         <h2 className="text-lg font-semibold text-foreground">
           7. Data Retention
         </h2>
@@ -124,7 +124,7 @@ export default function PrivacyPolicy() {
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-3">
         <h2 className="text-lg font-semibold text-foreground">
           8. International Data Transfers
         </h2>
@@ -135,7 +135,7 @@ export default function PrivacyPolicy() {
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-3">
         <h2 className="text-lg font-semibold text-foreground">
           9. Data Security Incidents
         </h2>
@@ -146,7 +146,7 @@ export default function PrivacyPolicy() {
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-3">
         <h2 className="text-lg font-semibold text-foreground">10. Contact</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
           Questions? Contact:{' '}

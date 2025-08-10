@@ -22,11 +22,11 @@ export default function TermsDialog({ children }: TermsDialogProps) {
           {children}
         </span>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-hidden flex flex-col">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[700px] sm:justify-center">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>Terms of Use</DialogTitle>
         </DialogHeader>
-        <div className="overflow-y-auto flex-1 pr-6 -mr-6">
+        <div className="overflow-y-auto sm:overflow-visible sm:pr-6 sm:-mr-6">
           <TermsOfUse />
         </div>
       </DialogContent>

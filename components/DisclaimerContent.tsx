@@ -41,10 +41,22 @@ As this is an early access version, your feedback helps improve the application.
       </div>
 
       {/* Footer */}
-      <div className="pt-4 mt-6 border-t border-border">
-        <div className="text-xs text-muted-foreground/70 text-center">
-          © 2025 StudioBrain | <TermsDialog>Terms of Use</TermsDialog> |{' '}
-          <PrivacyDialog>Privacy Policy</PrivacyDialog>
+      <div className="pt-3 mt-4 border-t border-border">
+        <div className="text-xs text-center">
+          <span className="text-muted-foreground/70">
+            © 2025 StudioBrain |{' '}
+          </span>
+          <TermsDialog>
+            <span className="text-primary hover:text-primary/80 hover:underline cursor-pointer transition-colors font-medium">
+              Terms of Use
+            </span>
+          </TermsDialog>
+          <span className="text-muted-foreground/70"> | </span>
+          <PrivacyDialog>
+            <span className="text-primary hover:text-primary/80 hover:underline cursor-pointer transition-colors font-medium">
+              Privacy Policy
+            </span>
+          </PrivacyDialog>
         </div>
       </div>
     </div>

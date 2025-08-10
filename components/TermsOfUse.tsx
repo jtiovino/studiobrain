@@ -2,8 +2,8 @@ import React from 'react';
 
 export default function TermsOfUse() {
   return (
-    <div className="space-y-6">
-      <div className="space-y-4">
+    <div className="space-y-6 sm:space-y-4">
+      <div className="space-y-4 sm:space-y-3">
         <h1 className="text-2xl font-bold text-foreground">Terms of Use</h1>
         <p className="text-sm text-muted-foreground">
           Last updated: August 7, 2025
@@ -22,11 +22,11 @@ export default function TermsOfUse() {
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-3">
         <h2 className="text-lg font-semibold text-foreground">
           1. Use of the App
         </h2>
-        <div className="text-sm text-muted-foreground leading-relaxed space-y-3">
+        <div className="text-sm text-muted-foreground leading-relaxed space-y-3 sm:space-y-2">
           <p>
             StudioBrain is provided &ldquo;as is&rdquo; for educational and
             informational purposes. It is not a substitute for professional
@@ -41,7 +41,7 @@ export default function TermsOfUse() {
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-3">
         <h2 className="text-lg font-semibold text-foreground">2. Accounts</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
           You are responsible for maintaining the confidentiality of your
@@ -49,7 +49,7 @@ export default function TermsOfUse() {
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-3">
         <h2 className="text-lg font-semibold text-foreground">3. AI Content</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
           StudioBrain uses OpenAI to generate suggestions and educational
@@ -59,7 +59,7 @@ export default function TermsOfUse() {
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-3">
         <h2 className="text-lg font-semibold text-foreground">
           4. Termination
         </h2>
@@ -69,7 +69,7 @@ export default function TermsOfUse() {
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-3">
         <h2 className="text-lg font-semibold text-foreground">
           5. Limitation of Liability
         </h2>
@@ -80,7 +80,7 @@ export default function TermsOfUse() {
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-3">
         <h2 className="text-lg font-semibold text-foreground">6. Changes</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
           We may update these Terms at any time. Continued use of StudioBrain
@@ -88,7 +88,7 @@ export default function TermsOfUse() {
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-3">
         <h2 className="text-lg font-semibold text-foreground">
           7. Age Requirements
         </h2>
@@ -98,7 +98,7 @@ export default function TermsOfUse() {
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-3">
         <h2 className="text-lg font-semibold text-foreground">
           8. Governing Law
         </h2>
@@ -108,7 +108,7 @@ export default function TermsOfUse() {
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-3">
         <h2 className="text-lg font-semibold text-foreground">
           9. Intellectual Property
         </h2>
@@ -119,7 +119,7 @@ export default function TermsOfUse() {
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-3">
         <h2 className="text-lg font-semibold text-foreground">
           10. Data Security
         </h2>
@@ -130,7 +130,7 @@ export default function TermsOfUse() {
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-3">
         <h2 className="text-lg font-semibold text-foreground">11. Contact</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
           If you have any questions, contact:{' '}

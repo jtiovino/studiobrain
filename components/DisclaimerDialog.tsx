@@ -26,7 +26,7 @@ export default function DisclaimerDialog({
           <DisclaimerButton onDisclaimerClick={() => {}} />
         </div>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] sm:justify-center">
         <DialogHeader>
           <DialogTitle>Legal Disclaimer</DialogTitle>
           <DialogDescription>
