@@ -783,6 +783,14 @@ function reframeUserPrompt(
     /sound.*\b(amp|pedal|guitar|pickup)/i,
   ];
 
+  // Patterns that indicate percussive/thumping technique requests
+  const percussivePatterns = [
+    /\b(thumping|thump|percussive)\b/i,
+    /\b(slap.*guitar|slapping)\b/i,
+    /\b(tambora|fingerstyle.*percussion)\b/i,
+    /\bpercussive.*fingerstyle\b/i,
+  ];
+
   // Common artist name patterns (expand this list as needed)
   const artistPatterns = [
     // Guitar players
@@ -800,7 +808,12 @@ function reframeUserPrompt(
     tonePatterns.some(pattern => pattern.test(lowerPrompt)) ||
     artistPatterns.some(pattern => pattern.test(lowerPrompt));
 
-  if (!isToneQuestion) {
+  // Check if this is a percussive technique request
+  const isPercussiveRequest = percussivePatterns.some(pattern =>
+    pattern.test(lowerPrompt)
+  );
+
+  if (!isToneQuestion && !isPercussiveRequest) {
     return originalPrompt;
   }
 
@@ -857,10 +870,29 @@ function reframeUserPrompt(
   };
 
   // Enhanced reframe for natural conversation flow
-  const reframedPrompt = `${originalPrompt
-    .replace(/^(how do i|how to|can you help me|help me)/i, '')
-    .trim()
-    .replace(/^to\s+/, '')}.${genreContext}
+  let reframedPrompt: string;
+
+  if (isPercussiveRequest) {
+    // Special handling for percussive/thumping technique requests
+    reframedPrompt = `${originalPrompt
+      .replace(/^(how do i|how to|can you help me|help me)/i, '')
+      .trim()
+      .replace(/^to\s+/, '')}.${genreContext}
+
+THUMPING/PERCUSSIVE TECHNIQUE CONTEXT:
+- Thumping technique was popularized by Tosin Abasi (Animals As Leaders) and is now used by artists like Tim Henson (Polyphia), Misha Mansoor (Periphery), Ichika Nito, and others
+- Uses proper notation: T = thumb thump/slap, X = muted percussive hit, P = pop/pull-off  
+- Combines bass-style slapping with classical fingerpicking for percussive and melodic elements
+- Key techniques: tambora/thumb slap near bridge, backbeat patterns (thumb on 1&3, fingers on 2&4), wrist thumps on body for bass drum effects
+- Start with simple patterns before combining melody + percussion
+
+Please provide specific exercises with proper tablature notation using these symbols and techniques.${genreContext ? `\n\nUser's musical influences: ${genreInfluence.join(', ')}.` : ''}`;
+  } else {
+    // Original tone/gear question handling
+    reframedPrompt = `${originalPrompt
+      .replace(/^(how do i|how to|can you help me|help me)/i, '')
+      .trim()
+      .replace(/^to\s+/, '')}.${genreContext}
 
 First, explain how to achieve this tone using authentic gear and techniques. Then naturally offer to show how to adapt it to my specific setup if relevant.
 
@@ -868,6 +900,7 @@ My gear includes:
 ${buildDetailedGearList()}
 
 When suggesting adaptations, be specific with plugin names, amp models, and effect types from my available tools.`;
+  }
 
   return reframedPrompt;
 }

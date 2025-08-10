@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 
 import ChatHistoryPanel from '@/components/ChatHistoryPanel';
+import DisclaimerDialog from '@/components/DisclaimerDialog';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { HydrationBoundary } from '@/components/HydrationBoundary';
 import SettingsButton from '@/components/SettingsButton';
@@ -3308,6 +3309,11 @@ export default function StudioBrain() {
               </Tabs>
             </div>
           </div>
+        </div>
+
+        {/* Legal Disclaimer Button - Bottom Right */}
+        <div className="fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6">
+          <DisclaimerDialog />
         </div>
       </HydrationBoundary>
     </ErrorBoundary>

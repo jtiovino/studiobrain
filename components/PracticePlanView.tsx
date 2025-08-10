@@ -101,9 +101,14 @@ export const PracticePlanView: React.FC<PracticePlanViewProps> = ({
 
               {/* TAB Snippet */}
               {step.tab_snippet && (
-                <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700">
-                  <div className="text-xs text-slate-400 mb-2">TAB:</div>
-                  <pre className="text-sm font-mono text-slate-200 whitespace-pre-wrap">
+                <div className="bg-slate-900/60 rounded-lg p-4 border border-slate-600/50 backdrop-blur-sm">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="text-xs font-medium text-slate-300 uppercase tracking-wide">
+                      Guitar Tab
+                    </div>
+                    <div className="h-px bg-gradient-to-r from-slate-600 to-transparent flex-1"></div>
+                  </div>
+                  <pre className="text-sm font-mono text-slate-100 whitespace-pre leading-relaxed overflow-x-auto selection:bg-slate-600 selection:text-white">
                     {step.tab_snippet}
                   </pre>
                 </div>
