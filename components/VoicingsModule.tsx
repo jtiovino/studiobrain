@@ -327,6 +327,7 @@ export default function VoicingsModule({ lessonMode }: VoicingsModuleProps) {
                     <VoicingFretboard
                       voicing={voicing}
                       tuning={voicing.tuning || ['E', 'A', 'D', 'G', 'B', 'E']}
+                      lessonMode={lessonMode}
                     />
 
                     {/* Additional Info */}

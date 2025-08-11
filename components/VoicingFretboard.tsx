@@ -7,11 +7,13 @@ import type { VoicingShape } from '@/lib/voicing-explorer-types';
 interface VoicingFretboardProps {
   voicing: VoicingShape;
   tuning?: string[];
+  lessonMode?: boolean;
 }
 
 export function VoicingFretboard({
   voicing,
   tuning = ['E', 'A', 'D', 'G', 'B', 'E'],
+  lessonMode = false,
 }: VoicingFretboardProps) {
   // Only render for guitar/bass voicings with frets
   if (
@@ -77,18 +79,22 @@ export function VoicingFretboard({
   );
 
   return (
-    <div className="space-y-3">
-      <Label className="text-zinc-300 text-base font-medium">
+    <div className="space-y-4">
+      <Label
+        className={`text-base font-medium ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}
+      >
         Fretboard Diagram
       </Label>
 
       {/* Fret position indicator */}
       <div className="flex justify-between items-center mb-2">
-        <div className="text-xs text-zinc-400">
+        <div className="text-xs text-muted-foreground">
           Fret positions: {startFret} - {endFret}
         </div>
         {startFret > 0 && (
-          <div className="text-xs text-zinc-400">Starting at {startFret}fr</div>
+          <div className="text-xs text-muted-foreground">
+            Starting at {startFret}fr
+          </div>
         )}
       </div>
 
@@ -102,10 +108,10 @@ export function VoicingFretboard({
               const status = fret === null ? 'X' : fret === 0 ? 'O' : '';
               return (
                 <div key={stringIndex} className="text-center">
-                  <div className="text-zinc-300 font-mono text-sm font-bold">
+                  <div className="text-foreground font-mono text-sm font-bold">
                     {status}
                   </div>
-                  <div className="text-zinc-500 text-xs">
+                  <div className="text-muted-foreground text-xs">
                     {tuning.slice().reverse()[stringIndex]}
                   </div>
                 </div>
@@ -115,7 +121,7 @@ export function VoicingFretboard({
       </div>
 
       {/* Main fretboard visualization */}
-      <div className="overflow-x-auto bg-zinc-900/80 p-6 rounded-lg border border-zinc-700">
+      <div className="overflow-x-auto bg-glass-bg backdrop-blur-xl p-6 rounded-xl border border-glass-border shadow-lg">
         <div className="min-w-[700px] relative">
           {fretboardNotes
             .slice()
@@ -136,22 +142,22 @@ export function VoicingFretboard({
                     <div
                       key={fretIndex}
                       className={`
-                      w-14 h-10 border border-zinc-600 flex items-center justify-center text-sm font-mono font-semibold
+                      w-14 h-10 border border-glass-border flex items-center justify-center text-sm font-mono font-semibold
                       ${
                         isPressed || isOpen
                           ? isRoot
-                            ? 'bg-red-500 text-white shadow-lg'
-                            : 'bg-blue-500 text-white shadow-lg'
+                            ? `${lessonMode ? 'bg-neon-cyan text-black shadow-lg shadow-neon-cyan/30' : 'bg-neon-purple text-white shadow-lg shadow-neon-purple/30'}`
+                            : `${lessonMode ? 'bg-neon-cyan/60 text-black shadow-md' : 'bg-neon-purple/60 text-white shadow-md'}`
                           : isMuted
-                            ? 'bg-zinc-800 text-zinc-600'
-                            : 'bg-zinc-700 text-zinc-400'
+                            ? 'bg-glass-bg/50 text-muted-foreground/50'
+                            : 'bg-glass-bg/80 text-muted-foreground'
                       }
-                      ${isPressed || isOpen ? 'ring-2 ring-white/30' : ''}
+                      ${isPressed || isOpen ? `ring-2 ${lessonMode ? 'ring-neon-cyan/50' : 'ring-neon-purple/50'}` : ''}
                       transition-all duration-200
                     `}
                     >
                       {actualFret === 0 ? (
-                        <span className="text-zinc-300 font-bold">|</span>
+                        <span className="text-foreground font-bold">|</span>
                       ) : isPressed || isOpen ? (
                         fingerNumber && fingerNumber > 0 ? (
                           <span className="text-xs font-bold">
@@ -176,34 +182,38 @@ export function VoicingFretboard({
         <div className="min-w-[700px] flex justify-between px-4">
           {fretRange.map((fret, index) => (
             <div key={index} className="text-center">
-              <div className="text-zinc-500 text-xs">{fret}</div>
+              <div className="text-muted-foreground text-xs">{fret}</div>
             </div>
           ))}
         </div>
       </div>
 
       {/* Legend */}
-      <div className="flex justify-center mt-4">
+      <div className="flex justify-center mt-6">
         <div className="flex gap-6 text-xs">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-red-500 rounded"></div>
-            <span className="text-zinc-400">Root Note</span>
+            <div
+              className={`w-4 h-4 rounded ${lessonMode ? 'bg-neon-cyan' : 'bg-neon-purple'}`}
+            ></div>
+            <span className="text-muted-foreground">Root Note</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-blue-500 rounded"></div>
-            <span className="text-zinc-400">Chord Tone</span>
+            <div
+              className={`w-4 h-4 rounded ${lessonMode ? 'bg-neon-cyan/60' : 'bg-neon-purple/60'}`}
+            ></div>
+            <span className="text-muted-foreground">Chord Tone</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-zinc-700 rounded border border-zinc-600"></div>
-            <span className="text-zinc-400">Available Note</span>
+            <div className="w-4 h-4 bg-glass-bg/80 rounded border border-glass-border"></div>
+            <span className="text-muted-foreground">Available Note</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-zinc-300 font-mono font-bold">X</span>
-            <span className="text-zinc-400">Muted</span>
+            <span className="text-foreground font-mono font-bold">X</span>
+            <span className="text-muted-foreground">Muted</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-zinc-300 font-mono font-bold">O</span>
-            <span className="text-zinc-400">Open</span>
+            <span className="text-foreground font-mono font-bold">O</span>
+            <span className="text-muted-foreground">Open</span>
           </div>
         </div>
       </div>
