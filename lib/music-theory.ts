@@ -22,7 +22,10 @@ export type ModeName =
   | 'aeolian'
   | 'locrian'
   | 'harmonicMinor'
-  | 'melodicMinor';
+  | 'melodicMinor'
+  | 'pentatonicMajor'
+  | 'pentatonicMinor'
+  | 'blues';
 export type ChordQuality =
   | 'major'
   | 'minor'
@@ -262,6 +265,36 @@ export const MODES: Record<ModeName, ModeInfo> = {
     ],
     romanNumerals: ['i', 'ii', 'III+', 'IV', 'V', 'vi°', 'vii°'],
   },
+  pentatonicMajor: {
+    name: 'pentatonicMajor',
+    displayName: 'Major Pentatonic',
+    intervals: [0, 2, 4, 7, 9],
+    characteristic:
+      'Five-note scale - bright, open sound used in folk, rock, and country',
+    parentScale: 'major',
+    chordQualities: ['major', 'minor', 'minor', 'major', 'minor'],
+    romanNumerals: ['I', 'ii', 'iii', 'V', 'vi'],
+  },
+  pentatonicMinor: {
+    name: 'pentatonicMinor',
+    displayName: 'Minor Pentatonic',
+    intervals: [0, 3, 5, 7, 10],
+    characteristic:
+      'Five-note scale - perfect for blues, rock solos, and world music',
+    parentScale: 'minor',
+    chordQualities: ['minor', 'major', 'major', 'minor', 'major'],
+    romanNumerals: ['i', 'III', 'IV', 'v', 'VII'],
+  },
+  blues: {
+    name: 'blues',
+    displayName: 'Blues Scale',
+    intervals: [0, 3, 5, 6, 7, 10],
+    characteristic:
+      'Minor pentatonic + flat 5th - essential for blues, rock, and jazz',
+    parentScale: 'minor',
+    chordQualities: ['minor', 'major', 'major', 'diminished', 'minor', 'major'],
+    romanNumerals: ['i', 'III', 'IV', 'iv°', 'v', 'VII'],
+  },
 };
 
 // Chord function definitions
@@ -498,6 +531,14 @@ export function normalizeModeNames(mode: string): ModeName {
     'harmonic minor': 'harmonicMinor',
     melodicminor: 'melodicMinor',
     'melodic minor': 'melodicMinor',
+    pentatonicmajor: 'pentatonicMajor',
+    'pentatonic major': 'pentatonicMajor',
+    'major pentatonic': 'pentatonicMajor',
+    pentatonicminor: 'pentatonicMinor',
+    'pentatonic minor': 'pentatonicMinor',
+    'minor pentatonic': 'pentatonicMinor',
+    blues: 'blues',
+    'blues scale': 'blues',
   };
   return modeMap[mode.toLowerCase()] || 'ionian';
 }
@@ -542,6 +583,21 @@ export function getCharacteristicIntervals(
       { interval: 8, name: '6th', quality: 'major' },
       { interval: 10, name: '7th', quality: 'major' },
       { interval: 2, name: '3rd', quality: 'minor' },
+    ],
+    pentatonicMajor: [
+      { interval: 2, name: '2nd', quality: 'major' },
+      { interval: 4, name: '3rd', quality: 'major' },
+      { interval: 7, name: '5th', quality: 'perfect' },
+    ],
+    pentatonicMinor: [
+      { interval: 3, name: '3rd', quality: 'minor' },
+      { interval: 5, name: '4th', quality: 'perfect' },
+      { interval: 10, name: '7th', quality: 'minor' },
+    ],
+    blues: [
+      { interval: 3, name: '3rd', quality: 'minor' },
+      { interval: 6, name: '5th', quality: 'diminished' },
+      { interval: 10, name: '7th', quality: 'minor' },
     ],
   };
 
@@ -663,6 +719,42 @@ export function getCommonProgressions(
         name: 'i-ii-V-i',
         numerals: ['i', 'ii', 'V', 'i'],
         description: 'Jazz minor progression',
+      },
+    ],
+    pentatonicMajor: [
+      {
+        name: 'I-V-vi-I',
+        numerals: ['I', 'V', 'vi', 'I'],
+        description: 'Country/folk progression',
+      },
+      {
+        name: 'I-ii-V-I',
+        numerals: ['I', 'ii', 'V', 'I'],
+        description: 'Simple pentatonic movement',
+      },
+    ],
+    pentatonicMinor: [
+      {
+        name: 'i-III-IV-i',
+        numerals: ['i', 'III', 'IV', 'i'],
+        description: 'Rock/blues progression',
+      },
+      {
+        name: 'i-VII-i',
+        numerals: ['i', 'VII', 'i'],
+        description: 'Pentatonic vamp',
+      },
+    ],
+    blues: [
+      {
+        name: 'I-IV-I-V',
+        numerals: ['I', 'IV', 'I', 'V'],
+        description: '12-bar blues progression',
+      },
+      {
+        name: 'i-iv-i-V7',
+        numerals: ['i', 'iv', 'i', 'V7'],
+        description: 'Minor blues progression',
       },
     ],
   };

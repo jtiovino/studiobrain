@@ -2427,6 +2427,24 @@ export default function StudioBrain() {
                                 >
                                   Melodic Minor
                                 </SelectItem>
+                                <SelectItem
+                                  value="pentatonicMajor"
+                                  className={`rounded-lg ${lessonMode ? 'focus:bg-neon-cyan/20 focus:text-neon-cyan data-[highlighted]:bg-neon-cyan/20 data-[highlighted]:text-neon-cyan' : 'focus:bg-neon-purple/20 focus:text-neon-purple data-[highlighted]:bg-neon-purple/20 data-[highlighted]:text-neon-purple'}`}
+                                >
+                                  Major Pentatonic
+                                </SelectItem>
+                                <SelectItem
+                                  value="pentatonicMinor"
+                                  className={`rounded-lg ${lessonMode ? 'focus:bg-neon-cyan/20 focus:text-neon-cyan data-[highlighted]:bg-neon-cyan/20 data-[highlighted]:text-neon-cyan' : 'focus:bg-neon-purple/20 focus:text-neon-purple data-[highlighted]:bg-neon-purple/20 data-[highlighted]:text-neon-purple'}`}
+                                >
+                                  Minor Pentatonic
+                                </SelectItem>
+                                <SelectItem
+                                  value="blues"
+                                  className={`rounded-lg ${lessonMode ? 'focus:bg-neon-cyan/20 focus:text-neon-cyan data-[highlighted]:bg-neon-cyan/20 data-[highlighted]:text-neon-cyan' : 'focus:bg-neon-purple/20 focus:text-neon-purple data-[highlighted]:bg-neon-purple/20 data-[highlighted]:text-neon-purple'}`}
+                                >
+                                  Blues Scale
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
