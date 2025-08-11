@@ -1,8 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import React, { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
+import React, { useState, useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -263,7 +263,7 @@ export default function UserSettingsForm() {
           <Select
             value={defaultTab}
             onValueChange={(
-              value: 'General' | 'Mix' | 'Theory' | 'Instrument'
+              value: 'General' | 'Mix' | 'Theory' | 'Instrument' | 'Practice'
             ) => set({ defaultTab: value })}
           >
             <SelectTrigger>
@@ -274,6 +274,7 @@ export default function UserSettingsForm() {
               <SelectItem value="Mix">Mix</SelectItem>
               <SelectItem value="Theory">Theory</SelectItem>
               <SelectItem value="Instrument">Instrument</SelectItem>
+              <SelectItem value="Practice">Practice</SelectItem>
             </SelectContent>
           </Select>
         </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import TermsOfUse from './TermsOfUse';
+
 import {
   Dialog,
   DialogContent,
@@ -9,6 +9,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+
+import TermsOfUse from './TermsOfUse';
 
 interface TermsDialogProps {
   children: React.ReactNode;

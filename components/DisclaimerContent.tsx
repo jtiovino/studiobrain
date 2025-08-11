@@ -1,6 +1,7 @@
 import React from 'react';
-import TermsDialog from './TermsDialog';
+
 import PrivacyDialog from './PrivacyDialog';
+import TermsDialog from './TermsDialog';
 
 interface DisclaimerContentProps {
   disclaimerText?: string;

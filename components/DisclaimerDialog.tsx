@@ -1,8 +1,7 @@
 'use client';
 
 import React from 'react';
-import DisclaimerButton from './DisclaimerButton';
-import DisclaimerContent from './DisclaimerContent';
+
 import {
   Dialog,
   DialogContent,
@@ -11,6 +10,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+
+import DisclaimerButton from './DisclaimerButton';
+import DisclaimerContent from './DisclaimerContent';
 
 interface DisclaimerDialogProps {
   disclaimerText?: string;

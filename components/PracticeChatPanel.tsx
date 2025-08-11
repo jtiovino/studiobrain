@@ -277,7 +277,7 @@ export const PracticeChatPanel: React.FC<PracticeChatPanelProps> = ({
               onChange={e => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Ask about this step, request changes, or get help..."
-              className="bg-glass-bg border-glass-border text-slate-200 placeholder:text-slate-400 resize-none"
+              className="bg-glass-bg border-glass-border text-slate-200 placeholder:text-slate-400 resize-none overflow-hidden"
               rows={2}
               disabled={isLoading}
             />

@@ -17,10 +17,10 @@ export default function DisclaimerButton({
   return (
     <button
       onClick={handleClick}
-      className="p-2 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 hover:bg-neutral-800/50 backdrop-blur-sm"
+      className="p-1.5 sm:p-2 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 hover:bg-neutral-800/50 backdrop-blur-sm"
       aria-label="View legal disclaimer"
     >
-      <Info className="w-6 h-6 text-white hover:text-indigo-400" />
+      <Info className="w-5 h-5 sm:w-6 sm:h-6 text-white hover:text-indigo-400" />
     </button>
   );
 }

@@ -255,7 +255,7 @@ export const PracticeStepCard: React.FC<PracticeStepCardProps> = ({
               value={stepState.notes || ''}
               onChange={e => onNotesChange(e.target.value)}
               placeholder="Add your notes about this step..."
-              className="bg-glass-bg border-glass-border text-slate-200 placeholder:text-slate-400 resize-none"
+              className="bg-glass-bg border-glass-border text-slate-200 placeholder:text-slate-400 resize-none overflow-hidden"
               rows={3}
             />
           )}

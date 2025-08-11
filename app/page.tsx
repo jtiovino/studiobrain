@@ -1,14 +1,5 @@
 'use client';
 
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  useLayoutEffect,
-  useMemo,
-} from 'react';
-import { useRouter } from 'next/navigation';
 import {
   Music,
   Guitar,
@@ -23,13 +14,21 @@ import {
   MessageCircle,
   Send,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+} from 'react';
 
 import ChatHistoryPanel from '@/components/ChatHistoryPanel';
 import DisclaimerDialog from '@/components/DisclaimerDialog';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { HydrationBoundary } from '@/components/HydrationBoundary';
 import SettingsButton from '@/components/SettingsButton';
-import { VoicingView } from '@/components/VoicingView';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -52,7 +51,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-
+import { VoicingView } from '@/components/VoicingView';
 import {
   getModeChords,
   getScaleNotes,
@@ -765,10 +764,39 @@ export default function StudioBrain() {
     return 'standard';
   }, []);
 
-  // Sync main screen lesson mode with user's Settings preference on mount
+  // Initialize tab based on user's default preference when first loading app
   useEffect(() => {
+    // Only run this once when the component mounts, if we're starting with default 'general' tab
+    // and the user has a different defaultTab preference
+    if (currentActiveTab === 'general') {
+      const tabMapping: Record<
+        string,
+        'general' | 'mix' | 'theory' | 'instrument' | 'practice'
+      > = {
+        General: 'general',
+        Mix: 'mix',
+        Theory: 'theory',
+        Instrument: 'instrument',
+        Practice: 'practice',
+      };
+
+      const preferredTab = tabMapping[defaultTab] || 'general';
+      if (preferredTab !== 'general') {
+        console.log('🎯 Setting initial tab to user default:', preferredTab);
+        setCurrentActiveTab(preferredTab);
+      }
+    }
+  }, [defaultTab, currentActiveTab, setCurrentActiveTab]);
+
+  // Initialize lesson mode from user's default setting (only on mount/when settings change)
+  useEffect(() => {
+    // Initialize session lesson mode from user's default preference
+    console.log(
+      '🎓 Initializing session lesson mode from user default:',
+      storeLessonMode
+    );
     setLessonMode(storeLessonMode);
-  }, [storeLessonMode]);
+  }, [storeLessonMode]); // Only depend on storeLessonMode, not local lessonMode
 
   // Sync guitar settings with user preferences
   useEffect(() => {
@@ -817,18 +845,31 @@ export default function StudioBrain() {
       storeCurrentTab !== currentActiveTab &&
       !hasHandledPageRefresh.current
     ) {
-      console.log('🆕 First load - setting tab to:', storeCurrentTab);
-      setCurrentActiveTabState(storeCurrentTab);
+      // Use storeCurrentTab if it's a valid tab, otherwise fall back to defaultTab
+      const tabMapping: Record<
+        string,
+        'general' | 'mix' | 'theory' | 'instrument' | 'practice'
+      > = {
+        General: 'general',
+        Mix: 'mix',
+        Theory: 'theory',
+        Instrument: 'instrument',
+        Practice: 'practice',
+      };
+      const targetTab = storeCurrentTab || tabMapping[defaultTab] || 'general';
+      console.log('🆕 First load - setting tab to:', targetTab);
+      setCurrentActiveTab(targetTab);
     }
   }, [
     storeCurrentTab,
     restoreFromSettings,
     loadSession,
-    setCurrentActiveTabState,
+    setCurrentActiveTab,
     currentActiveTab,
     loadTabMessages,
     handleSessionSelect,
     setSettingsSession,
+    defaultTab,
   ]); // Proper dependencies
 
   // Rehydration effect - restore last session and migrate old data
@@ -909,6 +950,7 @@ export default function StudioBrain() {
         Mix: 'mix',
         Theory: 'theory',
         Instrument: 'instrument',
+        Practice: 'practice',
       };
       const userDefaultTab = tabMapping[defaultTab] || 'general';
       setCurrentActiveTab(userDefaultTab);
@@ -1271,7 +1313,7 @@ export default function StudioBrain() {
     return (
       <div
         ref={scrollRef}
-        className={`h-96 max-h-[60vh] overflow-y-scroll mb-6 p-3 sm:p-4 rounded-xl border space-y-3 sm:space-y-4 chat-history-bg ${lessonMode ? 'lesson-mode' : ''}`}
+        className={`h-96 max-h-[60vh] overflow-y-auto mb-6 p-3 sm:p-4 rounded-xl border space-y-3 sm:space-y-4 chat-history-bg ${lessonMode ? 'lesson-mode' : ''}`}
         style={{
           WebkitOverflowScrolling: 'touch',
           overscrollBehavior: 'contain',
@@ -1971,7 +2013,6 @@ export default function StudioBrain() {
                     checked={lessonMode}
                     onCheckedChange={checked => {
                       setLessonMode(checked);
-                      set({ lessonMode: checked });
                     }}
                     className={
                       lessonMode ? 'data-[state=checked]:bg-neon-cyan' : ''
@@ -2137,7 +2178,7 @@ export default function StudioBrain() {
                           onKeyDown={e =>
                             handleKeyDown(e, handleGeneralQuestion)
                           }
-                          className={`glass-textarea min-h-[100px] bg-glass-bg border border-glass-border rounded-xl p-4 theme-text transition-all duration-300 hover:border-slate-400 ${
+                          className={`glass-textarea min-h-[100px] bg-glass-bg border border-glass-border rounded-xl p-4 theme-text transition-all duration-300 hover:border-slate-400 overflow-hidden ${
                             lessonMode
                               ? 'focus:border-neon-cyan focus:shadow-lg focus:shadow-neon-cyan/20'
                               : 'focus:border-neon-purple focus:shadow-lg focus:shadow-neon-purple/20'
@@ -2207,7 +2248,7 @@ export default function StudioBrain() {
                           value={mixQuestion}
                           onChange={e => setMixQuestion(e.target.value)}
                           onKeyDown={e => handleKeyDown(e, handleMixQuestion)}
-                          className={`glass-textarea min-h-[100px] bg-glass-bg border border-glass-border rounded-xl p-4 theme-text transition-all duration-300 hover:border-slate-400 ${
+                          className={`glass-textarea min-h-[100px] bg-glass-bg border border-glass-border rounded-xl p-4 theme-text transition-all duration-300 hover:border-slate-400 overflow-hidden ${
                             lessonMode
                               ? 'focus:border-neon-cyan focus:shadow-lg focus:shadow-neon-cyan/20'
                               : 'focus:border-neon-purple focus:shadow-lg focus:shadow-neon-purple/20'
@@ -2826,7 +2867,7 @@ export default function StudioBrain() {
                           onKeyDown={e =>
                             handleKeyDown(e, handleTheoryQuestion)
                           }
-                          className={`glass-textarea min-h-[100px] bg-glass-bg border border-glass-border rounded-xl p-4 theme-text transition-all duration-300 hover:border-slate-400 ${
+                          className={`glass-textarea min-h-[100px] bg-glass-bg border border-glass-border rounded-xl p-4 theme-text transition-all duration-300 hover:border-slate-400 overflow-hidden ${
                             lessonMode
                               ? 'focus:border-neon-cyan focus:shadow-lg focus:shadow-neon-cyan/20'
                               : 'focus:border-neon-purple focus:shadow-lg focus:shadow-neon-purple/20'
@@ -3206,7 +3247,7 @@ export default function StudioBrain() {
                               }
                             }}
                             placeholder="Ask about practice goals, get suggestions, or request help..."
-                            className="bg-glass-bg border-glass-border text-foreground placeholder:text-muted-foreground resize-none"
+                            className="bg-glass-bg border-glass-border text-foreground placeholder:text-muted-foreground resize-none overflow-hidden"
                             rows={2}
                             disabled={practiceChatLoading}
                           />

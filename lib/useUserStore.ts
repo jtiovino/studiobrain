@@ -12,7 +12,7 @@ interface UserState {
   lessonMode: boolean;
   flipFretboardView: boolean;
   theme: 'light' | 'dark' | 'system';
-  defaultTab: 'General' | 'Mix' | 'Theory' | 'Instrument';
+  defaultTab: 'General' | 'Mix' | 'Theory' | 'Instrument' | 'Practice';
   currentTab: 'general' | 'mix' | 'theory' | 'instrument' | 'practice';
   gear: {
     guitar: string[];

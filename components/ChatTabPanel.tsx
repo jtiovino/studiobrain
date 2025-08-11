@@ -52,7 +52,7 @@ export function ChatTabPanel({
     return (
       <div
         ref={scrollRef}
-        className="h-80 sm:h-96 max-h-[50vh] sm:max-h-[60vh] overflow-y-scroll mb-6 p-3 sm:p-4 rounded-xl border space-y-3 sm:space-y-4"
+        className="h-80 sm:h-96 max-h-[50vh] sm:max-h-[60vh] overflow-y-auto mb-6 p-3 sm:p-4 rounded-xl border space-y-3 sm:space-y-4"
         style={{
           WebkitOverflowScrolling: 'touch',
           scrollbarWidth: 'thin',
@@ -134,7 +134,7 @@ export function ChatTabPanel({
             value={inputValue}
             onChange={e => onInputChange(e.target.value)}
             placeholder={`Ask about ${title.toLowerCase()}...`}
-            className="w-full p-3 sm:p-4 rounded-xl border border-zinc-700 bg-zinc-800/50 text-white placeholder-zinc-400 resize-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors touch-manipulation"
+            className="w-full p-3 sm:p-4 rounded-xl border border-zinc-700 bg-zinc-800/50 text-white placeholder-zinc-400 resize-none overflow-hidden focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors touch-manipulation"
             rows={3}
             onKeyDown={e => {
               if (e.key === 'Enter' && !e.shiftKey) {

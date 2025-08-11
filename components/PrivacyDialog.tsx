@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import PrivacyPolicy from './PrivacyPolicy';
+
 import {
   Dialog,
   DialogContent,
@@ -9,6 +9,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+
+import PrivacyPolicy from './PrivacyPolicy';
 
 interface PrivacyDialogProps {
   children: React.ReactNode;
