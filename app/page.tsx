@@ -51,7 +51,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { VoicingView } from '@/components/VoicingView';
+import VoicingsModule from '@/components/VoicingsModule';
 import {
   getModeChords,
   getScaleNotes,
@@ -83,7 +83,6 @@ import {
 import { useSessionStore } from '@/lib/useSessionStore';
 import { useUserStore } from '@/lib/useUserStore';
 import { stripMarkdown } from '@/lib/utils';
-import { ChordShape } from '@/lib/voicings';
 
 interface TabNote {
   string: number;
@@ -133,8 +132,6 @@ export default function StudioBrain() {
   const [tuningChangeAnimation] = useState(false);
   const [fretboardFlipped, setFretboardFlipped] = useState(false); // Default to standard view (high e on top, low E on bottom)
   const [flipAnimation, setFlipAnimation] = useState(false);
-  const [selectedVoicing, setSelectedVoicing] = useState<string | null>(null);
-  const [voicingView, setVoicingView] = useState(false);
   const [showChatHistory, setShowChatHistory] = useState(false);
   const [currentActiveTab, setCurrentActiveTabState] = useState<
     'general' | 'mix' | 'theory' | 'instrument' | 'practice'
@@ -430,12 +427,6 @@ export default function StudioBrain() {
     );
   };
 
-  // Function to go back from voicing view
-  const handleBackFromVoicing = () => {
-    setVoicingView(false);
-    setSelectedVoicing(null);
-  };
-
   // Function to navigate to settings for tuning change
   const handleChangeTuning = () => {
     console.log('🔧 Navigating to settings from tab:', currentActiveTab);
@@ -591,105 +582,6 @@ export default function StudioBrain() {
   };
 
   // Function to handle chord playback using Web Audio API
-  const handlePlayChord = (chord: ChordShape) => {
-    console.log('Playing chord:', chord.name, 'with frets:', chord.frets);
-
-    // Simple audio feedback using Web Audio API
-    try {
-      if (typeof window === 'undefined') return;
-
-      // Check for Web Audio API support
-      const AudioContextClass =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext?: typeof AudioContext })
-          .webkitAudioContext;
-      if (!AudioContextClass) {
-        console.log('Web Audio API not supported');
-        return;
-      }
-
-      const audioContext = new AudioContextClass();
-
-      // Handle audio context state
-      if (audioContext.state === 'suspended') {
-        audioContext.resume().catch(err => {
-          console.log('Could not resume audio context:', err);
-          return;
-        });
-      }
-
-      const now = audioContext.currentTime;
-
-      // Get notes from fret positions (simplified mapping)
-      const stringNotes = currentTuning.strings;
-      if (!stringNotes || !Array.isArray(stringNotes)) {
-        console.log('Invalid tuning data');
-        return;
-      }
-
-      const playableNotes = chord.frets
-        .map((fret, index) => {
-          if (fret === null || index >= stringNotes.length) return null; // muted string or invalid index
-          const stringNote = stringNotes[index];
-          if (!stringNote) return null;
-
-          // Simple note frequency calculation (very basic)
-          const noteFreqs: { [key: string]: number } = {
-            E: 82.41,
-            F: 87.31,
-            'F#': 92.5,
-            G: 98.0,
-            'G#': 103.83,
-            A: 110.0,
-            'A#': 116.54,
-            B: 123.47,
-            C: 130.81,
-            'C#': 138.59,
-            D: 146.83,
-            'D#': 155.56,
-          };
-          const baseFreq = noteFreqs[stringNote] || 110;
-          return baseFreq * Math.pow(2, fret / 12); // Each fret is a semitone
-        })
-        .filter(freq => freq !== null) as number[];
-
-      if (playableNotes.length === 0) {
-        console.log('No playable notes found');
-        return;
-      }
-
-      // Play each note briefly
-      playableNotes.forEach((freq, i) => {
-        try {
-          const oscillator = audioContext.createOscillator();
-          const gainNode = audioContext.createGain();
-
-          oscillator.connect(gainNode);
-          gainNode.connect(audioContext.destination);
-
-          oscillator.frequency.setValueAtTime(freq, now + i * 0.1);
-          oscillator.type = 'sawtooth';
-
-          gainNode.gain.setValueAtTime(0, now + i * 0.1);
-          gainNode.gain.linearRampToValueAtTime(0.3, now + i * 0.1 + 0.01);
-          gainNode.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.5);
-
-          oscillator.start(now + i * 0.1);
-          oscillator.stop(now + i * 0.1 + 0.5);
-
-          // Clean up oscillator after use
-          oscillator.addEventListener('ended', () => {
-            oscillator.disconnect();
-            gainNode.disconnect();
-          });
-        } catch (noteError) {
-          console.log('Error playing note:', noteError);
-        }
-      });
-    } catch (error) {
-      console.log('Audio playback not available:', error);
-    }
-  };
 
   // Parse custom tuning strings like "EADGBE", "E-A-D-G-B-E", "E A D G B E"
   const parseCustomTuning = (
@@ -2921,94 +2813,86 @@ export default function StudioBrain() {
                 </TabsContent>
 
                 <TabsContent value="instrument" className="mt-6">
-                  {voicingView && selectedVoicing ? (
-                    <VoicingView
-                      selectedVoicing={selectedVoicing}
-                      instrument={selectedInstrument as 'guitar' | 'piano'}
-                      tuning={currentTuning.strings}
-                      currentKey={selectedChord}
-                      onBack={handleBackFromVoicing}
-                      onPlayChord={handlePlayChord}
-                    />
-                  ) : (
-                    <>
-                      <div className="mt-8">
-                        <Card className="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl shadow-2xl">
-                          <CardHeader className="pb-6">
-                            <CardTitle
-                              className={`flex items-center gap-3 text-2xl font-bold ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}
-                            >
-                              <div
-                                className={`p-2 rounded-lg ${lessonMode ? 'bg-neon-cyan/20' : 'bg-neon-purple/20'}`}
-                              >
-                                <Lightbulb
-                                  className={`w-6 h-6 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}
-                                />
-                              </div>
-                              Ask StudioBrain
-                            </CardTitle>
-                            <CardDescription
-                              className={`text-lg ${lessonMode ? 'text-muted-foreground' : 'text-muted-foreground'}`}
-                            >
-                              Get instrument-specific advice and techniques
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent className="space-y-6 pt-0">
-                            <div className="space-y-3">
-                              <Label
-                                htmlFor="instrument-question"
-                                className={`text-base font-medium ${lessonMode ? 'text-slate-200' : 'text-slate-200'}`}
-                              >
-                                Your Question
-                              </Label>
-                              <Textarea
-                                id="instrument-question"
-                                placeholder="Ask about your gear, tone settings, voicings, or how to practice better."
-                                value={instrumentQuestion}
-                                onChange={e =>
-                                  setInstrumentQuestion(e.target.value)
-                                }
-                                onKeyDown={e =>
-                                  handleKeyDown(e, handleInstrumentQuestion)
-                                }
-                                className={`glass-textarea min-h-[100px] bg-glass-bg border border-glass-border rounded-xl p-4 theme-text transition-all duration-300 hover:border-slate-400 ${
-                                  lessonMode
-                                    ? 'focus:border-neon-cyan focus:shadow-lg focus:shadow-neon-cyan/20'
-                                    : 'focus:border-neon-purple focus:shadow-lg focus:shadow-neon-purple/20'
-                                }`}
-                              />
-                            </div>
-                            <Button
-                              onClick={handleInstrumentQuestion}
-                              disabled={
-                                instrumentLoading || !instrumentQuestion.trim()
-                              }
-                              className={`w-full h-12 font-semibold text-lg rounded-xl transition-all duration-300 disabled:opacity-50 ${
-                                lessonMode
-                                  ? 'bg-gradient-to-r from-[#22d3ee] to-[#3b82f6] hover:from-[#22d3ee]/90 hover:to-[#3b82f6]/90 text-black shadow-lg shadow-[#22d3ee]/30 hover:shadow-[#22d3ee]/50'
-                                  : 'bg-gradient-to-r from-[#a855f7] to-[#ec4899] hover:from-[#a855f7]/90 hover:to-[#ec4899]/90 text-white shadow-lg shadow-[#a855f7]/30 hover:shadow-[#a855f7]/50'
-                              }`}
-                            >
-                              {instrumentLoading ? (
-                                <>
-                                  <Loader2 className="mr-3 h-5 w-5 animate-spin" />
-                                  Getting tips...
-                                </>
-                              ) : (
-                                'Ask StudioBrain'
-                              )}
-                            </Button>
-                            {renderMessageList(
-                              instrumentMessages,
-                              instrumentScrollRef,
-                              'instrument',
-                              instrumentLoading
-                            )}
-                          </CardContent>
-                        </Card>
-                      </div>
-                    </>
-                  )}
+                  <div className="space-y-6">
+                    {/* Chat Section */}
+                    <Card className="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl shadow-2xl">
+                      <CardHeader className="pb-6">
+                        <CardTitle
+                          className={`flex items-center gap-3 text-2xl font-bold ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}
+                        >
+                          <div
+                            className={`p-2 rounded-lg ${lessonMode ? 'bg-neon-cyan/20' : 'bg-neon-purple/20'}`}
+                          >
+                            <Lightbulb
+                              className={`w-6 h-6 ${lessonMode ? 'text-neon-cyan' : 'text-neon-purple'}`}
+                            />
+                          </div>
+                          Ask StudioBrain
+                        </CardTitle>
+                        <CardDescription
+                          className={`text-lg ${lessonMode ? 'text-muted-foreground' : 'text-muted-foreground'}`}
+                        >
+                          Get instrument-specific advice, techniques, and chord
+                          voicing help
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-6 pt-0">
+                        <div className="space-y-3">
+                          <Label
+                            htmlFor="instrument-question"
+                            className={`text-base font-medium ${lessonMode ? 'text-slate-200' : 'text-slate-200'}`}
+                          >
+                            Your Question
+                          </Label>
+                          <Textarea
+                            id="instrument-question"
+                            placeholder="Ask about your gear, tone settings, chord voicings, or how to practice better."
+                            value={instrumentQuestion}
+                            onChange={e =>
+                              setInstrumentQuestion(e.target.value)
+                            }
+                            onKeyDown={e =>
+                              handleKeyDown(e, handleInstrumentQuestion)
+                            }
+                            className={`glass-textarea min-h-[100px] bg-glass-bg border border-glass-border rounded-xl p-4 theme-text transition-all duration-300 hover:border-slate-400 ${
+                              lessonMode
+                                ? 'focus:border-neon-cyan focus:shadow-lg focus:shadow-neon-cyan/20'
+                                : 'focus:border-neon-purple focus:shadow-lg focus:shadow-neon-purple/20'
+                            }`}
+                          />
+                        </div>
+                        <Button
+                          onClick={handleInstrumentQuestion}
+                          disabled={
+                            instrumentLoading || !instrumentQuestion.trim()
+                          }
+                          className={`w-full h-12 font-semibold text-lg rounded-xl transition-all duration-300 disabled:opacity-50 ${
+                            lessonMode
+                              ? 'bg-gradient-to-r from-[#22d3ee] to-[#3b82f6] hover:from-[#22d3ee]/90 hover:to-[#3b82f6]/90 text-black shadow-lg shadow-[#22d3ee]/30 hover:shadow-[#22d3ee]/50'
+                              : 'bg-gradient-to-r from-[#a855f7] to-[#ec4899] hover:from-[#a855f7]/90 hover:to-[#ec4899]/90 text-white shadow-lg shadow-[#a855f7]/30 hover:shadow-[#a855f7]/50'
+                          }`}
+                        >
+                          {instrumentLoading ? (
+                            <>
+                              <Loader2 className="mr-3 h-5 w-5 animate-spin" />
+                              Getting tips...
+                            </>
+                          ) : (
+                            'Ask StudioBrain'
+                          )}
+                        </Button>
+                        {renderMessageList(
+                          instrumentMessages,
+                          instrumentScrollRef,
+                          'instrument',
+                          instrumentLoading
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* Chord Voicings Section */}
+                    <VoicingsModule lessonMode={lessonMode} />
+                  </div>
                 </TabsContent>
 
                 <TabsContent value="practice" className="mt-8">
