@@ -42,7 +42,7 @@ export function VoicingFretboard({
     const stringNotes: string[][] = [];
 
     // Calculate fret range - show wider range than compact version
-    const playedFrets = voicing.frets.filter(
+    const playedFrets = voicing.frets!.filter(
       f => f !== null && f > 0
     ) as number[];
     const minFret = playedFrets.length > 0 ? Math.min(...playedFrets) : 0;
@@ -66,7 +66,7 @@ export function VoicingFretboard({
   };
 
   const fretboardNotes = generateFretboardNotes();
-  const playedFrets = voicing.frets.filter(
+  const playedFrets = voicing.frets!.filter(
     f => f !== null && f > 0
   ) as number[];
   const minFret = playedFrets.length > 0 ? Math.min(...playedFrets) : 0;
@@ -101,8 +101,8 @@ export function VoicingFretboard({
       {/* String status indicators */}
       <div className="flex justify-center mb-2">
         <div className="min-w-[700px] flex justify-between px-4">
-          {voicing.frets
-            .slice()
+          {voicing
+            .frets!.slice()
             .reverse()
             .map((fret, stringIndex) => {
               const status = fret === null ? 'X' : fret === 0 ? 'O' : '';
@@ -131,11 +131,11 @@ export function VoicingFretboard({
                 {string.map((note, fretIndex) => {
                   const actualFret = startFret + fretIndex;
                   const reversedStringIndex = tuning.length - 1 - stringIndex;
-                  const voicingFret = voicing.frets[reversedStringIndex];
+                  const voicingFret = voicing.frets![reversedStringIndex];
                   const isPressed = voicingFret === actualFret;
                   const isRoot = note === voicing.root && isPressed;
                   const isOpen = voicingFret === 0 && actualFret === 0;
-                  const isMuted = voicing.frets[reversedStringIndex] === null;
+                  const isMuted = voicing.frets![reversedStringIndex] === null;
                   const fingerNumber = voicing.fingers?.[reversedStringIndex];
 
                   return (
