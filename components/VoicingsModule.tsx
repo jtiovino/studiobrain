@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { Music, Loader2, AlertCircle, Guitar } from 'lucide-react';
+import { Loader2, AlertCircle, Guitar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -34,11 +34,9 @@ interface VoicingsModuleProps {
 }
 
 export default function VoicingsModule({ lessonMode }: VoicingsModuleProps) {
-  const { mainInstrument, preferredTuning } = useUserStore();
+  const { mainInstrument } = useUserStore();
 
-  const [instrument, setInstrument] = useState<Instrument>(
-    mainInstrument as Instrument
-  );
+  const [instrument] = useState<Instrument>(mainInstrument as Instrument);
   const [chordRoot, setChordRoot] = useState('C');
   const [chordQuality, setChordQuality] = useState('major');
   const [chordExtension, setChordExtension] = useState('');

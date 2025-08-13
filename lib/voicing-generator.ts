@@ -38,20 +38,20 @@ const NOTE_TO_SEMITONE: Record<string, number> = {
 };
 
 // Semitone to note mapping
-const SEMITONE_TO_NOTE = [
-  'C',
-  'C#',
-  'D',
-  'D#',
-  'E',
-  'F',
-  'F#',
-  'G',
-  'G#',
-  'A',
-  'A#',
-  'B',
-];
+// const SEMITONE_TO_NOTE = [
+//   'C',
+//   'C#',
+//   'D',
+//   'D#',
+//   'E',
+//   'F',
+//   'F#',
+//   'G',
+//   'G#',
+//   'A',
+//   'A#',
+//   'B',
+// ];
 
 // Quality mapping for chord lookup
 const QUALITY_MAP: Record<string, string> = {
@@ -254,7 +254,7 @@ function getCuratedVoicings(
 function getGuitarVoicingsFromDatabase(
   root: string,
   quality: string,
-  constraints: Constraints
+  _constraints: Constraints
 ): VoicingShape[] {
   const voicings: VoicingShape[] = [];
 
@@ -411,7 +411,7 @@ function getDifficultyScore(
 function applyConstraints(
   candidates: VoicingShape[],
   constraints: Constraints,
-  instrument: Instrument
+  _instrument: Instrument
 ): VoicingShape[] {
   return candidates.filter(voicing => {
     // Fret range filtering

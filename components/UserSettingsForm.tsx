@@ -23,7 +23,7 @@ import { useUserStore } from '@/lib/useUserStore';
 export default function UserSettingsForm() {
   const router = useRouter();
   const hasHydrated = useHydration();
-  const { restoreFromSettings } = useChatHistoryStore();
+  const {} = useChatHistoryStore();
 
   const {
     userLevel,

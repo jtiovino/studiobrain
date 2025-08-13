@@ -123,7 +123,7 @@ function CompactVoicing({
 
 const VoicingExplorer = forwardRef<VoicingExplorerRef, VoicingExplorerProps>(
   ({ lessonMode, onVoicingSelect }, ref) => {
-    const { mainInstrument, preferredTuning } = useUserStore();
+    const { mainInstrument } = useUserStore();
 
     const [instrument, setInstrument] = useState<Instrument>(
       mainInstrument as Instrument

@@ -50,7 +50,7 @@ export function VoicingFretboard({
     const startFret = Math.max(0, minFret - 1);
     const endFret = Math.max(12, maxFret + 2);
 
-    tuning.forEach((stringNote, stringIndex) => {
+    tuning.forEach((stringNote, _stringIndex) => {
       const notes: string[] = [];
       const baseNoteIndex = noteNames.indexOf(stringNote);
 

@@ -13,7 +13,7 @@ const NOTE = '(?:A#?|Bb|C#?|Db|D#?|Eb|F#?|Gb|G#?|Ab|B)';
  */
 export function parseToConstraints(
   input: string,
-  base: Constraints = {}
+  _base: Constraints = {}
 ): Partial<Constraints> {
   const s = input.toLowerCase();
   const patch: Partial<Constraints> = {};
@@ -164,9 +164,7 @@ function normalizeNote(note: string): string {
  * @param input - Natural language input
  * @returns Parsed chord information or null if no chord found
  */
-export function parseChordFromText(
-  input: string
-): {
+export function parseChordFromText(input: string): {
   root: string;
   quality?: string;
   extension?: string;
