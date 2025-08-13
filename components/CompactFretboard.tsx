@@ -49,7 +49,7 @@ export function CompactFretboard({
   const config = sizeConfig[size];
 
   // Calculate fret range - show 4 frets starting from the lowest played fret
-  const playedFrets = voicing.frets.filter(
+  const playedFrets = voicing.frets!.filter(
     f => f !== null && f > 0
   ) as number[];
   const minFret = playedFrets.length > 0 ? Math.min(...playedFrets) : 1;
@@ -107,8 +107,8 @@ export function CompactFretboard({
 
           {/* String status indicators at top */}
           <div className="flex justify-center mb-1">
-            {voicing.frets
-              .slice()
+            {voicing
+              .frets!.slice()
               .reverse()
               .map((fret, stringIndex) => {
                 const status = fret === null ? 'X' : fret === 0 ? 'O' : '';
@@ -130,7 +130,7 @@ export function CompactFretboard({
                 {strings.map(stringIndex => {
                   // Reverse string order for display (string 5 = high E, string 0 = low E)
                   const reversedStringIndex = stringCount - 1 - stringIndex;
-                  const fretValue = voicing.frets[reversedStringIndex];
+                  const fretValue = voicing.frets![reversedStringIndex];
                   const fingerValue = voicing.fingers?.[reversedStringIndex];
 
                   const isPressed = fretValue === fretNumber;
